@@ -1,2 +1,33 @@
 \Chapter{REVUE DE LITTÉRATURE}\label{sec:RevLitt}
-Texte.
+
+Le \emph{model-checking} rassemble des techniques permettant de vérifier
+et valider des systèmes. Ces techniques se basent sur l'exploration
+exhaustive d'un modèle du système, c'est à dire d'une représentation
+abstraite et simplifiée de celui-ci. Historiquement, le model-checking a
+tout d'abord été utilisé pour la vérification de composants
+électroniques. Les techniques ont ensuite été adaptées afin de permettre
+la validation de programmes. Nous allons par la suite nous intéresser à
+ces techniques uniquement.
+
+De nombreux algorithmes de model-checking ont été développés en fonction
+des propriétés à vérifier sur le système, du formalisme dans lequel est
+exprimé le modèle et de la complexité de celui-ci.
+
+Dans cette partie, nous présentons les principales techniques de
+model-checking logiciel et nous identifions leurs avantages et
+inconvénients respectifs.
+
+Pour chacune de ces techniques, nous identifions les outils les plus performant
+les implémentant à l'heure actuelle. Nous restreignons cependant cette étude au cadre
+qui nous intéressera pour la suite de ce rapport. Nous ne considèrerons donc que des
+outils capables de vérifier des programmes concurrents en C, suivant le modèle de
+d'exécution définis par la norme POSIX (pthread).
+
+\textbf{Structure :} Dans la section~\ref{sec:model-checking-logiciel}, nous
+définissons le model-checking logiciel et une représentation formelle des modèle
+qui lui sont associés. Dans la section~\ref{sec:specification}, nous présentons
+les types de propriétés des programmes vérifiables grâce au model-checking et
+les formalismes utilisés pour les exprimer et les représenter formellement.
+Enfin, dans la section~\ref{sec:techniques-et-outils-de-model-checking}, nous
+présentons différentes techniques utilisées pour le model-checking de programmes
+multi-thread ainsi que les outils qui les implémentent.
