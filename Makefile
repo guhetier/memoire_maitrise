@@ -23,7 +23,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-TEXINPUTS += :./dia:./gnuplot:./images:./modules
+TEXINPUTS += :./dot:./dia:./gnuplot:./images:./modules
 export TEXINPUTS
 
 SRC	= Document.tex
@@ -59,6 +59,7 @@ $(SRC:%.tex=%.dvi): $(SRC) $(SRC:%.tex=%.bib) images $(shell ls -1 images/*.eps 
 images:
 	@if [ -d dia ]; then cd dia; ${MAKE} -s -j 2; fi
 	@if [ -d gnuplot ]; then cd gnuplot; ${MAKE} -s -j 2; fi
+	@if [ -d dot ]; then cd dot; ${MAKE} -s -j 2; fi
 
 show: $(SRC:%.tex=%.dvi)
 	@$(XDVI) $< &
