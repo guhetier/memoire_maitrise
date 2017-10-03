@@ -18,10 +18,10 @@ model-checking logiciel et nous identifions leurs avantages et
 inconvénients respectifs.
 
 Pour chacune de ces techniques, nous identifions les outils les plus performant
-les implémentant à l'heure actuelle. Nous restreignons cependant cette étude au cadre
-qui nous intéressera pour la suite de ce rapport. Nous ne considèrerons donc que des
-outils capables de vérifier des programmes concurrents en C, suivant le modèle de
-d'exécution définis par la norme POSIX (pthread).
+les implémentant à l'heure actuelle. Nous restreignons cependant cette étude au
+cadre qui nous intéressera pour la suite de ce rapport. Nous ne considèrerons
+donc que des outils capables de vérifier des programmes concurrents en C,
+suivant le modèle de d'exécution définis par la norme POSIX (pthread).
 
 \textbf{Structure :} Dans la section~\ref{sec:model-checking-logiciel}, nous
 définissons le model-checking logiciel et une représentation formelle des modèle
@@ -31,3 +31,231 @@ les formalismes utilisés pour les exprimer et les représenter formellement.
 Enfin, dans la section~\ref{sec:techniques-et-outils-de-model-checking}, nous
 présentons différentes techniques utilisées pour le model-checking de programmes
 multi-thread ainsi que les outils qui les implémentent.
+
+\section{Model-checking logiciel}\label{sec:model-checking-logiciel}
+
+Le model-checking permet de vérifier qu'un système respecte une
+spécification donnée. Le principe sous-jacent est de mener une recherche
+exhaustive à travers une modélisation du système plutôt que de
+construire une preuve formelle de validité. Alors qu'une telle preuve
+peut demander une certaine part d'intuition, le model-checking permet
+une approche plus systématique, qui peut être plus facilement
+automatisée.
+
+\subsection{Modèle}
+
+
+Le point caractéristique du model-checking est l'utilisation de
+\emph{modèles} des systèmes à vérifier. Un modèle est une représentation
+abstraite du système. Au lieu de vérifier un système directement, les techniques
+de modèle checking s'appliquent sur le modèle du système. On considère un
+système comme correct lorsque son modèle ne contient pas d'erreurs.
+
+L'origine des modèle est liée au domaine d'application initial du
+model-checking : la vérification du design de composants électroniques. Il
+était nécessaire de représenter ces derniers de manière abstraite afin de les
+vérifier, ce qui a donné naissance à la notion de modèles.
+
+L'utilisation d'un modèle permet de simplifier les tâches de vérification : un
+modèle bien conçu capture le fonctionnement du système en retirant les détails
+n'ayant pas d'impact sur les propriétés à vérifier. Cette version simplifiée du
+système permet ainsi de réaliser des tâches de vérification complexes, qui ne
+pourraient aboutir autrement. Cependant, le modèle doit être suffisamment fidèle
+pour préserver les propriétés à vérifier. Un modèle trop simple pourrait
+provoquer l'apparition de faux positifs ou pire, ne pas contenir une erreur
+pourtant bien présente dans le système.
+
+La phase de modélisation est donc une phase délicate et propice aux erreurs. Il
+est nécessaire de bâtir un équilibre entre l'abstraction du système et le
+respect de son fonctionnement, cet équilibre dépendant des propriétés que l'on
+souhaite vérifier. La modélisation demande donc à la fois une bonne connaissance
+du système et des outils de model-checking utilisés. Les tendances actuelles
+visent à réduire l'intervention humaine dans la phase de modélisation en
+automatisant celle-ci.
+
+\subsection{Système de transitions et trace d'exécution}
+
+Un modèle prends souvent la forme d'un système de transitions.
+
+\begin{description}
+\item[Système de transitions]
+  Formellement, un système de transitions est une paire \((S, \rightarrow)\),
+  avec :
+
+\begin{itemize}
+\item
+  \(S\) l'ensemble des états du système ;
+\item
+  \(\rightarrow \subset S \times S\) la relation de transitions du
+  système ;
+\end{itemize}
+\end{description}
+
+Intuitivement, les états d'un système de transitions représentent un
+statut possible du système, tandis que les transitions représentent les
+actions qui peuvent le faire évoluer.
+
+\begin{description}
+\item[Trace d'exécution]
+Une trace d'exécution est un chemin dans le système de transition
+représentant le modèle, possiblement infini, dont le premier état est
+l'état initial du modèle. Une trace d'exécution est donc formé d'une
+suite \(s_0, s_1, .. \in S\) d'états, avec \(s_0\) un état initial, et
+d'une suite \(t_0, t_1, ... \in \rightarrow\) de transitions telles que
+\(\forall i, t_i = (s_i, s_{i+1})\).
+\end{description}
+
+Le model-checking consiste à examiner l'ensemble des traces
+d'exécution du modèle afin de vérifier si elles respectent la spécification.
+
+\subsection{Model-checking logiciel}
+
+Lorsque le système à vérifier est un programme, il est possible de
+générer le modèle automatiquement à partir du code source du programme.
+On parle dans ce cas de \emph{software model checking}, ou
+model-checking logiciel. Générer le modèle à partir du code source (ou
+même considérer directement que le modèle \emph{est} le code source)
+permet de gagner sur deux plans :
+
+Le model-checking logiciel, ou \emph{software model checking} est un cas
+particulier de model-checking. Le système a vérifier est un programme, et le
+modèle va être extrait automatiquement à partir de son code source.
+On automatise ainsi la conception du modèle, ce qui présente les avantages
+suivants :
+
+\begin{itemize}
+\item
+  on réduit le risque d'une erreur lors de la modélisation du système,
+  en supprimant l'intervention humaine ;
+\item
+  on automatise d'avantage le procédé de vérification, ce qui le rend
+  plus facilement utilisable en pratique.
+\end{itemize}
+
+Cependant, le code doit encore être compilé afin d'obtenir le système,
+ce qui constitue une encore une certaine distance entre le modèle et le
+système. Afin de réduire cette distance, certains
+model-checkers logiciels se basent sur des représentations intermédiaires
+plus proches de l'assembleur, comme la représentation intermédiaire de
+LLVM\footnote{L'utilisation de cette représentation est aussi expliquée
+  par des raisons de compatibilité. De nombreux langages dont C, C++ ou
+  C\# peuvent en effet être compilés vers la représentation
+  intermédiaire de LLVM, un model-checker utilisant cette dernière est
+  alors compatible avec tout ces langages.}.
+
+La programmation impérative consiste à faire évoluer l'état du programme,
+définis par la valeur de ses variables, à l'aide d'instruction. L'état d'un
+programme est défini par l'état de la mémoire à laquelle il a accès. On peut
+donc modéliser un programme par un système de transitions, dont les états sont
+une partition de l'ensemble des états du programme.
+Un état du modèle est donc principalement défini par :
+
+\begin{itemize}
+\item
+  la configuration du tas du programme ;
+\item
+  la configuration de la pile de chaque thread ;
+\item
+  la valeur du pointeur d'instruction de chaque thread.
+\end{itemize}
+
+Les instructions permettant de faire évoluer l'état du programme sont
+représentées par des transitions entres les états du modèle. Une transition
+représente plus précisément l'action d'une instruction atomique du programme sur
+les trois zones mémoires citées précédemment. Les transitions peuvent aussi
+dépendre de facteurs externes, comme les entrées du programme.
+
+Dans le cadre du model-checking logiciel, deux hypothèses sont fréquemment
+faites sur le système :
+
+\begin{itemize}
+\item
+  la consistance séquentielle. On considère alors que les écritures et
+  les lectures mémoire ont lieu dans l'ordre où les instructions sont
+  rencontrées dans une trace d'exécution. En pratique, cette hypothèse
+  n'est pas toujours vérifiée. Les compilateurs et les processeurs
+  peuvent modifier l'ordre de ces opérations pour optimiser un
+  programme. On parle alors de modèle mémoire \emph{faible}.
+\item
+  la sémantique d'entrelacement. Dans le cas d'un système multi-thread,
+  on considère que les traces d'exécution possibles sont produites par
+  un entrelacement des instructions atomiques de chaque thread. Cette
+  hypothèse n'est pas valide si le programme est exécuté par plusieurs
+  processeurs : il est alors possible d'exécuter plusieurs instructions
+  simultanément, ce qui peut produire des traces d'exécution
+  supplémentaires.
+\end{itemize}
+
+\textbf{Exemple :} Considérons le programme suivant, formé de deux
+threads.
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[caption=Thread 1, frame=tlrb]
+a <- 1
+a <- 2
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[caption=Thread 2,frame=tlrb]
+c <- 1
+d <- a + c
+\end{lstlisting}
+\end{minipage}
+
+Ce programme contient trois variables, a, c et d, et deux threads. Les états du
+systèmes sont donc définis par les valeurs de ces variables et la position des
+pointeurs d'instruction de chaque thread.
+On peut modéliser ce programme par le système de transitions en
+Figure \ref{fig:model_example}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{model_example}
+\end{center}
+\caption{Système de transition modélisant un programme simple.}
+\label{fig:model_example}
+\end{figure}
+
+\subsection{Non-determinisme}\label{non-determinisme}
+
+Un système est rarement complètement déterministe. De nombreux facteurs (les
+données en entrée du système, l'instant où un évènement à lieu, la réussite des
+allocations mémoire, la concurrence) tendent généralement à rendre l'évolution
+d'un système non-deterministe.
+
+Face à un choix non-déterministe, les techniques de model-checking doivent
+explorer toute les alternatives possibles.
+
+Lors de la modélisation, certaine sources de non-determinisme sont ignorées.
+Elles sont alors remplacées par une exécution déterministe.
+C'est généralement le cas pour les appels systèmes ayant la possibilité
+d'échouer (les allocations de mémoire, par exemple).
+
+Pour représenter les évènements et les paramètres extérieurs du programme,
+une fonction simulant le non-determinisme est généralement mise à disposition
+de l'utilisateur par les outils de model-checking.
+
+\subsubsection{Explosion combinatoire}\label{explosion-combinatoire}
+
+Le nombre d'états d'un programme augmente exponentiellement selon de nombreux
+paramètres (nombre de variables du programme, taille des types de données, degré
+de concurrence\dots). Il peut éventuellement être infinis si des appels de
+fonctions ou de l'allocation dynamique de mémoire entre en jeu. Cependant, afin
+de vérifier un système, un model-checker doit explorer l'ensemble de ces états.
+Cette tache devient donc extrêmement coûteuse en temps et en mémoire quand le
+nombre d'état devient trop important.
+Ce problème, nommé l'explosion combinatoire, est la principale limite du
+model-checking.
+
+Le non-determinisme est une des principales raison de l'explosion combinatoire :
+le nombre d'exécution est exponentiel selon le nombre de choix non-deterministe.
+
+Cela explique les difficultés rencontrées par les techniques de model-checking
+face aux programme concurrents : l'ordonnancement entre les instructions est
+non-déterministe. Il existe un nombre d'entrelacements exponentiel en fonction
+du nombre d'instructions du programme.
+
+Les différents algorithmes de model-checking utilisent tous des
+techniques afin de limiter l'explosion combinatoire. Elle reste
+cependant le plus grand obstacle rencontré par le model-checking et
+limite le passage à l'échelle de la plupart des techniques.
