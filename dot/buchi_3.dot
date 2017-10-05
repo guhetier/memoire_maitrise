@@ -1,0 +1,10 @@
+
+digraph {
+  "" [style="invis"]
+  2 [peripheries=2]
+
+  "" -> 1
+  1 -> 1
+  1 -> 2 [label="p || q"]
+  2 -> 2
+}
