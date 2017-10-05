@@ -77,10 +77,9 @@ automatisant celle-ci.
 
 Un modèle prends souvent la forme d'un système de transitions.
 
-\begin{description}
-\item[Système de transitions]
-  Formellement, un système de transitions est une paire \((S, \rightarrow)\),
-  avec :
+\paragraph{Système de transitions}
+Formellement, un système de transitions est une paire \((S, \rightarrow)\),
+avec :
 
 \begin{itemize}
 \item
@@ -89,21 +88,18 @@ Un modèle prends souvent la forme d'un système de transitions.
   \(\rightarrow \subset S \times S\) la relation de transitions du
   système ;
 \end{itemize}
-\end{description}
 
 Intuitivement, les états d'un système de transitions représentent un
 statut possible du système, tandis que les transitions représentent les
 actions qui peuvent le faire évoluer.
 
-\begin{description}
-\item[Trace d'exécution]
+\paragraph{Trace d'exécution}
 Une trace d'exécution est un chemin dans le système de transition
 représentant le modèle, possiblement infini, dont le premier état est
 l'état initial du modèle. Une trace d'exécution est donc formé d'une
 suite \(s_0, s_1, .. \in S\) d'états, avec \(s_0\) un état initial, et
 d'une suite \(t_0, t_1, ... \in \rightarrow\) de transitions telles que
 \(\forall i, t_i = (s_i, s_{i+1})\).
-\end{description}
 
 Le model-checking consiste à examiner l'ensemble des traces
 d'exécution du modèle afin de vérifier si elles respectent la spécification.
@@ -671,3 +667,163 @@ qu'il représente. Dans le cas de formules de grande taille, il peut donc deveni
 problématique de générer l'automate. Sa taille et son aspect non-déterministe
 viennent renforcer le problème d'explosion combinatoire déjà rencontré par les
 techniques de model-checking.
+
+\section{Techniques et outils de model-checking}
+\label{sec:techniques-et-outils-de-model-checking}
+
+Différents algorithmes sont utilisés par les outils de model-checking
+afin d'explorer l'ensemble des états d'un modèle. Afin de lutter contre
+l'explosion combinatoire, ils établissent des compromis au niveau de la
+précision de la vérification et du type de propriétés qu'ils prennent en charge.
+Leurs performances dépendent aussi fortement de la
+structure du programme : les boucles, le non-determinisme ou la gestion
+de la concurrence sont plus ou moins bien supportés selon
+les algorithmes.
+
+À l'exception des techniques de séquentialisation, ces algorithmes ont été
+initialement appliqué à des programme séquentiels. Le support des programmes
+concurrents est venu ensuite\footnote{Les algorithmes inspirés du model-checking
+  de composants électroniques supportent des modèles concurrent depuis
+  longtemps. Cependant, le support de la concurrence pour le model-checking
+  logiciel a été ralentit par l'explosion combinatoire}.
+Ce dernier n'est pas forcément complexe, d'un point de vu théorique : un
+programme multi-thread peut s'exprimer comme un système de transitions
+non-déterministe. Les model-checkers sont capables de vérifier des modèles
+non-déterministe --- ils sont utilisés pour simuler les entrées possibles d'un
+système par exemple --- les algorithmes de model-checking peuvent donc
+théoriquement être étendus.
+Le problème est bien plus complexe en pratique, en raison des contraintes de
+temps et de mémoire que rencontrent les model-checker. En raison de l'explosion
+combinatoire provoquée par le nombre exponentiel d'entrelacements possibles
+entre les threads, il est difficile de concevoir un algorithme performant.
+
+Nous présentons dans cette partie les principaux algorithmes utilisés dans le
+cadre du model-checking de logiciel multi-thread, ainsi que certains des outils
+qui les implémentent. Pour chaque algorithme, nous avons choisi les outils qui
+nous ont parus les plus aboutis et ceux qui présentaient une approche originale.
+Pour chaque algorithme et outil, nous tentons de mettre en valeur ses points
+forts, ses faiblesses et ses spécificités.
+
+\subsection{Model-checking explicite}
+
+Le model-checking explicite consiste à énumérer individuellement les
+états accessibles du modèle afin de les explorer. Le modèle prend la
+forme d'un système de transitions et son exploration est réalisée à
+l'aide d'algorithmes de graphes (exploration en largeur ou en
+profondeur\dots).
+
+Les algorithmes de model-checking explicite modélisent le programme par un
+système de transitions. Ils construisent et explorent ce système de transitions
+à la volée : partant de l'état de départ, les successeurs sont déterminés à
+partir des instructions du programme. Ils sont alors explorés et ainsi de suite.
+Pour ne pas explorer plusieurs fois un même état (l'exploration entrerait alors
+dans un cycle infini), il est nécessaire de stocker les états du chemin
+emprunté.
+
+Le model-checking explicite est extrêmement vulnérable à l'explosion
+combinatoire. Les états accessibles du système sont examinés individuellement.
+Si ils sont en nombre infinis, une analyse peut ne pas terminer. Le stockage des
+états explorés peut aussi devenir problématique. Plusieurs techniques existent
+pour réduire l'impact de l'explosion combinatoire.
+
+\paragraph{Stateless model-checking}
+Certain outils choisissent de ne pas maintenir la liste des états
+visités afin de ne pas être limité par l'utilisation de la mémoire. On
+parle alors de \emph{stateless model-checking}. Ces outils ne sont pas
+capables de détecter un cycle dans le programme à analyser. Il est donc
+nécessaire que toutes les exécutions du programme à analyser terminent.
+
+\paragraph{State hashing}
+Le \emph{state hashing} consiste à ne conserver qu'une valeur de hachage des
+états visités, et non pas l'état complet. L'utilisation de la mémoire est ainsi
+réduite, et les performances peuvent être améliorées par l'utilisation de
+structures de données capables de rechercher un élément de manière efficace
+(ensemble ordonné, \dots). Cependant, il est possible (bien que très peu
+probable) que deux états aient la même valeur de hachage. Ces états sont alors
+considérés comme égaux, ce qui peux mener à un résultat faux de l'analyse.
+Le state hashing rends donc les model-checker incomplets.
+
+\paragraph{Runtime model-checking}
+Certains outils explorent l'espace d'états en se basant sur des
+exécutions réelles du programme. Le modèle est alors le programme lui
+même. Son exécution est contrôlée par le model-checker, qui fixe le
+non-déterminisme de chaque exécution. Cette approche permet de
+bénéficier des performances réelles du programme lors de l'exploration,
+cependant le backtracking est plus compliqué : les outils de runtime
+model-checking relancent en général une exécution du programme à tester
+depuis l'état initial chaque fois qu'il est nécessaire de revenir à un
+état précédent. Il est aussi complexe de mémoriser les états explorés,
+cette technique est donc souvent combinée avec le \emph{stateless model
+checking}.
+
+\paragraph{Réduction par ordre partiel}
+Les techniques de réduction par ordre partiel visent à réduire le nombre de
+chemin à explorer dans un système concurrent. Elles permettent de supprimer les
+chemins équivalents par rapport aux propriétés à vérifier, souvent en supprimant
+des changements de contextes entre des instructions indépendantes. Un cas simple
+de réduction consiste à regrouper en un bloc atomique une série d'instruction
+manipulant uniquement des variables locales. L'entrelacement de ces instructions
+avec d'autres threads n'a pas d'impact sur leur résultat, on peut donc conserver
+uniquement l'ordonnancement consistant à les exécuter sans changement de
+contexte.
+
+La plupart des variantes ci-dessus sont aussi utilisées par les autres
+algorithmes que nous présentons par la suite, en particulier les
+techniques de réduction par ordre partiel. Cependant, le model checking
+explicite est particulièrement dépendant de ces techniques afin de
+gagner en performances.
+
+La principale force du model-checking explicite est sa précision. Explorer
+l'ensemble des états de manière explicite permet de vérifier la plupart des
+propriétés, spécifiée à l'aide d'assertions ou par une formule LTL. Cependant,
+il est extrêmement dépendant des techniques de réduction et a plus de
+difficultés face à des programmes de grande taille.
+
+\subsubsection{Outils}
+
+SPIN\cite{SPIN} est l'un des premiers projets de model-checking
+explicite. Il permet de vérifier des propriétés de la logique temporelle
+LTL sur des modèles exprimés en \bsc{PROMELA}. SPIN supporte nativement
+les modèles concurrents et implémente de nombreuse méthodes de réduction
+(ordre partiel, bit-state hashing\dots). SPIN ne supporte pas le langage
+C nativement, cependant des travaux ont été menés afin de traduire C
+vers \bsc{Promela}\cite{jiang_C_to_Promela}, ce qui permet à SPIN de
+vérifier un programme en C de manière indirecte.
+
+Pancam\cite{Pancam} se base sur SPIN pour vérifier du bytecode
+LLVM\footnote{le bytecode LLVM peut être produit à partir d'un code C à
+  l'aide d'un compilateur tel que CLANG ou GCC}. Pancam exécute le
+bytecode LLVM dans une machine virtuelle et utilise SPIN comme un
+moniteur d'exécution afin de générer les différents entrelacements à
+explorer.
+
+\lstinline!inspect!\cite{inspect} vérifie du code C et C++
+multithread en se basant sur un algorithme de runtime model-checking
+avec une exploration \emph{stateless}. \lstinline!inspect! instrumente
+le programme à vérifier par des instructions lui permettant de
+communiquer avec un ordonnanceur, selon une architecture client/serveur.
+Le programme est ensuite exécuté à plusieurs reprises afin d'explorer les
+différents entrelacements.
+
+Divine\cite{Divine_3_0} est un model-checker capable de vérifier des
+propriétés LTL et des propriétés d'accessibilités. Il se base sur un
+langage interne, DVE. Il est capable de traiter du bytecode LLVM en le
+traduisant vers DVE, ce qui lui permet de supporter des langages comme C
+et C++. La particularité de Divine est de mettre en place une analyse
+concurrente et distribuée afin d'améliorer ses performances. Il utilise
+aussi des méthodes de réduction de l'espace d'état (compression de
+chemins, réduction par ordre partiel).
+
+On retrouve à travers ces outils le besoin de performance des outils de
+model-checking explicite. Divine est implémenté dans une architecture
+concurrente pour améliorer ses performances, alors que \lstinline!inspect! et
+Pancam se basent sur du runtime model-checking. SPIN, \lstinline!inspect!,
+Pancam et Divine sont tous vérifier des violations d'assertions et des
+propriétés built-in, comme les deadlocks et les data-races, cependant, seul
+Divine et SPIN sont capable de vérifier des propriétés LTL.
+\lstinline!inspect! nécessite un système fermé, et n'est pas capable de gérer le
+non-déterminisme. Il est donc dépendant d'une suite de tests pour fixer les
+paramètres du programme à vérifier.
+Divine est arrivé sixième lors de l'édition de 2016 de la compétition de
+vérification logicielle SV-COMP\citep{SVCOMP2016} (les autres outils présentés
+ci-dessus n'ont pas participé à ces compétitions).
