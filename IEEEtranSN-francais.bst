@@ -1150,7 +1150,7 @@ FUNCTION {begin.bib}
   %write$ newline$
   %"\csname url@samestyle\endcsname"
   write$ newline$
-  "\newcommand*{\doi}[1]{\href{http://dx.doi.org/#1}{\texttt{#1}}}"
+  "\newcommand*{\doi}[1]{\href{http://dx.doi.org/#1}{\texttt{\nolinkurl{#1}}}}"
   write$ newline$
   "\providecommand{\newblock}{\relax}"
   write$ newline$
