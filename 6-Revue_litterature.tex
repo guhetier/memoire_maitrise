@@ -820,10 +820,219 @@ concurrente pour améliorer ses performances, alors que \lstinline!inspect! et
 Pancam se basent sur du runtime model-checking. SPIN, \lstinline!inspect!,
 Pancam et Divine sont tous vérifier des violations d'assertions et des
 propriétés built-in, comme les deadlocks et les data-races, cependant, seul
-Divine et SPIN sont capable de vérifier des propriétés LTL.
-\lstinline!inspect! nécessite un système fermé, et n'est pas capable de gérer le
-non-déterminisme. Il est donc dépendant d'une suite de tests pour fixer les
-paramètres du programme à vérifier.
-Divine est arrivé sixième lors de l'édition de 2016 de la compétition de
+Divine et SPIN sont capable de vérifier des propriétés LTL. \lstinline!inspect!
+nécessite un système fermé, et n'est pas capable de gérer le non-déterminisme.
+Il est donc dépendant d'une suite de tests pour fixer les paramètres du
+programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
+programmes concurrent lors de l'édition de 2016 de la compétition de
 vérification logicielle SV-COMP\citep{SVCOMP2016} (les autres outils présentés
 ci-dessus n'ont pas participé à ces compétitions).
+
+\subsection{Model-checking symbolique}
+
+Les algorithmes de model-checking symbolique manipulent des ensembles d'états
+du modèle représentés de manière abstraite, plutôt que d'énumérer chaque état
+individuellement. Il est ainsi possible de manipuler des ensembles
+d'états importants ou infinis de manière efficace. Contrairement au
+model-checking explicite, le model-checking symbolique n'est donc pas limité à
+un modèle fini.
+
+L'abstraction utilisée pour représenter les ensembles d'états est un élément
+clef du model-checking symbolique. Cette représentation doit permettre de
+réaliser les opérations classiques sur les ensembles (union, intersection,
+comparaison) de manière efficace. Les abstractions suivantes sont les plus
+utilisées :
+
+\begin{itemize}
+\item
+  Diagrammes de Décision Booléens, (BDD, Boolean Decision Diagramm) ;
+\item
+  formules de la logique propositionnelle ;
+\item
+  automates finis.
+\end{itemize}
+
+Ces représentations permettent de définir des opérations efficaces sur les
+ensembles. L'opération la plus complexe est généralement la comparaison de deux
+ensembles, qui nécessite le choix d'une représentation canonique.
+
+Cependant, la taille de la représentation d'un ensemble peut varier très
+fortement selon le choix de la représentation canonique. Le défi du
+model-checking symbolique est donc de construire et de maintenir efficacement
+une représentation canonique de taille raisonnable.
+
+\subsubsection{Représentation symbolique par des BDD}
+
+Nous allons utiliser l'exemple des BDD pour illustrer les forces et les
+défis rencontré par les représentations symboliques.
+
+Un BDD permet de représenter une fonction booléenne.
+On va donc représenter un ensemble d'états par une fonction prenant
+en paramètre un état (encodé par des variables booléennes) et indiquant si
+il est dans l'ensemble représenté par la fonction où non.
+
+\paragraph{Encoder les états}
+La première étape est d'encoder les états du système par des variables
+booléennes. Une manière simple de le faire dans le cas d'un ensemble fini
+d'états est de les numéroter, puis d'utiliser une variable booléenne pour chaque
+chiffre de la représentation binaire (il faut donc \(log_2 n\) variables
+booléennes pour \(n\) états).
+
+Prenons l'exemple d'un système à huit états. En numérotant les états de 0 à 7 et
+en prenant leur représentation binaire (sur trois bits), on obtient les
+représentations suivantes : (\(000\), \(001\), \(010\), \dots, \(111\)).
+
+
+Pour représenter l'ensemble composé des états \(110\) et \(111\), il suffit
+de prendre sa fonction caractéristique, c'est à dire la fonction qui s'évalue à
+vrai pour les éléments de l'ensemble et à faux sinon.
+
+\begin{align}
+  f \colon \{0, 1\}^3 & \to \{0, 1\} \\
+  (x_1, x_2, x_3) & \mapsto
+  \begin{cases*}
+    1 & si \((x_1, x_2, x_3) \in \{(1,1,0), (1,1,1)\}\) \\
+    0 & sinon
+  \end{cases*}
+\end{align}
+
+Nous allons ensuite construire un BDD pour représenter cette fonction.
+
+La construction d'un BDD repose sur la propriété suivante :
+
+\paragraph{Décomposition des fonctions booléennes}
+Soit \(k > 0\) et \(f: \mathbf{B}^k \to \mathbf{B}\) une
+fonction booléenne. Alors il existe deux fonctions booléennes
+\(g, h : \mathbf{B}^{k-1} \to \mathbf{B}\) telles que :
+
+\[
+f(x_1, ..., x_k) =
+\begin{cases*}
+  g(x_2, ..., x_k) \text{ si $x_0$ est vrai}\\
+  h(x_2, ..., x_k) \text{ si $x_0$ est faux}
+\end{cases*}
+\]
+
+Il est ainsi possible de définir une fonction booléenne par récursion
+sur le nombre de ses variables. On va se servir de cette propriété pour
+représenter la fonction booléenne par un arbre binaire de décision. On
+fixe tout d'abord un ordre des variables (dans notre exemple, on prend
+le bit de poids le plus fort en premier). On construit alors l'arbre
+par induction :
+
+\begin{itemize}
+\item
+  si la fonction est constante, on la représente par une feuille
+  étiquetée par \(vrai\) ou \(faux\).
+\item
+  sinon, on décompose \(f\) entre \(g\) et \(h\) selon la propriété. On
+  construit alors l'arbre dont le fils gauche est la représentation de
+  \(g\) et le fils droit celle de \(h\) (construites selon la même méthode).
+  On étiquette l'arrête vers le fils gauche par \(0\) et celle vers le fils
+  droit par \(1\).
+\end{itemize}
+
+Les étiquettes d'un chemin de la racine de l'arbre à une feuille représentent
+alors une valuation des variables de la fonction. L'étiquette de la feuille
+indique la valeur de la fonction pour cette valuation.
+
+Pour notre exemple, nous obtenons l'arbre de la Figure \ref{fig:BDD_tree}.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[height=0.3\textheight]{BDD_tree.png}
+\end{center}
+\caption{Arbre binaire de la fonction \((x,y,z) \mapsto x \land y\).}
+\label{fig:BDD_tree}
+\end{figure}
+
+La représentation par un arbre de décision contient \(2^{n+1} - 1\) noeuds pour
+une fonction booléenne à \(n\) variables, on ne peut donc pas encore parler de
+représentation efficace. Cependant, cet arbre de décision contient aussi
+beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un BDD en
+fusionnant tout les sous-arbres identiques et en supprimant les états n'ayant
+qu'un unique successeur. Dans notre exemple, on obtient alors le BDD de la
+Figure \ref{fig:BDD_graph}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=0.25\textheight]{BDD_graph.png}
+\end{center}
+\caption{BDD de la fonction \((x,y,z) \mapsto x \land y\).}
+\label{fig:BDD_graph}
+\end{figure}
+
+Cependant, la taille du BDD est très dépendante de l'ordre choisi pour
+les variables\cite{OBDD}. Dans cet exemple, l'ordre n'a pas une grande importance
+mais lorsque le nombre de variables et la complexité de la fonction
+augmentent, la taille du BDD peut exploser\footnote{Pour s'en
+  convaincre, on peut calculer les BDD de la fonction
+  \(x, y, z, t \mapsto x.z + y.t\), avec les ordres \(x<z<y<t\), puis
+  \(x<y<z<t\).}.
+
+A partir de la représentation sous forme de BDD, on peut évaluer la
+fonction \(f\) efficacement, mais aussi réaliser des opérations logiques
+de manière efficace, en construisant le BDD résultant à partir des
+feuilles et en réduisant au fur et à mesure. \cite{OBDD} explique cet
+algorithme plus en détail . Dans le cas (simple) de la
+négation, il suffit par exemple d'échanger les deux feuilles du BDD.
+
+\paragraph{Vérification à l'aide des BDD}
+
+On peut définir l'ensemble des états vérifiant une propriété \(\Phi\)
+comme le point fixe d'une fonction (dépendant de \(\Phi\)). On calcule
+alors ce point fixe de manière itérative, en utilisant les opérations définies
+sur les BDD. Si l'état initial du système fait partie des états vérifiant la
+propriété, le système est valide.
+
+Par exemple, dans le cas d'une assertion, l'ensemble des états valides
+est l'ensemble des états à partir desquels il n'est pas possible de déclencher
+l'assertion. On peut le définir comme étant le point fixe de la fonction
+\(X \mapsto E \cup X \cup Pre(X)\), avec \(E\) l'ensemble des états
+d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses prédécesseurs
+dans le modèle de système.
+
+Tout comme les BDD, les autre représentations symboliques sont fortement
+dépendantes d'un ordre des variables afin de conserver une taille
+raisonnable. Les formules de la logique propositionnelle sont très
+utilisées actuellement en raison des progrès des solveurs SAT.
+
+Les techniques de model-checking symbolique sont efficaces afin de
+prouver la validité d'une propriété (ce qui est le point faible du
+model-checking de manière générale). Elles supportent bien l'explosion
+combinatoire mais sont très dépendantes des performances des
+représentations symboliques utilisées.
+
+\subsubsection{Outils}
+
+CIVL\cite{CIVL} est un framework pour la vérification de programmes concurrents.
+Il défini un langage intermédiaire, CIVL-C, proche du C11, vers lequel plusieurs
+langages et types de concurrence peuvent être traduits (dont pThread, OpenMP et
+CUDA). CIVL utilise un mélange de model-checking explicite et symbolique : les
+différents entrelacements d'un programme sont explorés de manière explicite et
+une analyse symbolique est utilisée pour analyser chacun de ces entrelacements.
+Les états sont représentés à travers des formules SMT, manipulées à l'aide de la
+bibliothèque SARL\cite{SARL}. CIVL a pour ambition de constituer un point de
+jonction commun entre plusieurs front-ends et backends, afin de découpler les
+problèmes de modélisation d'un langage et les problèmes de vérification. CIVL
+adopte une approche conservatrice : il peut signaler des faux-positifs, c'est à
+dire indiquer une erreur dans un modèle correct.
+
+SymDivine\cite{SymDivine} permet la vérification de propriétés LTL sur du
+bytecode LLVM concurrent (et donc, par extension, pour des programmes en C).
+Tout comme CIVL, SymDivine utilise une combinaison de model-checking explicite
+et symbolique. Le non-déterminisme au niveau des données est géré de manière
+symbolique tandis que celui au niveau du contrôle traité explicitement : tous
+les entrelacements sont explorés individuellement. SymDivine peut utiliser les
+formules SMT ou des BDD pour représenter les ensembles abstraits, les premières
+étant plus efficaces dans la plupart de leurs expérimentations.
+
+SymDivine et CIVL utilisent des méthodes de vérification semblables, mais
+diffèrent par leurs langages de modélisation. CIVL utilise CIVL-C, un langage
+relativement haut niveau pour faciliter la conception de modèle et la prise en
+charge de plusieurs langages et paradigmes de concurrence, alors que SymDivine
+privilégie le bytecode LLVM, plus proche du programme compilé final afin de
+réduire la distance entre le modèle et le système.
+CIVL a terminé troisième (respectivement quatrième) lors des édition 2016
+(respectivement 2017) de SV-COMP\cite{SVCOMP2016, SVCOMP2017}, dans la catégorie
+portant sur la concurrence.
