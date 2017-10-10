@@ -1036,3 +1036,187 @@ réduire la distance entre le modèle et le système.
 CIVL a terminé troisième (respectivement quatrième) lors des édition 2016
 (respectivement 2017) de SV-COMP\cite{SVCOMP2016, SVCOMP2017}, dans la catégorie
 portant sur la concurrence.
+\subsection{Bounded model-checking}
+
+Le model-checking borné (\emph{Bounded model-checking}, BMC) est l'une des
+techniques les plus utilisées dans l'industrie des semi-conducteurs. Elle a été
+adapté dans le cas du model-checking logiciel. Le model-checking borné se base
+sur les avancées des solveurs SAT et SMT pour effectuer les tâches de
+vérification.
+
+Au lieu d'explorer entièrement un modèle, les algorithmes de model-checking
+bornés explorent uniquement des préfixes finis des exécutions possibles du
+modèle. Une profondeur maximale d'exploration \lstinline!k! est fixée.
+Les \lstinline!k! premiers pas de chaque exécution du système sont alors
+encodée dans une formule de la logique propositionnelle.
+On construit alors la conjonction entre cette formule et la négation d'une
+formule représentant la spécification du programme, et on transmet le résultat
+à un solveur SAT ou SMT. Si la formule est satisfiable, il existe une
+exécution valide ne respectant pas la spécification (puisque elle satisfait la
+négation de la spécification). Une erreur est donc reportée, la valuation qui a
+satisfait la formule représente le contre-exemple.
+
+\paragraph{Forme SSA}
+Afin d'encoder les exécutions d'un programme dans une
+formule, on met tout d'abord ce programme dans la forme SSA (\emph{Single Static
+Assignment}). Elle consiste à transformer le programme de telle sorte que chaque
+variable ne soit assigné qu'une seule fois. Pour ce faire, les variables sont
+dupliquées, une nouvelle copie étant utilisée à chaque assignation. Les
+structures de contrôle sont remplacées par des expressions conditionnelles une
+fois que les différents branchements se rejoignent. Les fonctions sont inlinées
+--- leur corps est inséré directement à l'emplacement de l'appel --- et les
+boucles sont déroulées un nombre de fois limité par la profondeur d'exploration,
+en une cascade de blocs \lstinline!if!.
+
+Le passage en forme SSA est illustré par l'exemple ci-dessous.
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, caption=Code initial, frame=tlrb]
+int a = 0, b = 1, c;
+a = a + b;
+if (a > 0)
+    c = 2;
+else
+    c = 3;
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, caption=Forme SSA,frame=tlrb]
+int a_0 = 0;
+int b_0 = 1;
+int a_1 = a_0 + b_0;
+int c_0 = 2;
+int c_1 = 3;
+int c_2 = a_1 > 0 ? c_0 : c_1;
+\end{lstlisting}
+\end{minipage}
+
+\paragraph{Dépliage de la relation de transition}
+Dans le cadre du BMC, le programme est vu comme une relation de transition
+\(R\). Étant donnés deux états \(s\) et \(q\) du programme, \(R(s, q)\) s'évalue
+à vrai si et seulement si il existe une transition dans le programme permettant
+de passer de l'état \(s\) à l'état \(q\). On peut alors établir la formule
+représentant les \(k\) premiers pas d'une exécution par :
+
+\[
+F = I(s_0) \land \bigwedge_{i\in \{1..k\}} R(s_{i-1}, s_i)
+\]
+
+Le solveur va tenter de résoudre la formule en trouvant une suite d'états
+\(s_i\) qui la satisfait. Cette suite représente alors une exécution possible
+dans le programme : \(I(s_0)\) impose que l'exécution commence dans un état
+initial, et \(\bigwedge_{i\in \{1..k\}} R(s_{i-1}, s_i)\) impose que les
+transitions entre deux états successifs de la trace soient valides.
+
+Partant de la forme SSA, la relation de transition se déplie facilement
+en construisant la conjonction des instructions. Les variables de la forme SSA
+peuvent directement être considérée comme des variables logiques. La principale
+difficulté consiste à établir une théorie pour représenter les
+instructions, en particulier les utilisations dynamiques de la mémoire.
+
+Dans notre exemple, la relation de transition se déplierait en :
+
+\[
+  \underbrace{a_0 = 0 \land b_1 = 1}_\text{État initial} \land
+  \underbrace{a_1 = a_0 + b_0}_\text{Instruction 1} \land
+  \underbrace{c_0 = 2 \land c_1 = 3}_\text{Branches du tests} \land
+  \underbrace{(a_1 > 0 \implies c_2 = c_0)
+    \land (\lnot a_1 > 0 \implies c_2 = c1)
+  }_\text{Fusion des branches}
+\]
+
+
+Afin de vérifier une propriété \(\Phi\) du programme, on construit la
+conjonction entre la formule représentant les exécution du système et la
+négation de la propriété.
+
+\[
+F' = \lnot \Phi \land I(s_0) \land \bigwedge_{i\in \{1..k\}} R(s_{i-1}, s_i)
+\]
+
+Un modèle de cette formule est représente donc les \(k\) premiers pas d'une
+exécution valide, et qui ne respecte pas la propriété \(\Phi\). Il s'agit donc
+d'une exécution contenant une erreur.
+
+Le BMC explore un système sur une profondeur bornée, il est donc nécessairement
+incomplet. Il permet de trouver des erreurs, ou de prouver des propriétés
+d'accessibilité, mais il ne peut prouver des propriétés de sûreté ou trouver des
+erreurs à des propriétés de vivacité : une erreur ou l'évènement attendu
+pourraient être présent à une profondeur plus importante que la profondeur
+maximale d'exploration.
+
+Lorsque le modèle contient un nombre d'états finis, il est possible de rendre le
+BMC complet : il suffit de fixer une profondeur maximale d'exploration
+suffisamment grande pour que toutes les traces du programme n'affiche plus de
+nouveaux comportement une fois cette profondeur atteinte. avant la que la
+profondeur maximale soit atteinte. Cette profondeur est appelée le seuil de
+complétion (\emph{completness threshold}). Calculer la valeur exacte du seuil de
+complétion est un problème difficile. On utilise donc des sur-approximations.
+Cependant, l'exploration d'un système jusqu'au seuil de complétion est souvent
+trop coûteuse en temps et en mémoire pour être réalisable. Le BMC est donc
+souvent utilisé pour détecter des erreurs dans un système plutôt que pour
+prouver leur absence, en effectuant plusieurs exploration avec une profondeur
+maximale croissante.
+
+\paragraph{Support du multi-threading}
+
+Plusieurs approches ont été développées pour prendre étendre le BMC à des
+logiciels multi-thread\cite{ESBMC_multithread}.
+
+Deux techniques sont principalement utilisées.
+La première consiste encoder tout les entrelacement possibles entre les threads
+du programme dans la relation de transition, et donc dans la formule de la
+logique propositionnelle fournie à un SAT-solveur ou un SMT-solveur. Cette
+technique permet au solveur d'optimiser sa preuve en utilisant les similarités
+entre différents entrelacements. Cependant, les formules générées peuvent être
+extrêmement grande et dépasser les capacités des solveurs.
+
+La seconde approche se base sur l'exploration explicite des entrelacement du
+programme : une formule est passée au solveur pour chaque entrelacement, le
+procédé étant interrompu dès qu'une erreur est détectée. Les formules générées
+sont ainsi plus petite et plus simple à résoudre pour les solveurs, cependant,
+un nombre exponentiel d'appels au solveur peut être nécessaire, avec des
+formules parfois très semblables.
+
+Le nombre de changements de contexte autorisés dans une exécution est
+généralement borné de manière indépendante par rapport à la profondeur
+d'exploration. On évite ainsi d'explorer un nombre trop élevé d'entrelacements.
+Cette seconde borne repose sur l'observation empirique : la plupart des erreurs
+dues au parallélisme sont peu \emph{profondes}, elles peuvent être atteintes en
+un nombre réduit de changements de contexte.
+
+Le model-checking borné est la méthode la plus efficace pour trouver des
+erreurs peu profondes. Elle supporte bien le multi-threading. Cependant,
+cette méthode est peu efficace pour prouver l'absence d'erreur et ne
+peut généralement valider un programme que si sa profondeur est faible.
+Elle est particulièrement sensible aux boucles dont le nombre
+d'itérations n'est pas borné.
+
+\subsubsection{Outils}
+
+CBMC\cite{CBMC} est le premier model-checker logiciel à avoir utilisé le
+model-checking borné. Il est orienté vers les applications embarqués, et permet
+de vérifier un programme par rapport à différents modèles d'exécution. Il se
+base sur des SAT-solveurs afin de vérifier les conditions de vérification qu'il
+génère. CBMC remplace les opérateurs arithmétiques par la descriptions de
+circuits équivalents afin de construire une formule logique
+(\emph{bit-flattening}). CBMC supporte les programmes multithread en encodant
+symboliquement les entrelacements dans la formule passée au model-checker. Comme
+la majorité des model-checkers, CBMC supporte la consistance séquentielle (i.e
+un ordre total entre les instructions est considéré). Cependant, CBMC est aussi
+capable de traiter des modèles mémoires faibles (i.e un ordre partiel entre les
+instructions est considéré). En effet, les multi-processeurs modernes ne
+respectent pas la consistance séquentielle : d'autre comportement peuvent
+apparaître, liés à la propagation des valeurs à travers les niveaux de cache.
+
+ESBMC\cite{ESBMC} a été conçu en se basant sur CBMC, dont il reprend le
+front-end. ESBMC utilise un solveur SMT (SAT Modulo Theory) au lieu d'un solveur
+SAT pour vérifier les formules générées et utilise des théories différentes de
+celles utilisées par CBMC afin de créer ces formules. ESBMC supporte les
+programmes multi-thread en énumérant explicitement tout les entrelacements
+possibles du programme, et en effectuant une exploration symbolique sur chacun
+d'entre eux. ESBMC améliore le support des boucles par l'utilisation de preuves
+par induction\cite{ESBMC_k_induction}. Les boucles sont déroulées sur un nombre
+\(k\) d'itérations. Si cela ne suffit pas à trouver un contre-exemple, ESBMC va
+tenter d'établir un invariant en montrant qu'il est maintenu tout au long de la
+boucle par une preuve par induction.
