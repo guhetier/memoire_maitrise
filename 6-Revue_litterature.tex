@@ -825,7 +825,7 @@ nécessite un système fermé, et n'est pas capable de gérer le non-déterminis
 Il est donc dépendant d'une suite de tests pour fixer les paramètres du
 programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
 programmes concurrent lors de l'édition de 2016 de la compétition de
-vérification logicielle SV-COMP\citep{SVCOMP2016} (les autres outils présentés
+vérification logicielle SV-COMP\citep{svcomp_2016_result} (les autres outils présentés
 ci-dessus n'ont pas participé à ces compétitions).
 
 \subsection{Model-checking symbolique}
@@ -1032,10 +1032,11 @@ diffèrent par leurs langages de modélisation. CIVL utilise CIVL-C, un langage
 relativement haut niveau pour faciliter la conception de modèle et la prise en
 charge de plusieurs langages et paradigmes de concurrence, alors que SymDivine
 privilégie le bytecode LLVM, plus proche du programme compilé final afin de
-réduire la distance entre le modèle et le système.
-CIVL a terminé troisième (respectivement quatrième) lors des édition 2016
-(respectivement 2017) de SV-COMP\cite{SVCOMP2016, SVCOMP2017}, dans la catégorie
-portant sur la concurrence.
+réduire la distance entre le modèle et le système. CIVL a terminé troisième
+(respectivement quatrième) lors des édition 2016 (respectivement 2017) de
+SV-COMP\cite{svcomp_2016_result, svcomp_2017_result}, dans la catégorie portant
+sur la concurrence.
+
 \subsection{Bounded model-checking}
 
 Le model-checking borné (\emph{Bounded model-checking}, BMC) est l'une des
@@ -1220,3 +1221,184 @@ par induction\cite{ESBMC_k_induction}. Les boucles sont déroulées sur un nombr
 \(k\) d'itérations. Si cela ne suffit pas à trouver un contre-exemple, ESBMC va
 tenter d'établir un invariant en montrant qu'il est maintenu tout au long de la
 boucle par une preuve par induction.
+
+\subsection{Séquentialisation}
+
+Les techniques de model-checking logiciel pour des programmes séquentiels ont
+largement progressé au niveaux de leurs performances et de leur précision.
+Cependant, les model-checkers restent bien plus limités dans le cas de
+programmes concurrents. La séquentialisation réduit le problème de la
+vérification d'un programme multi-thread à celui de la vérification d'un
+programme séquentiel pour tirer partit des performances des outils dans ce cas.
+
+La séquentialisation consiste à traduire un programme concurrent en un programme
+séquentiel non-déterministe équivalent. Le non-déterminisme lié au contrôle (les
+différents entrelacements) est remplacé par un non-déterminisme lié aux données,
+ce qui permet de mieux le gérer. Les techniques de séquentialisation ne
+s'appliquent donc qu'à un programme multi-thread, il est nécessaire de les
+combiner avec un outil de model-checking adapté au cas séquentiel pour réaliser
+les taches de vérification.
+
+La séquentialisation permet d'attaquer deux problèmes simultanément : améliorer
+la prise en charge de la concurrence en se ramenant au cas séquentiel, et
+proposer une interface de gestion de la concurrence compatible avec plusieurs
+model-checker, sans que ceux-ci n'aient à modifier leurs algorithmes.
+
+Nous allons énumérer les idées clefs des algorithmes de séquentialisation, tout
+en les illustrant par l'exemple de la transformation réalisée par
+Lazy-CSeq\cite{LazyCSeq}.
+
+Partons d'un programme concurrent très simple (nous nous inspirons ici
+de l'exemple présenté dans \cite{LazyCSeq}, auquel on peut se
+référer pour plus de détails) :
+
+\begin{lstlisting}[language=C]
+int y = 0;
+
+void* T1(void *d) {
+    int x;
+    x = y;
+    y = x + 1;
+}
+
+void* T1(void *d) {
+    y = 3;
+}
+
+int main() {
+    pthread_t t0, t1;
+    pthread_create(t0, NULL, T0, NULL);
+    pthread_create(t1, NULL, T1, NULL);
+}
+\end{lstlisting}
+
+Les idées clefs de la séquentialisation sont les suivantes :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  Remplacer les structures concurrentes par des structures séquentielles
+  (un thread est remplacé par une fonction\dots)
+\item
+  Instrumenter le code afin de simuler les changements de contexte.
+\item
+  Ajouter un ordonnanceur non-déterministe. Il dirige l'exécution et
+  permet de générer tous les entrelacements (généralement de type
+  round-robin) du programme.
+\item
+  Recourir à un model-checker pour explorer le résultat.
+\end{enumerate}
+
+Dans notre exemple, le premier point consiste à changer la fonction
+\lstinline!main!, qui représente le thread principal, en une fonction
+séparée \lstinline!main_thread!. Les autres threads sont déjà
+représentés par une unique fonction, il n'est donc pas utile de les
+modifier (si deux threads exécutaient la même fonction, il serait
+nécessaire de la dupliquer). La seconde étape est réalisée en
+introduisant un saut conditionnel avant chaque instruction du programme,
+à travers la macro \lstinline!J!. Cette macro permet d'interrompre et de
+reprendre l'exécution d'une fonction à partir d'une instruction donnée,
+en sautant les instructions qui précèdent ou suivent. La variable
+\lstinline!cs! contient à chaque instant le numéro du label
+correspondant à la prochaine interruption, et le tableau \lstinline!pc!
+contient le numéro du label de la dernière instruction atteinte lors de
+l'exécution précédente. Pour conserver les valeurs des variables locales
+pendant les interruptions, ces dernières sont rendues statiques. Enfin,
+la fonction \lstinline!main! contient l'ordonnanceur. Il va simuler
+\lstinline!k! passes d'un ordonnancement de type round-robin, en
+choisissant de manière non-deterministe le nombre d'instructions à
+exécuter dans chaque thread avant de changer de contexte.
+
+On obtient alors le code séquentialisé suivant :
+
+\begin{lstlisting}[language=C]
+int cs,ct,pc[T],size[T]={2,4,7};
+#define J(A,B) if(pc[ct]>A||A>=cs) goto _##B;
+int y=0;
+
+void T0(void *arg) {
+          static int x;
+_0:J(0,1) x = y;
+_1:J(1,2) y = x + 1;
+_2: ;
+}
+
+void T1(void *arg) {
+_3:J(3,4) y = 3;
+_4: ;
+}
+
+int main_thread() {
+          static pthread_t t0,t1;
+_5:J(5,6) pthread_create(&t0,NULL,T0,0,1);
+_6:J(6,7) pthread_create(&t1,NULL,T1,0,2);
+_7: ;
+}
+
+int main() {
+    for(r=1; r<=K; r++) {
+        cs=pc[0] + nondet_uint();
+        assume(cs<=size[0]);
+        main_thread();
+        pc[0]=cs;
+        .........
+        cs=pc[2] + nondet_uint();
+        assume(cs<=size[2]);
+        T1();
+        pc[2]=cs;
+    }
+}
+\end{lstlisting}
+
+Des structures de contrôle supplémentaires permettent de représenter la
+synchronisation des threads.
+
+La séquentialisation ne préserve pas nécessairement toutes les
+propriétés du code, selon les transformations effectuées. Les propriétés
+d'accessibilité sont généralement préservées, cependant la plupart des
+approches déplient les boucles et bornent la profondeur d'exploration et
+le nombre de changements de contexte possibles.
+
+\subsubsection{Outils}
+
+CSeq\cite{CSeq} suit le schéma de séquentialisation de Lal/Reps. Ce dernier
+consiste à considérer \(K\) copies de la mémoire partagée, pour \(K\) phases
+d'un ordonnancement \emph{round-robin}. La fonction représentant chaque thread
+va mettre à jour la i\textsuperscript{ème} copie jusqu'au i\textsuperscript{ème}
+changement de contexte, avant de la passer au thread suivant. Enfin, toutes les
+exécutions incohérentes (lorsque l'état de la mémoire à la fin d'un cycle ne
+correspond pas à l'état deviné au début du cycle suivant) sont supprimées. CSeq
+utilise des model-checkers bornés pour mener la vérification. Il est compatible
+avec CBMC, ESBMC et LLBMC.
+
+Lazy-CSeq\cite{LazyCSeq} se base sur le framework mis en place par CSeq mais
+prend une approche paresseuse (\emph{lazy}). Il ajoute des instructions de
+contrôle aux fonctions représentant les threads, ce qui permet d'interrompre ou
+de reprendre l'exécution d'une fonction chaque fois qu'un changement de contexte
+peut avoir lieux. L'ordre d'exécution des instructions dans un entrelacement est
+ainsi préservé, ce qui permet de réduire considérablement l'utilisation du
+non-determinisme. Lazy-CSeq est compatible avec CBMC, ESBMC et LLBMC.
+
+Mu-CSeq\cite{MuCSeq} se base sur le concept de \emph{memory
+unwinding} (déroulement de la mémoire, MU). Un MU consiste en une
+séquence d'écriture dans la mémoire partagée du programme. Mu-CSeq
+choisi un MU de manière non-déterministe et le confronte à une
+simulation du programme afin de vérifier si les écritures correspondent.
+Si c'est le cas, une exécution valide a été détectée. Cette approche
+permet d'éviter d'explorer des entrelacements équivalents, seul l'entrelacement
+des écritures étant pris en compte. Mu-CSeq utilise CBMC comme backend.
+
+Unbounded-Lazy-CSeq\cite{ULCSeq} se base sur l'algorithme utilisé
+par Lazy-CSeq, mais permet de ne pas limiter le nombre de changements de
+contexte. Il est aussi capable de traiter des programmes non-bornés.
+Pour cela, UL-CSeq conserve les boucles mais se base sur
+CPAChecker\cite{CPAChecker} en backend et non sur des model-checkers bornés.
+
+De manière générale, les outils de séquentialisation ont obtenus
+d'excellentes performances ces dernières années. Lazy-CSeq a obtenu la
+médaille d'or de la catégorie \emph{concurrence} lors des éditions 2014
+et 2015 de la SVCOMP et une médaille d'argent pour les éditions 2016 et
+2017, tandis que Mu-CSeq a obtenu la médaille d'or lors de l'édition
+2016 et la médaille d'argent lors des éditions 2014 et 2015
+\cite{svcomp_2016_result, svcomp_2015_result,
+svcomp_2014_result, svcomp_2017_result}.
