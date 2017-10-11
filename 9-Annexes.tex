@@ -22,3 +22,33 @@ Texte de l'annexe B\@ en mode «landscape».
 
 \Annexe{UNE DERNIÈRE ANNEXE}
 Texte de l'annexe C\@.
+
+\begin{landscape}
+\Annexe{Types de propriétés supportés par différents model-checkers}
+\begin{table}[ht]
+\centering
+\caption{Types de propriétés prise en charge par les outils présentés.}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
+\hline
+Outils     & \multicolumn{9}{c|}{Types de propriétés vérifiées}                                                                                                     \\
+           & Assertions   &      LTL     & Arithmétique &     Tableaux & Pointeurs    & Data races   & Deadlock     & Cast         & Init           \\ \hline
+SPIN       &              & $\checkmark$   &                     &                    &              &              &              &              &                \\
+Pancam     & $\checkmark$ &              &              &              &              &              &              &              &                \\
+Inspect    & $\checkmark$ &              &              &              &              &              &              &              &                \\
+Divine     & $\checkmark$ & $\checkmark$ &              &              &              &              &              &              &                \\
+CIVL       & $\checkmark$ &              & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$   \\
+Impara     & $\checkmark$ &              &              &              &              &              &              &              &                \\
+Satabs     & $\checkmark$ &              & $\checkmark$ & $\checkmark$ & $\checkmark$ &              &              &              &                \\
+Threader   & $\checkmark$ &              &              &              &              &              &              &              &                \\
+CPAChecker & $\checkmark$ &              &              &              &              &              &              &              &                \\
+CBMC       & $\checkmark$ &              & $\checkmark$ & $\checkmark$ & $\checkmark$ &              &              &              &                \\
+ESBMC      & $\checkmark$ &              & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ &              &                \\
+CSeq       & $\checkmark$ &              &              &              &              &              &              &              &                \\
+Lazy-CSeq  & $\checkmark$ &              &              &              &              &              & $\checkmark$ &              &                \\
+Mu-CSeq    & $\checkmark$ &              &              &              &              &              &              &              &                \\
+UL-CSeq    & $\checkmark$ &              &              &              &              &              &              &              &                \\ \hline
+\end{tabular}
+\label{tab:prop_type_table}
+\end{table}
+
+\end{landscape}

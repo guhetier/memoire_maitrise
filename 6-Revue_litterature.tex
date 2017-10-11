@@ -1402,3 +1402,38 @@ et 2015 de la SVCOMP et une médaille d'argent pour les éditions 2016 et
 2016 et la médaille d'argent lors des éditions 2014 et 2015
 \cite{svcomp_2016_result, svcomp_2015_result,
 svcomp_2014_result, svcomp_2017_result}.
+
+\subsection{Bilan}
+
+Différents outils et techniques de model-checking ont été développés pour
+tenter de résoudre le problème principal du model-checking : l'explosion
+combinatoire. Ces techniques ont différents point forts et défauts, qui
+dépendent des propriétés types à vérifier, de la structure du modèle (boucles,
+non-déterminisme sur les données ou  le contrôle...) et du résultat attendu
+(détection d'erreurs, preuve de correction...).
+
+Afin de gagner en performances, les différents outils implémentent des
+optimisations et des techniques de réduction qui provoquent en général une
+certaine perte de précision. La plupart des outils restreignent ainsi le type de
+propriétés et de spécification qu'ils supportent afin de gagner en performances.
+La figure \ref{tab:prop_type_table}, en annexe, récapitule les types de
+propriétés qu'il est possible de vérifier avec chaque outil (selon les articles
+que nous avons passés en revue). On remarque en particulier que si la plupart
+des outils supportent une spécification à l'aide d'assertions, le support pour
+LTL est bien plus réduit.
+
+La gestion de la concurrence reste encore un problème ouvert.
+Elle est actuellement prise en charge par différents mécanismes : les
+différents entrelacements peuvent être intégrés directement dans le modèle, ils
+peuvent aussi être énuméré explicitement. Une autre approche est de mener une
+preuve modulaire, en examinant chaque thread individuellement et en simulant ses
+interactions avec le reste du système. Enfin, les techniques de
+séquentialisation permettent de ramener le non-determinisme dû aux
+entrelacements à du non-determinisme dû aux données que les model-checkers
+savent mieux traiter.
+
+Par la suite, nous allons utiliser des model-checker en tant que backend
+afin de vérifier du code instrumenté. L'objectif sera alors de considérer le
+model-checker comme une boîte noire, dont il est inutile de connaître le
+fonctionnement interne. Connaître les techniques utilisées restera cependant
+utile pour comprendre les résultats et les performances obtenus.
