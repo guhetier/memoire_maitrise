@@ -1037,6 +1037,273 @@ réduire la distance entre le modèle et le système. CIVL a terminé troisième
 SV-COMP\cite{svcomp_2016_result, svcomp_2017_result}, dans la catégorie portant
 sur la concurrence.
 
+\subsection{Predicate abstraction}
+
+L'abstraction par prédicat (\emph{predicate abstraction}) est une technique
+proche de l'interprétation abstraite, dont nous avons parlé dans l'introduction
+de ce mémoire. Elle consiste à construire un modèle du programme dans un
+domaine abstrait, déterminé en partitionnant l'ensemble des états du système
+selon un ensemble de prédicats. Cependant, le domaine abstrait utilisé par
+l'interprétation abstraite est en général fixé par l'outil et
+indépendant du programme analysé, tandis que l'abstraction par prédicat
+construit un modèle sur mesure pour le système considéré et la propriété
+à vérifier\cite{abstrate_state_graph, dsilva_survey_2008}.
+
+L'objectif des techniques d'abstraction par prédicat est de construire une
+abstraction du programme exacte par rapport à la propriété à vérifier. Cette
+abstraction est réalisée en choisissant un certain nombre de prédicats portant
+sur les états du programmes. Le choix des prédicats est une étape cruciale,
+puisque la précision de l'abstraction en dépend. Si l'abstraction n'est pas
+suffisamment précise, des faux-positifs (une erreur est détectée alors qu'elle
+n'est pas réellement présente dans le système) ou des faux-négatifs (une erreur
+présente dans le système n'est pas détectée) peuvent avoir lieux.
+
+Une fois les prédicats choisis, les états de l'abstraction sont définis comme
+les classes d'équivalence obtenues en partitionnant l'ensemble des états du
+système par l'ensemble des prédicats. Une transition existe entre un état
+abstrait \(A\) et un état abstrait \(B\) si une transition existe dans le
+système d'origine entre un des états de \(A\) et un des états de \(B\).
+
+On peut représenter le système abstrait comme un programme booléen, c'est à dire
+un programme possédant les structures de contrôle classique du C, mais
+uniquement des variables booléennes. Les variables de ce programme représentent
+chacune un prédicat, et leur valeur dans un état du programme représente si
+le prédicat est vérifié dans cet état ou non. On peut alors vérifier le système
+abstrait à l'aide d'un model-checker pour programmes booléens (ceux-ci utilisent
+généralement des méthodes de model-checking symbolique).
+
+\paragraph{Exemple}
+
+Considérons l'exemple du listing \ref{lst:bool_prog_init}. L'erreur qui a lieu
+lorsque \lstinline!x = 0! pourrait ici correspondre à une division par
+zéro. Considérons les prédicats \(p_1 = (y == 1)\) et \(p_2 = (x == 0)\).
+
+On détermine quatre états abstrait pour chaque position du programme,
+correspondant aux différentes valeurs de \(p_1\) et \(p_2\). On peut ensuite
+déduire le programme booléen associé en supprimant les variables du programme
+initial et en rajoutant des instructions pour actualiser les prédicats. On
+obtient le programme booléen présenté dans le listing \ref{lst:bool_prog_bool}.
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, caption=Code initial, frame=tlrb,
+    label=lst:bool_prog_init]
+L1: x = 3;
+L2: y = 2;
+L3: if (y == 1)
+L4:    x = 0;
+L5: if (x==0)
+L6:    assert(false);
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, caption=Programme booléen,frame=tlrb,
+    label=lst:bool_prog_bool]
+L1: p_2 = false;
+L2: p_1 = false;
+L3: if (p_1)
+L4:     p_2 = true;
+L5: if (p_2)
+L6:     assert(false);
+\end{lstlisting}
+\end{minipage}
+
+Ce programme peut facilement être analysé par un model-checker pour programmes
+booléens.
+
+Il reste cependant à déterminer automatiquement les prédicats utilisés. La
+méthode la plus connue pour construire choisir les prédicats et construire une
+abstraction dans le cas du model-checking logiciel est la méthode
+Counter-Exemple Guided Abstraction Raffinement (CEGAR)\cite{dsilva_survey_2008}.
+
+\subsubsection{Counter-Example Guided Abstraction Raffinement (CEGAR)}
+
+La méthode CEGAR permet de construire une abstraction en itérant quatre phases :
+Abstraction, Vérification, Simulation et Raffinement. Une première abstraction
+(peu précise) du programme est réalisée. Si la vérification fournit un
+contre-exemple, celui-ci est simulé dans le système initial afin de vérifier
+qu'il y existe. Si ce n'est pas le cas, on utilise cette information pour
+construire une abstraction plus précise qui permet de rejeter cette trace et on
+itère le processus.
+
+Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  \textbf{Abstraction :} Dans un premier temps, on considère un ensemble vide de
+  prédicats. Il n'y a donc qu'une seule classe d'équivalence, contenant tous les
+  états du programme. On ne conserve que les structures de contrôle du
+  programme. Toutes les variables sont rendues abstraites, et leurs valeurs dans
+  les structures de contrôles sont non-déterministes. On obtient alors
+  l'abstraction présentée dans le listing \ref{lst:CEGAR_1}.
+\item
+  \textbf{Vérification :} Un model-checker pour programmes booléens permet de
+  trouver la trace L1, L2, L3, L5, L6 qui mène à une erreur dans l'abstraction.
+\item
+  \textbf{Simulation :} Une simulation symbolique permet de constater que la
+  trace n'est pas réalisable. En effet, \lstinline!x! est non-nul lors
+  du test à \lstinline!L5! donc la transition de \lstinline!L5! vers
+  \lstinline!L6! n'est pas réalisable.
+\item
+  \textbf{Raffinement :} L'incohérence présente dans la trace est utilisée pour
+  raffiner l'abstraction, de manière a éliminer les chemins invalides. Ici, un
+  prédicat \lstinline!{x = 0}! indiquant si \lstinline!x! est nul est ajouté. On
+  obtient alors l'abstraction plus précise du listing \ref{lst:CEGAR_2}.
+\item
+  \textbf{Vérification :} Le model-checker trouve cette fois l'exécution L1, L2,
+  L3, L4, L5, L6.
+\item
+  \textbf{Simulation :} cette trace est encore une fois incorrecte, puisque
+  \lstinline!y! ne vaut pas \lstinline!1! en L3.
+\item
+  \textbf{Raffinement :} un prédicat \lstinline!{y = 1}! est ajouté. On obtient
+  l'abstraction du listing \ref{lst:CEGAR_3}.
+\item
+  \textbf{Vérification :} Le model-checker ne trouve pas de trace menant à une
+  erreur dans l'abstraction. L'absence d'erreur est donc prouvée pour le
+  programme.
+\end{enumerate}
+
+\begin{lstlisting}[language=C, label=lst:CEGAR_1]
+L1: ;
+L2: ;
+L3: if (*)
+L4:     ;
+L5: if (*)
+L6:    assert(false);
+\end{lstlisting}
+\begin{lstlisting}[language=C, label=lst:CEGAR_2]
+L1: {x = 0} = {false};
+L2: ;
+L3: if (*)
+L4:     {x = 0} = true;
+L5: if ({x = 0})
+L6:    assert(false);
+\end{lstlisting}
+\begin{lstlisting}[language=C, label=lst:CEGAR_3]
+L1: {x = 0} = false;
+L2: {y = 1} = false;
+L3: if ({y = 1})
+L4:     {x = 0} = true;
+L5: if ({x = 0})
+L6:    assert(false);
+\end{lstlisting}
+
+La phase de raffinement est critique pour les performances de la méthode
+CEGAR, puisque un améliorer le choix des nouveaux prédicats peut éviter des
+itérations supplémentaires de l'algorithme. Des techniques d'analyse statique
+sont souvent utilisées pour trouver les prédicats les plus forts éliminant un
+chemin impossible du modèle. On peut en particulier calculer les plus faibles
+préconditions d'un chemin impossible --- c'est à dire, la plus faible propriété
+qui implique que ce chemin va être emprunté.
+
+\subsubsection{Lazy Abstraction with Interpolant (IMPACT)}
+
+Les méthodes d'abstraction par prédicat, dont l'algorithme CEGAR, se basent sur
+le calcul d'une ou plusieurs abstractions du modèle. Calculer cette abstraction,
+et en particulier les successeurs de chaque état abstrait est une tache
+coûteuse.
+
+L'algorithme IMPACT\cite{IMPACT} permet d'éviter le calcul des successeurs des
+états abstraits. Au lieu de raffiner une abstraction de manière itérative,
+IMPACT raffine son modèle au fur et à mesure de sa construction, seulement
+lorsque nécessaire. Pour ce faire, il déroule la relation de transition d'un
+programme. L'arbre ainsi obtenu est ensuite exploré. Lorsqu'un un état d'erreur
+est atteint, les états du chemin vers cet erreur sont annotés par des invariants
+prouvant que le chemin est impossible dans le programme d'origine (si de tels
+invariants n'existent pas, une erreur est reportée). Le coeur de l'algorithme
+IMPACT consiste à utiliser ces invariants pour éviter d'explorer des branches
+entières de l'arbre. Si deux noeuds \(A\) et \(B\) partagent la même location et
+que l'invariant de \(B\) est plus fort (implique) que celui de \(A\), alors il
+est inutile d'explorer les fils de \(B\) : une erreur accessible à partir de
+\(B\) est accessible à partir de \(A\) aussi.
+
+\subsubsection{Gestion de la concurrence}
+
+Les techniques d'abstraction par prédicat reposent sur le fait que le problème
+d'accessibilité dans un programme booléen séquentiel est décidable. On peut donc
+déterminer si une trace menant à une erreur existe dans le modèle abstrait.
+Cependant, le problème d'accessibilité dans un programme booléen concurrent
+n'est pas décidable. C'est une grande difficulté pour les méthodes
+d'abstraction par prédicats, qui reposent sur la terminaison et la rapidité de
+l'analyse du programme booléen. C'est plus vrai encore pour l'algorithme CEGAR,
+qui effectue plusieurs vérifications successives de ce programme.
+
+Deux alternatives existent pour intégrer la concurrence dans les techniques
+d'abstraction par prédicat :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  Considérer les entrelacements du programme lors de la vérification du
+  programme booléen. Pour palier le problème de terminaison, il est
+  possible de construire une sur-approximation du programme booléen.
+  Cette approximation permet d'assurer la terminaison du programme
+  booléen, mais elle peut générer des faux positifs. Il reste possible
+  de détecter ces faux positifs dans la partie \emph{Simulation} de
+  l'algorithme CEGAR\cite{predicate_abstraction_over_approximation}.
+  Une autre solution est de limiter la profondeur d'exploration et le
+  nombre de changements de contexte. Cependant, cette approche rend
+  nécessairement la vérification incomplète.
+\item
+  Utiliser un raisonnement de type
+  \emph{rely-garantee}\cite{thread_modular_abstraction} : les
+  threads sont examinés un par un, de manière indépendante, et une approximation
+  de l'effet des autres threads est construite pour examiner les différentes
+  traces possibles.
+\end{enumerate}
+
+\subsubsection{Outils}
+
+Impara\cite{Impara} adapte l'algorithme \emph{IMPACT}\cite{IMPACT} et le combine
+à des techniques de réduction d'ordre partiel afin de l'étendre à des programmes
+multithread. Il réduit ainsi l'explosion combinatoire présente dans l'algorithme
+IMPACT : dérouler naïvement la relation de transition d'un modèle concurrent,
+comme le fait une extension directe de l'algorithme IMPACT, revient à
+énumérer un nombre exponentiel d'entrelacements.
+
+La plupart des model-checkers utilisant la méthode CEGAR basent leurs procédures
+de décision sur des prouveurs limités à l'arithmétique linéaire sur des nombres
+réels uniquement. Ils ne peuvent alors pas raisonner sur des tableaux de bits.
+Satabs\cite{Satabs}\cite{clarkesatabs} implémente ses procédures de décision à
+l'aide d'un solveur SAT. Il parvient ainsi à manipuler des tableaux de bits, et
+à représenter des structures plus complexes du langage C. Il gagne en précision
+sur l'arithmétique des pointeurs en particulier. Satabs est ainsi capable de
+vérifier un certain nombre de propriétés built-in (validité des pointeurs,
+erreurs arithmétiques, accès hors des bornes d'un tableau), en plus de
+propriétés spécifiées par des assertions.
+
+Threader\cite{Threader}\cite{Threader_theory} se base aussi sur la méthode
+CEGAR. Cependant, il utilise des techniques basées sur des raisonnements de type
+\emph{Rely-guarantee} afin de rechercher une preuve modulaire du programme.
+Threader gagne ainsi en performance lorsqu'une preuve modulaire existe, mais
+il peut être plus lent qu'une méthode classique dans les autres cas.
+
+CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
+BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
+(\emph{Configurables program analysis}). Un CPA définit un domaine abstrait
+(BDDs, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
+de mener une analyse d'accessibilité sur une combinaison arbitraire de CPAs. La
+concurrence est prise en charge à l'aide d'un CPA qui définit une exploration
+explicite des entrelacements\cite{CPAChecker_multithread}. De manière similaire
+à CIVL, CPAchecker vise à réduire les efforts de développement nécessaires pour
+tester de nouvelles approches pour les méthodes basées sur l'abstraction par
+prédicat. CPAchecker permet de construire une spécification sous la forme d'un
+automate, à l'aide d'un formalisme similaire à celui utilisé par BLAST.
+
+Les techniques d'abstraction par prédicat son principalement tournées vers les
+propriétés d'accessibilité spécifiées par des assertions. Parmi les outils
+supportant le C multithread, tous supportent les assertions. Cependant, seul
+Satabs est orienté vers la vérification de propriétés built-in et aucun ne
+permet de vérifier des propriétés LTL.
+
+De manière générale, les techniques d'abstraction par prédicat sont très
+efficaces dans le cas du model-checking de logiciels séquentiels, car elles
+supportent bien l'explosion combinatoire liée aux données. Cependant, elles ont
+plus de difficultés à traiter des structures de données complexes (tableaux et
+allocations dans le tas). La vérification de programmes concurrents constitue
+aussi une difficulté majeure.
+
 \subsection{Bounded model-checking}
 
 Le model-checking borné (\emph{Bounded model-checking}, BMC) est l'une des
