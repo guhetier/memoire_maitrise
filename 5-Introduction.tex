@@ -6,24 +6,388 @@
 % la réalisation. En fait, l'introduction présente au lecteur ce
 % qu'il doit savoir pour comprendre la recherche et en connaître la
 % portée.
+
 \Chapter{INTRODUCTION}\label{sec:Introduction}  % 10-12 lignes pour introduire le sujet.
+
+Les systèmes informatiques ont pris une place sans précédent dans la société
+actuelle. D'une part, ils sont devenus omniprésents à l'échelle personnelle et
+dans le monde économique. Les smartphones et les ordinateurs personnels sont
+entrés dans notre quotidien. L'informatique embarquée est utilisée massivement,
+que ce soit dans les véhicules ou les usines. À travers internet, nous
+interagissons en permanence avec des programmes sur des serveurs distants.
+
+Simultanément, le champs d'action des systèmes informatiques s'est étendu. En
+plus de leur rôle dans les systèmes embarqués et les communications, les
+logiciels ont maintenant un large accès aux donnés personnelles de leurs
+utilisateurs. À travers la domotique, ils peuvent agir sur notre environnement
+immédiat. Les systèmes de recommandation et d'intelligence artificielle
+influencent les prises de décisions.
+
+Dans ce contexte, les dysfonctionnements des systèmes informatiques sont un
+sujet de préoccupation. Une erreur peut avoir des conséquences de grande
+ampleur, un coût important et porter atteinte à la sécurité des informations et
+des personnes. Il est cependant difficile de concevoir un système correct. On
+peut s'en convaincre en consultant la liste des bugs et des failles
+informatiques apparus ces dernières années. \cite{horror_story} présente
+certains des dysfonctionnements ayant eu les conséquences les plus importantes.
+Les exemples les plus connus restent sans doute l'explosion d'Ariane 5, due à
+une taille de variable sous-dimensionnée, et la faille HearthBleed dans la
+bibliothèque de cryptographie OpenSSL.
+
+Vérifier les systèmes informatiques a ainsi gagné une importance qui n'est
+plus discutable. Cependant, l'inspection manuelle des logiciels est une
+tâche longue, coûteuse et souvent source d'erreurs. Sur les systèmes les
+plus complexes, elle devient irréalisable. Il est donc nécessaire de se
+reposer sur des techniques et des outils permettant d'automatiser,
+partiellement ou totalement, le processus de vérification.
+
+On peut séparer les techniques et les outils utilisés pour vérifier un
+logiciels selon plusieurs critères. L'un de ces critères est le degré
+d'automatisation. Les outils peuvent aller d'un système totalement
+autonome à un simple assistant pour l'ingénieur en charge de la tache de
+vérification. L'automatisation est un facteur important pour la
+vérification de systèmes de grande taille. Le risque d'une erreur
+humaine dans un processus fortement automatisé est aussi réduit. Un
+second critère est la rigueur du verdict fourni par la technique de
+vérification. Certaines méthodes (les méthodes formelles) permettent
+d'obtenir une preuve de validité tandis que d'autres (comme le test ou
+certaines méthodes d'analyse statiques) permettent seulement d'augmenter
+son degré de confiance en la validité du programme.
+
+Dans ce mémoire, nous allons nous intéresser aux techniques de
+vérification automatisées et fournissant une garantie de qualité
+rigoureuse du programme à vérifier. Nous allons en particulier nous
+concentrer sur les techniques de model-checking. Nous allons tout
+d'abord rapidement présenter quelques unes des méthodes de vérifications
+existantes afin de dresser le contexte dans lequel le model-checking
+s'inscrit.
 
 %%
 %%  CONCEPTS DE BASE
 %%
 \section{Définitions et concepts de base}  % environ 2-3 pages
 
-%%
-%% ELEMENTS DE LA PROBLEMATIQUE
-%%
-\section{Éléments de la problématique}  % environ 3 pages
+\subsection{Le test}
 
-%%
-%% OBJECTIFS DE RECHERCHE
-%%
-\section{Objectifs de recherche}  % 0.5 page
+La méthode de vérification la plus employée, de loin, est le test. Un
+programme ou un système informatique a généralement pour objectif de
+réaliser une tâche précise, en respectant des critères de qualité et de
+performances. Un test permet, étant donné un environnement et des
+paramètres d'entrée pour le programme, de vérifier si il produit le
+résultat attendu (indiqué par un oracle).
+
+La grande majorité des projets de développement maintiennent ainsi des
+suites de tests afin de s'assurer que le programme se comporte de la
+manière attendue. Différents paramètres et scénarios d'exécution sont
+testés afin de détecter autant d'erreurs que possibles.
+
+Ces suites de test sont gérées de manière automatisée et sont étendue au
+tout au long du développement d'un logiciel. Ils peuvent prendre des
+dimensions considérables. Par exemples, dans le cas de SQLite, les
+suites de tests représentent près de cent millions de lignes, soit plus
+de 700 fois le nombre de lignes de la bibliothèque elle-même.
+(https://www.sqlite.org/testing.html)
+
+Cependant, les tests souffrent cependant d'un certains nombre de
+défauts. Tout d'abord, il est nécessaire d'avoir une bonne connaissance
+du système et de faire preuve d'une certaine imagination afin de
+concevoir les scénarios susceptibles de mener à une erreur. Lorsque
+c'est le cas, il est souvent complexe de remonter jusqu'à la source de
+l'erreur afin de la corriger. Les tests rencontrent aussi un problème de
+couverture : il est extrêmement difficile de produire un test pour
+chaque comportement du système. Ce problème est accru si on passe à
+l'échelle : le nombre de comportements d'un système augmente
+exponentiellement avec sa taille, le nombre de test nécessaire pour
+couvrir l'ensemble des comportements devrait donc faire de même. Cela
+représente alors un investissement conséquent de créer, maintenir et
+corriger les tests et les oracles.
+
+Les tests assurent donc généralement une couverture partielle du
+programme à vérifier. Une suite de tests ne permet donc pas de garantir
+l'absence d'erreurs, mais seulement l'absence d'erreurs dans les chemins
+d'exécutions testés.
+
+Différents critères de couvertures existent afin de mesurer la qualité
+d'une suite de test. On peut demander que toute les fonction du
+programme soient exécutées au moins une fois lors des tests (on parle
+alors de \emph{function coverage}), ou que l'ensemble des instructions
+du programme soit exécutées (\emph{statement coverage}). On peut aussi
+demander à une suite de tests de contenir des exécutions sollicitant
+successivement différentes instructions du programmes.
+
+Les tests sont généralement moins performants dans le cas de programmes
+concurrents. L'entrelacement entre les instructions peut avoir un impact
+sur l'issu du test, et cet ordre change de manières non-déterministe
+entre les exécutions. Une erreur peut alors être détectée lors d'une
+exécution des tests, mais être très difficile à reproduire. Pour tenter
+de détecter plus efficacement les erreurs liées à la concurrence, des
+techniques comme le stress-testing ont été mises en place. Elles
+consistent à ajouter du bruit à l'exécution des tests ou à lancer
+plusieurs instance du test en parallèle afin d'augmenter la probabilité
+des entrelacements d'instructions les moins fréquents.
+
+Malgré ces limitations, le test reste généralement la méthode de
+vérification la plus simple à mettre en place. Les autres techniques de
+vérification sont parfois utilisées de manière complémentaire à une
+suite de tests, afin d'apporter une preuve de correction plus rigoureuse
+sur les fragments sensible du programme.
+
+\subsection{Les méthodes formelles}
+
+Les méthode de test permettent de trouver des erreurs dans un programme
+et d'augmenter la confiance des développeurs dans le fait que le
+programme est correct, mais elles ne permettent pas de prouver l'absence
+d'erreurs.
+
+Les méthodes de vérification formelles sont une réponse à ce défaut :
+elles permettent de prouver l'absence d'erreurs dans un programme,
+quelques soient les entrées et les chemins d'exécution.
+
+En pratique, vérifier qu'un système est complètement correct, c'est à
+dire qu'il ne contient aucune erreur (que ce soit des erreurs
+fonctionnelles ou d'exécution) est généralement trop complexe. Il est
+cependant possible de garantir l'absence de certain type d'erreurs et de
+vérifier des propriétés critiques pour le systèmes.
+
+De nombreuse méthodes existent afin de prouver la correction d'un
+programme vis-à-vis d'une propriété. Nous allons ici nous intéresser aux
+méthodes automatiques, qui ne requièrent pas, ou peu, d'interaction
+humaine pour fournir un résultat. En particulier, nous excluons les
+méthodes basées sur des assistants de preuve (comme Coq ou HOL), qui
+demandent un effort significatif et des connaissances avancées à
+l'utilisateur afin de construire une preuve.
+
+\subsubsection{L'interprétation abstraite}
+
+L'interprétation abstraite fait partit du domaine de l'analyse statique.
+L'analyse statique regroupe les techniques permettant d'obtenir des
+informations sur le comportement d'un programme à partir de son code
+source, sans l'exécuter.
+
+Le théorème de Rice indique que la plupart des propriétés d'un programme
+ne sont pas décidables. L'essence de l'interprétation abstraite est de
+contourner ce problème en construisant une approximation du résultat de
+manière efficace et correcte (dans le sens de \emph{sound} : si
+l'algorithme indique qu'une propriété est vraie, c'est bien le cas,
+cependant la réciproque est fausse). Le principal enjeux de
+l'interprétation abstraite est d'être suffisamment précise afin de ne
+pas indiquer un trop grand nombre de fausses (\emph{spurious}) erreurs.
+
+Plutôt que d'essayer de suivre l'ensemble des valeurs possibles pour
+chaque variable, à chaque point du programme, l'interprétation abstraite
+utilise un domaine abstrait qui permet d'approximer l'ensemble des
+valeurs qu'une variable peut prendre. Par exemple, on peut approximer
+l'ensemble des valeur d'une variable par le plus petit intervalle
+contenant l'ensemble de ces valeurs. Le programme est alors interprété,
+chaque opération concrète sur les variable étant transposée dans le
+domaine abstrait. L'utilisation des domaines abstrait permet de réduire
+largement le nombre de valeur à manipuler et facilite les opérations.
+
+On peut alors prouver la correction du programme vis à vis d'une
+propriétés en l'évaluant dans le domaine abstrait. Pour poursuivre
+l'exemple précédent, si on veut s'assurer qu'une variable ne peut pas
+être nulle à un point du programme (pour éviter une erreur arithmétique
+par exemple), et que l'analyse permet d'établir qu'elle se situe dans
+l'intervalle \([1, 5]\), on peut conclure que la propriété est vérifiée.
+Cependant, si on obtient l'intervalle \([-1, 1]\), il n'est pas possible
+de conclure : une erreur est possible, mais elle n'est pas certaine.
+
+En pratique, l'interprétation abstraite est souvent utilisée pour
+vérifier des propriétés génériques, intégrées dans les outils
+(\emph{built-in}). L'interprétation abstraite est une technique qui
+passe bien à l'échelle et qui peut analyser de large base de code. Des
+propriétés typiquement vérifiées sont l'absence d'erreurs arithmétiques,
+l'absence de variables utilisées avant d'être initialisées, ou le
+respect des bornes des tableaux.
+
+(\textbf{TODO: donner quelques outils et leur domaine de vérification})
+
+Cependant, l'interprétation abstraite souffre de deux principaux défaut
+: tout d'abord, les approximations réalisée peuvent provoquer de
+nombreux faux positifs, signalant une erreur éventuelle dans un code
+correct. La précision de l'analyse peut être parfois être améliorée en
+choisissant un domaine abstrait plus raffiné, mais cela a généralement
+un coût au niveau des performances. De plus, l'interprétation abstraite
+ne permet pas d'obtenir un contre-exemple menant vers une erreur
+indiquée, ou tout autre information indiquant la cause de cette erreur.
+Il peut alors être complexe de déterminer si une erreur reportée est un
+faux positif ou non, et de comprendre sa cause pour la corriger.
+
+\subsubsection{Le model-checking}
+
+Les techniques de model-checking se basent sur l'exploration d'un modèle
+du système à vérifier. Ce modèle prend généralement la forme d'un
+système de transition, il peut être crée manuellement ou extrait
+automatiquement du système. Les outils de model-checking vont alors
+explorer la partie accessible du modèle de manière exhaustive.
+
+Le modèle doit à la fois représenter fidèlement le système vis-à-vis des
+propriétés à vérifier, et être suffisamment simple pour qu'il soit
+possible de l'explorer en un temps raisonnable. Si il est possible
+d'atteindre un état, ou d'emprunter une succession d'états ne respectant
+pas la propriété désirée, une erreur est reportée. Un contre-exemple ---
+une trace d'exécution menant à cette erreur --- peut alors être généré.
+Il a en général une grande valeur pour comprendre la source de l'erreur
+et la corriger, et constitue un des plus grand atout du model-checking.
+
+La distinction entre le model-checking et l'interprétation abstraite est
+principalement historique. L'analyse statique a été conçu pour vérifier
+des propriétés simple sur les programmes. Les algorithmes ont souvent
+mis l'accent sur les performances quitte à perdre en précision. D'autre
+part, le model-checking a été développé pour prouver des propriétés
+complexes sur le design de circuits. La priorité a été la précision des
+algorithmes et la capacité à vérifier des propriétés dépendant du
+programme. Cependant, les analyseur statiques ont désormais gagné en
+précisions et sont capable vérifier des spécifications, tandis que les
+models-checkers ont développé des abstractions pour gagner en
+performances. La distinction reste donc principalement une question
+d'intention dans l'orientation de l'outil.
+
+Le model-checking reste limité par le problème de \emph{l'explosion
+combinatoire}. La taille des modèles et la durée des taches de
+vérification augmente généralement de manière exponentielle avec la
+complexité du système et des propriétés à vérifier. Différentes
+techniques s'attachent à combattre l'explosion combinatoire, nous
+reviendrons sur ce point plus en détail. (\textbf{TODO : dire où})
+
+\subsection{Concurrence}
+
+Les lois de Moore sont des conjectures empiriques qui prédisent que la
+puissance de calcul des processeurs double chaque année. Cependant, la
+miniaturisation des transistors approche ces limites physiques,
+annonçant la fin des lois de Moore dans leur interprétation
+traditionnelle. Cependant, afin continuer à gagner en puissance de
+calcul, les processeurs ont commencé à évoluer dans une autre direction
+: plutôt que d'augmenter la puissance, c'est le nombre de coeur qui va
+croître. Pour tirer partit de ces processeurs multi-coeurs, il est
+cependant nécessaire de réaliser des programmes parallèles.
+
+Plusieurs modèle de programmation concurrente existent. Par exemple, ils
+peuvent être basé sur des évènements (SystemC), ou sur des algorithmes
+de type map / reduce (MPI). Dans ce mémoire, nous allons nous concentrer
+sur les threads suivant la norme POSIX (\emph{pthread}).
+
+La concurrence introduit tout un nouveau panel de difficultés dans la
+conception d'un programme. Les accès à la mémoire partagé par plusieurs
+fils d'exécutions doivent être protégé pour éviter les \emph{race
+conditions}, qui peuvent fausser le résultat d'une opération. Il est
+aussi nécessaire de synchroniser les fils d'exécution et de tenir compte
+des différents entrelacement possibles entre les instructions. Ces
+difficultés provoquent souvent l'apparition d'erreurs subtiles. En
+particulier, les erreurs dépendant de l'entrelacement des instructions
+sont souvent complexe à détecter et à diagnostiquer. L'entrelacement
+étant non déterministe, ces erreurs sont souvent difficiles à détecter
+et à reproduire.
+
+Les programmes concurrents représentent un défis pour les méthodes de
+vérification. Les méthodes reposant sur l'exécution du programme, comme
+le test, n'ont pas de contrôle sur l'entrelacement des instructions. Il
+devient alors difficile de tester certains chemin critiques et de
+diagnostiquer les erreurs rencontrées. Les techniques de model-checking
+possèdent ce contrôle --- elles ont initialement été conçu pour vérifier
+des systèmes électroniques concurrents. Cependant, dans le cas du
+model-checking logiciel, la concurrence amplifie l'explosion
+combinatoire de manière exponentielle. Il est nécessaire d'explorer tout
+les entrelacements entre les instructions d'un programme, or, pour un
+programme composé de \(n\) threads, chacun contenant \(k\) instructions,
+il existe \(\frac{(nk)!}{(k!)^n}\) entrelacements. Pour \(k = 100\)
+instructions et \(n = 2\) threads, on obtient déjà près de \(10^{59}\)
+entrelacements !
+
+\section{Domaine de ce mémoire}
+
+Dans ce mémoire, nous allons restreindre le champs de notre étude aux
+outils de model-checking pour des programmes écrit en C.
+
+Le langage C est un langage bas niveau parmi les plus utilisé et les
+plus présent dans les bases de code actuelles. Il est en particulier
+utilisé dans les applications embarqués, les applications systèmes et
+les applications temps réel, qui nécessitent un contrôle bas niveaux et
+des performances élevées. Ces types d'applications sont souvent
+critiques et ne peuvent tolérer un dysfonctionnement. Le C est donc un
+langage privilégié par les méthodes de vérification formelle, supporté
+par de nombreux outils de model-checking.
+
+Quand il sera question de concurrence, nous nous intéresserons en
+particulier aux programmes multi-threads suivant la norme POSIX, et
+utilisant la bibliothèque \emph{pthread}. Elle implémente une gestion
+bas niveau de la concurrence, souvent utilisée dans les programmes
+embarqués ou les codes systèmes.
+
+Deux questions ouvertes forment actuellement le coeur de la recherche
+sur le du model-checking. La première, et la principale, est la question
+des performances et de la lutte contre l'explosion combinatoire. La
+seconde est la question de la spécification, les propriétés qu'il est
+possible de vérifier sur un système, et la manière de les exprimer. Dans
+ce mémoire, nous allons nous intéresser à ce second point.
+
+Les assertions sont le mécanisme de spécification le plus utilisé dans
+le cadre de la vérification logicielle. Une assertion prends la forme
+d'une instruction dans le code, prenant en paramètre une expression
+booléenne pure --- sans effet de bord --- qui joue le rôle d'un
+invariant. Si cet invariant n'est pas respecté, l'assertion est
+déclenchée (ce qui mets fin au programme dans le cas d'une exécution, ou
+permet de faire remonter une erreur dans le cas du model-checking. La
+plupart des outils de model-checking logiciel supportent une
+spécification sous la forme d'assertion.
+
+Cependant, dans le cas de programmes multi-threads, les assertions
+présentent des faiblesses. En particulier, l'invariant d'une assertion
+ne peut utiliser des valeurs hors de son contexte (une variable d'un
+autre thread par exemple). De plus, une assertion est bloquante :
+l'exécution ou l'exploration du programme stoppe une fois une assertion
+atteinte. Il n'est pas possible d'exprimer des relation temporelles
+(simultanéité ou succession par exemple) entre des assertions pour
+déclencher une erreur dans ces cas seulement.
+
+Ma question de recherche sera donc composé des deux parties suivantes :
+
+\begin{itemize}
+\item
+  Comment peut on améliorer la spécification des programmes concurrents
+  et la rendre plus expressive ?
+\item
+  Comment peut on rendre les outils de model-checking actuels
+  compatibles avec une spécification plus expressive ?
+\end{itemize}
+
+Pour améliorer l'expressivité de la spécification des programmes
+concurrents, nous allons nous intéresser aux logiques temporelles, et en
+particulier aux formules LTL. Ces dernières ont déjà été utilisées dans
+le cadre de model-checking logiciel, dans un cadre restreint. Nous
+proposons une extension de ce cadre, permettant en particulier de faire
+références à des positions du code et à des variables locales dans les
+formules. En particulier, notre extension permet d'englober les
+assertions classique et de créer des relations temporelles entre ces
+dernières.
+
+Les outils de model-checking sont généralement complexes et optimisés
+pour le types de propriétés qu'ils prennent en charge. Afin de rendre
+les outils existant compatibles avec notre spécification, nous mettons
+en place une transformation de source à source du système. Nous
+construisons ainsi un nouveau programme spécifié par des assertions,
+dont la validité est équivalente à celle du système d'origine. Cette
+méthode nous permet en particulier de tester notre approche avec
+différents outils et de profiter de leurs optimisations.
 
 %%
 %% PLAN DU MEMOIRE
 %%
 \section{Plan du mémoire}  % 0.5 page
+
+La partie \ref{sec:RevLitt} de ce mémoire consiste en un état de l'art. Nous présentons
+d'abord les spécifications à base d'assertion et la logique LTL. Nous
+introduisons ensuite les principaux algorithmes de model-checking
+logiciels, ainsi que les outils les implémentant et leurs spécificités.
+
+Dans la partie \ref{sec:Theme1}, nous détaillons le formalisme de spécification que
+nous avons établi. Nous le comparons aux autres tentatives allant dans
+le même sens et nous mettons en lumières les principaux problèmes
+résolus ou encore ouverts.
+
+Dans la partie \ref{sec:Theme2}, nous présentons une transformation de source à source
+destinée à rendre les outils existant compatibles avec notre
+spécification. Nous construisons pour cela le produit entre le système
+et l'automate de Büchi associé à la propriété à vérifier. Nous évaluons
+ensuite les performances obtenues pour la vérification d'exemples
+simples.
