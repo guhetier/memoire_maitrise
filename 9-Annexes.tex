@@ -7,21 +7,6 @@
 %%
 %%  Toutes les annexes doivent être inclues dans ce document
 %%  les unes à la suite des autres.
-\Annexe{DÉMO}
-Texte de l'annexe A\@. Remarquez que la phrase précédente se termine
-par une lettre majuscule suivie d'un point. On indique explicitement
-cette situation à \LaTeX{} afin que ce dernier ajuste correctement
-l'espacement entre le point final de la phrase et le début de la
-phrase suivante.
-
-
-\begin{landscape}
-\Annexe{ENCORE UNE ANNEXE}
-Texte de l'annexe B\@ en mode «landscape».
-\end{landscape}
-
-\Annexe{UNE DERNIÈRE ANNEXE}
-Texte de l'annexe C\@.
 
 \begin{landscape}
 \Annexe{Types de propriétés supportés par différents model-checkers}
@@ -30,9 +15,9 @@ Texte de l'annexe C\@.
 \caption{Types de propriétés prise en charge par les outils présentés.}
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
 \hline
-Outils     & \multicolumn{9}{c|}{Types de propriétés vérifiées}                                                                                                     \\
+Outils     & \multicolumn{9}{c|}{Types de propriétés vérifiées}                                                                                     \\
            & Assertions   &      LTL     & Arithmétique &     Tableaux & Pointeurs    & Data races   & Deadlock     & Cast         & Init           \\ \hline
-SPIN       &              & $\checkmark$   &                     &                    &              &              &              &              &                \\
+SPIN       &              & $\checkmark$ &              &              &              &              &              &              &                \\
 Pancam     & $\checkmark$ &              &              &              &              &              &              &              &                \\
 Inspect    & $\checkmark$ &              &              &              &              &              &              &              &                \\
 Divine     & $\checkmark$ & $\checkmark$ &              &              &              &              &              &              &                \\
