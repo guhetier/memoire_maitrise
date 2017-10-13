@@ -1,2 +1,194 @@
-\Chapter{PREMIER THÈME}\label{sec:Theme1}
-Texte.
+\Chapter{LTL avec support des positions et des variables locales}\label{sec:Theme1}
+
+Considérons le problème suivant : un système contient deux batteries. Les
+batteries se vident et chacune est changée lorsqu'elle est épuisée. Tant qu'une
+des batteries est présente, le système fonctionne. Cependant, si les deux
+batteries sont vides en même temps, le système n'a plus d'énergie et cesse de
+fonctionner.
+
+Un tel système peut être modélisé par le code ci-dessous. Deux threads,
+\lstinline!battery1! et \lstinline!battery2! contrôlent le rythme auquel les
+batteries se vident. Le pourcentage d'énergie dans la batterie est représenté
+par la variable \lstinline!energy_stored!. Celle-ci est décrémentée dans une
+boucle, ce qui représente la consommation de l'énergie, avant d'être remise à
+une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
+aucune synchronisation n'existe entre les threads. L'état d'erreur peut donc
+évidement avoir lieu. Nous allons tout de même essayer de détecter cette erreur
+à l'aide d'un model-checker logiciel.
+
+La propriété que nous souhaitons vérifier est que, quelque soit
+l'exécution, les deux batteries ne seront jamais simultanément vide : il
+s'agit donc d'un problème d'exclusion mutuelle. Afin d'exécuter la
+vérification, il va tout d'abord être nécessaire de spécifier cette
+propriété.
+
+\begin{lstlisting}[language=C]
+void* battery1(void* d) {
+    int energy_stored = 100;
+    while(1) {
+      // Empty the battery
+      for(; energy_stored > 0; energy_stored--);
+      // Replace the battery
+      energy_stored = 100;
+    }
+    pthread_exit(NULL);
+}
+
+void* battery2(void* d) {
+    int energy_stored = 100;
+    while(1) {
+      // Empty the battery
+      for(; energy_stored > 0; energy_stored--);
+      // Replace the battery
+      energy_stored = 100;
+    }
+    pthread_exit(NULL);
+}
+\end{lstlisting}
+
+Comme nous l'avons vu dans l'état de l'art, la principale limitation du
+model-checking est actuellement l'explosion combinatoire. Les outils de
+model-checking pour des logiciels concurrents restreignent le type de
+propriétés qu'ils vérifient pour optimiser leurs performances. Ainsi, la
+plupart de ces outils ne permettent de vérifier que des propriétés
+exprimées à l'aide d'assertions.
+
+Dans un premier temps, nous allons donc spécifier notre propriété par
+des assertions.
+
+Cependant, sans modification du code, des assertions ne permettent pas
+de spécifier une exclusion mutuelle. Nous allons donc rajouter une
+variable indicatrice, qui va signaler lorsque un pointeur d'exécution
+est dans une des zones critiques (c'est à dire lorsque la batterie est
+en remplacement).
+
+On obtient alors le code suivant :
+
+\begin{lstlisting}[language=C]
+int critical = 0;
+
+void* battery1(void* d) {
+    int energy_stored = 100;
+    while(1) {
+      // Empty the battery
+      for(; energy_stored > 0; energy_stored--);
+      // Replace the battery
+      assert(critical != 1);
+      critical = 1;
+      energy_stored = 100;
+      critical = 0;
+    }
+    pthread_exit(NULL);
+}
+
+void* battery2(void* d) {
+    int energy_stored = 100;
+    while(1) {
+      // Empty the battery
+      for(; energy_stored > 0; energy_stored--);
+      // Replace the battery
+      assert(critical != 1);
+      critical = 1;
+      energy_stored = 100;
+      critical = 0;
+    }
+    pthread_exit(NULL);
+}
+\end{lstlisting}
+
+% Cette instrumentation souffre cependant d'un problème : les instructions
+% supplémentaires créent de nouveaux chemins d'exécutions. Ces chemins
+% n'existent pas dans le programme d'origine et pourraient permettre
+% d'atteindre des états auparavant inaccessibles. Ce n'est heureusement
+% pas le cas ici. Nous reviendrons plus tard {[}TODO: indiquer où{]} sur
+% ce problème.
+
+L'utilisation de ces variables indicatrices définit des états (dans et
+hors de la zone critique pour chaque thread), qui peuvent rappeler la
+structure d'un automate de Büchi associé à la propriété ``l'exclusion
+mutuelle est toujours respectée''.
+
+D'autres exemples --- tels que ``une \emph{assertion} doit être atteinte
+avant une autre pour qu'une erreur soit présente'' --- nécessitent aussi
+d'instrumenter le code à l'aide de variables indicatrices. De manière
+similaire, ces variables définissent des états et une évolution entre
+ces états qui rappelle la construction d'un automate de Büchi.
+
+Quitte à construire cet automate de Büchi, pourquoi ne pas spécifier nos
+propriétés en utilisant directement LTL ? Les propriétés LTL sont fréquemment
+représentée par des automates de Büchi par les algorithmes de model-checking, on
+pourrait ainsi déléguer la construction de l'automate au model-checker.
+On réduit ainsi le risque d'introduire des erreurs dans la construction de cet
+automate et son intégration dans le modèle, tout en profitant de la syntaxe plus
+simple de LTL.
+
+Cependant, les outils de model-checking logiciel supportant le C restreignent
+généralement les propositions atomiques des formules LTL qu'ils vérifient à des
+expressions pures (sans effet de bord) du C, ne faisant référence qu'à des
+variables globales. On ne peut donc pas mentionner directement une variable
+locale ou une position du programme dans ces spécifications.
+
+Tentons donc de spécifier notre modèle à l'aide d'une formule LTL. Deux
+options sont possibles. La première consiste à vérifier que les deux
+batteries ne sont pas vide en même temps, c'est à dire que les variables
+\lstinline!energy_stored! des threads \lstinline!battery1! et
+\lstinline!battery2! ne valent pas \lstinline!0! simultanément. Mais les
+variables \lstinline!energy_stored! sont des variables locales : la
+plupart des outils ne permettent pas de les mentionner dans une formule
+LTL. On peut aussi considérer que les opérations de changement de
+batterie ne doivent pas avoir lieu simultanément, en définissant deux
+zones mutuellement exclusives. Mais les outils ne permettent
+généralement pas de mentionner une position dans le code.
+
+Spécifier le problème en utilisant LTL ne permet donc pas de se libérer
+d'une instrumentation manuelle. Il est nécessaire d'introduire des
+variables supplémentaires pour rendre accessibles les variables locales
+ou pour délimiter les zones critiques.
+
+Dans notre exemple, on pourrait alors rajouter deux variables booléennes
+\lstinline!c1! et \lstinline!c2! pour représenter les propositions atomiques
+``être dans une zone critique''. La spécification serait alors
+la formule \(G \lnot (c1 \land c2)\), pour le code instrumenté suivant.
+
+\begin{lstlisting}[language=C]
+int c1;
+int c2;
+
+void* battery1(void* d) {
+    int energy_stored = 100;
+    while(1) {
+        // Empty the battery
+        for(; energy_stored > 0; energy_stored--);
+
+        // Replace the battery
+        c1 = 1;
+        energy_stored = 100;
+        c1 = 0;
+    }
+    pthread_exit(NULL);
+}
+
+void* battery2(void* d) {
+    int energy_stored = 100;
+    while(1) {
+        // Empty the battery
+        for(; energy_stored > 0; energy_stored--);
+        // Replace the battery
+        c2 = 1;
+        energy_stored = 100;
+        c2 = 0;
+    }
+    pthread_exit(NULL);
+}
+\end{lstlisting}
+
+Cependant, utiliser des variables indicatrices revient à introduire une
+instrumentation manuelle dans le code. Cela peut introduire des
+différences entre le modèle et le système initial, et donc provoquer des
+faux positifs ou des faux négatifs lors de la vérification.
+
+Dans cette partie, nous présentons un nouveau formalisme de spécification, basé
+sur LTL. Notre objectif est de permettre de spécifier d'avantage de propriétés
+sans qu'il soit nécessaire d'instrumenter manuellement le programme à vérifier.
+Pour ce faire, nous nous concentrons sur le support des variables locales et la
+possibilité d'utiliser des positions du code dans la spécification.
