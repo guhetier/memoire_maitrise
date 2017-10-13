@@ -369,3 +369,398 @@ considéré les options suivantes :
 Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande
 de modifier le comportement standard des opérateurs LTL et nous avons
 préféré limiter nos modifications aux propositions atomiques seulement.
+
+\subsection{Syntaxe et sémantique de la spécification}
+
+\subsubsection{Syntaxe}
+
+Nous allons tout d'abord présenter la grammaire de la spécification que
+nous avons finalement retenue, avant de justifier nos choix.
+
+Notre spécification est composés de partie. D'une part, une formule LTL
+classique. D'autre part, la définition des propositions atomiques utilisées
+par la formule LTL.
+
+La définition d'une proposition atomique est composée des éléments suivants :
+
+\begin{itemize}
+\item
+  \textbf{un nom} : il permet de référer facilement à la proposition atomique.
+\item
+  \textbf{une zone de validité} : elle délimite un bloc d'instructions dans
+  le code (au sens du langage C). Une zone de validité est délimitée par deux
+  labels (placés dans le code par l'ingénieur réalisant la spécification). La
+  proposition atomique est dans sa zone de validité à partir de l'instant où un
+  pointeur d'instruction du programme pointe sur l'instruction portant le label
+  de début et jusqu'à ce qu'il pointe sur l'instruction portant le label de fin.
+  L'entrée et la sortie d'une zone de validité doivent être dans le même
+  contexte et tout pointeur d'exécution atteignant le label de début doit
+  atteindre le label de fin avant de sortir du contexte (i.e un branchement ne
+  doit pas permettre de sortir d'une zone de validité en évitant l'instruction
+  portant le label de fin).
+\item
+  \textbf{une fonction d'évaluation} : il s'agit d'une fonction booléenne pure,
+  écrite en C. Cette fonction est utilisée pour déterminer si un état
+  dans la zone de validité vérifie la proposition atomique ou non.
+\item
+\textbf{une liste de paramètres} : ils désignent les variables qui seront
+  passées en argument de la fonction d'évaluation lorsque celle-ci est évaluée.
+  Une variable locale est préfixée par le nom de la fonction dans laquelle elle
+  est définie. Tous les paramètres doivent être définis dans la zone de validité
+  de la proposition atomique.
+\item
+  \textbf{une valeur par défaut} : lorsque la proposition atomique n'est pas dans
+  sa zone de validité, elle s'évalue à sa valeur par défaut. Cette valeur par
+  défaut permet de prolonger la définition de la proposition atomique en dehors
+  de sa zone de validité.
+\end{itemize}
+
+Le tableau \ref{tab:spe_gram} résume la grammaire de notre spécification.
+
+\begin{table}[h]
+\centering
+\caption{Grammaire des propositions atomiques}
+\label{tab:spe_gram}
+\begin{tabular}[]{@{}rcl@{}}
+\hline
+atomic-proposition  & := & proposition-id \(\times\) evaluation-function \(\times\) parameters\\
+                    &    & \(\times\) default \(\times\) validity-area\\
+proposition-id      & := & \emph{name of the proposition}\\
+evaluation-function & := & \emph{C pure boolean function}\\
+parameters          & := & parameter list\\
+parameter           & := & global-parameter\\
+                    & \textbar{} & local-parameter\\
+global-parameter    & := & \emph{variable name}\\
+local-parameter     & := & \emph{function name} \(\times\) \emph{variable name}\\
+default             & := & \emph{boolean}\\
+validity-area       & := & label \(\times\) label\\
+label               & := & \emph{name of a C label}\\
+\hline
+\end{tabular}
+\end{table}
+
+La spécification est alors constituée d'une formule LTL portant sur des
+propositions atomiques définies selon cette grammaire.
+
+\subsubsection{Sémantique}
+
+Les opérateurs de la logique classique et de la logique temporelle
+suivent la sémantique usuelle de la logique propositionnelle et de LTL.
+
+Les propositions atomiques s'évaluent selon la valeur des pointeurs
+d'instruction du programme. On considère qu'un état \(p\) est dans la zone de
+validité d'une proposition atomique lorsque, dans l'état \(p\), un pointeur
+d'instruction du programme pointe sur une instruction comprise entre le label de
+début de la zone de validité de la proposition et le label de fin. Cela signifie
+que, quelque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
+déjà atteint l'instruction désignée par le label de début, mais pas encore celle
+désignée par le label de fin (pour que la spécification soit valide, il est
+nécessaire que quelque soit l'exécution, si un pointeur d'instruction désigne
+l'instruction marquée par un label de début, alors il atteigne celle marquée par
+le label de fin avant de sortir du contexte courant).
+
+On évalue alors la proposition atomique en un état \(p\) par :
+
+\begin{itemize}
+\item
+  si l'état \(p\) n'est pas dans la zone de validité de la proposition
+  atomique, alors la proposition atomique s'évalue à sa valeur par
+  défaut.
+\item
+  si l'état \(p\) est dans la zone de validité de la proposition
+  atomique, alors elle s'évalue à la valeur renvoyée par l'évaluation de
+  sa fonction d'évaluation, avec comme paramètres la liste de variable
+  de la proposition atomiques, dans l'ordre.
+\end{itemize}
+
+\subsubsection{Exemple}\label{exemple}
+
+Nous avons choisi par la suite de représenter cette spécification en
+JSON (JavaScript Object Notation)\cite{json}. Ce format est
+relativement verbeux, mais présente l'avantage d'être facile à parser
+tout en étant lisible pour l'être humain. Établir une syntaxe plus
+concise pourrait représenter un développement futur.
+
+Étant donné le code suivant, constitué de deux threads s'exécutant
+simultanément (pour des raisons de concision, la fonction
+\lstinline!main! a été omise), nous allons spécifier le fait que la
+variable \lstinline!a! du premier thread n'est jamais nulle en même temps que
+la variable \lstinline!a! du second thread.
+
+\begin{lstlisting}[language=C]
+void* thread1(void* d) {
+  int a
+b_p1:
+  a = 0;
+  a = 1;
+e_p1:
+  pthread_exit(NULL);
+}
+
+void* thread2(void* d) {
+  int a;
+b_p2:
+  a = 1;
+  a = a - 1;
+e_p2:
+  pthread_exit(NULL);
+}
+\end{lstlisting}
+
+Il est nécessaire de rajouter des fonctions d'évaluation pour les
+propositions atomiques :
+
+\begin{lstlisting}[language=C]
+int f_ev_1(int x) {
+    return x == 0;
+}
+
+int fp2(int x) {
+    return x == 0;
+}
+\end{lstlisting}
+
+Nous avons donc la spécification suivante :
+
+\begin{lstlisting}
+{
+  "ltl": "G(! (p1 && p2))",
+  "pa": [
+    {
+      "name": "p1",
+      "default": false,
+      "expr": "f_ev_p1",
+      "span": ["b_p1", "e_p1"],
+      "params": ["thread1::a"]
+    },
+    {
+      "name": "p2",
+      "default": false,
+      "expr": "f_ev_p2",
+      "span": ["b_p2", "e_p2"],
+      "params": ["thread2::a"]
+    }
+  ]
+}
+\end{lstlisting}
+
+Ici, le code ne respecte pas cette spécification. L'exécution
+\(t1: a = 0 \rightarrow t2: a = 1 \rightarrow t2: a = a - 1\) permet
+d'obtenir un état qui ne satisfait pas la propriété.
+
+\subsubsection{Justification de la spécification}
+
+Nous allons maintenant expliquer comment, et dans quelle mesure, ce formalisme
+de spécification permet de surmonter les obstacles détaillées précédemment.
+
+\paragraph{Identification des variables locales}
+
+Nous avons choisi d'identifier une variable globale par son nom et une
+variable locale par le nom de la fonction dans laquelle elle est définie
+suivie de son nom. Nous n'apportons pas de solution pour le cas où deux
+variables ont le même nom dans une fonction : il est laissé à
+l'utilisateur le soin de ne pas définir une variable utilisée dans la
+spécification portant le même nom qu'une autre variable de la fonction.
+En pratique, il est peut fréquent de définir plusieurs variables ayant le
+même nom dans une fonction, ce problème n'est donc pas une réelle
+limitation.
+
+Divine \cite{Divine_LTL} propose une approche différente pour
+identifier les paramètres d'une formule LTL. La spécification de Divine
+met en place des macros qui permettent de lier les variables à une
+proposition atomique, directement dans le code source. Cela permet en
+particulier d'identifier une variable locale même si d'autres variables
+du même nom sont définie dans la même fonction.
+
+Divine permet de lier une proposition atomique \(P\) à sa fonction
+d'évaluation \lstinline!p!, dépendant d'une variable locale
+\lstinline!y! de la manière suivante :
+
+\begin{lstlisting}
+void* thread1(void* d) {
+    int y;
+    ap_local(P, p, y);
+    ....
+}
+\end{lstlisting}
+
+L'instruction \lstinline!ap_local(P, p, y);! lie la proposition atomique
+identifiée par \(P\) dans la formule LTL à la fonction \lstinline!p!, qui prend
+en paramètre la variable \lstinline!p!. La norme du C permet d' identifier la
+variable désignée par le nom \lstinline!y! dans le contexte d'appel de la macro
+\lstinline!ap_local!. Cependant, cette approche introduit d'avantage de
+spécification dans le code source, ce que nous avons voulu éviter.
+
+\emph{TODO}: pas encore implémenté.
+
+Lorsque la même fonction est utilisée pour créer plusieurs threads, le
+nom de la fonction ne suffit pas à identifier une variable de manière
+unique : il est nécessaire d'indiquer le thread auquel on se réfère. La
+création de thread est une notion dynamique. Il est donc difficile d'
+identifier un thread de manière statique. Cependant, les threads sont
+souvent utilisés de manière statique : ils sont tous créés dès le début
+de l'exécution par une même fonction. Dans ce cas, il est possible
+d'identifier un thread par un indice correspondant à l'ordre de création
+des threads. On pourra alors identifier une variable dans un thread
+uniquement en rajoutant un préfixe à son nom, qui pendra alors la forme
+\lstinline!{thread_id}::{fonction}::{variable}!.
+
+\emph{TODO}: pas encore implémenté.
+
+Dans le cas où plusieurs instances d'une seule variable lexicale sont
+crées dans le programme, nous n'apportons pas de solution dans le cas
+général. Ce cas arrive lorsque une fonction est appelée plusieurs fois à
+travers différents threads, de manière séquentielle ou lors d'appels
+récursifs. Dans le cas d'appels séquentiels, on désire la plupart du
+temps évaluer la proposition atomique lors de chaque appel, ce n'est
+donc pas un problème majeur. Cependant, lors d'appels récursifs ou
+concurrents, plusieurs instances de la variables existent simultanément
+: il faut alors décider laquelle doit être utilisée pour évaluer la
+proposition atomique.
+
+Nous reprenons l'approche utilisée par Divine \cite{Divine_LTL} en
+l'adaptant aux valeurs par défaut. Si plusieurs zones de validité pour
+une même proposition atomique sont ouverte en même temps, alors on
+évaluera la proposition atomique à sa valeur par défaut si et seulement
+si elle s'évalue à sa valeur par défaut en utilisant les variables de
+chaque zone de validité.
+
+Par exemple, considérons la fonction suivante :
+
+\begin{lstlisting}
+int count(int a) {
+   begin:
+   if (a < 10)
+       return count(a + 1);
+   end:
+   return a;
+}
+
+int main() {
+    count(6);
+    return 0;
+}
+\end{lstlisting}
+
+Supposons que l'on veuille vérifier que entre \lstinline!begin! et
+\lstinline!end!, on a toujours \lstinline"a != 8". On utilise donc la
+formule \(G p\), avec \(p\) la proposition vraie par défaut et
+s'évaluant à \(a != 8\) entre \lstinline!begin! et \lstinline!end!. En
+déroulant les trois premiers appels, on obtient trois contextes, où
+\lstinline!a! vaut respectivement 6, 7 et 8. Pour \(a = 6\) et
+\(a = 7\), \(p\) s'évalue à \(vrai\), qui est aussi la valeur par défaut
+de \(p\). Pour \(a = 8\), \(p\) s'évalue à \(faux\). On retient donc
+cette valeur pour \(p\), ce qui permet de trouver une erreur.
+
+Cette approche fait remonter les cas où la proposition atomique ne prend
+pas sa valeur par défaut, ce qui constitue généralement l'évènement
+attendu, en particulier pour des propriétés de sûreté ou
+d'accessibilité.
+
+\paragraph{Identification des positions dans le code}
+
+Identifier une position dans le code sans y placer un marqueur n'est pas
+une solution viable : elle est trop sensible aux modifications du code.
+Ces dernières sont de plus attendues lors de la vérification d'un
+programme, afin de corriger une éventuelle erreur.
+
+Nous avons donc utilisé des marqueurs. Nous avons choisis des labels,
+puisqu'ils permettent de désigner une instruction du code. Une
+alternative aurait été de marquer les instructions à l'aide de
+commentaires dans le code. Nous avons préféré les labels pour des
+raisons d'implémentation, les commentaires n'étant pas conservé par de
+nombreuses bibliothèques de transformation de code.
+
+Cependant, la précision d'une position à l'aide d'un marqueur reste de,
+au mieux, une ligne, et donc d'une instruction. On ne peut donc pas
+désigner une position plus précisément, au niveau d'une expression par
+exemple. Nous avons considéré que ce besoin est rarement présent. Il
+reste de plus possible de décomposer une instruction afin d'en désigner
+ses sous-ensembles.
+
+Nous avons choisi de former des intervalles de positions car ils
+représentent un bon compromis entre une énumération explicite et des
+constructions plus complexes (union ou intersections
+d'intervalles\ldots{}). Dans les cas où une zone de validité plus
+complexe est nécessaire, il reste toujours possible de la simuler en
+utilisant plusieurs propositions atomiques et les opérateurs de la
+logiques classiques.
+
+\paragraph{Définition des propositions atomiques}
+
+Afin de définir correctement les propositions atomiques dans tous les
+états du programme, nous avons choisi d'utiliser des valeurs par défaut
+combinées à des zones de validité. Hors de la zone de validité (un
+intervalle de positions dans le code représenté comme expliqué
+précédemment), la proposition atomique prend sa valeur par défaut,
+sinon, sa fonction d'évaluation est utilisée.
+
+L'intérêt des zones de validité est double : l'utilisateur peut
+spécifier précisément quand une proposition peut utiliser la valeur des
+variables locales, ce qui permet en particulier d'attendre qu'elles
+soient correctement initialisées. Les zones de validités permettent
+aussi d'utiliser des positions du code dans la spécification, et de lier
+directement ces positions à une propositions sur les valeurs des
+variables du programme. Il n'est donc pas nécessaire d'utiliser deux
+propositions atomiques \lstinline!b! et \lstinline!e! pour définir le
+début et la fin d'un intervalle de position, une troisième proposition
+atomique \lstinline!p! pour spécifier une propriété sur les valeurs des
+variables et enfin, d'utiliser une formule telle que
+\(G (b \implies (p U e))\) pour spécifier que \lstinline!p! doit être
+valide entre \lstinline!b! et \lstinline!e!. \(G p\) est suffisant, la
+zone de validité étant incluse dans la proposition atomique
+\lstinline!p!. On obtient ainsi une formule LTL plus simple.
+
+Nous avons choisi d'utiliser une valeur par défaut que l'utilisateur
+peut fixer. Ce n'est pourtant strictement nécessaire : une valeur par
+défaut pourrait être imposée (\emph{faux} par exemple), et les autres
+cas peuvent être obtenus en utilisant des négations dans la formule
+logique et la définition de la fonction d'évaluation. Par exemple, pour
+une proposition atomique \(p\) s'évaluant à \(vrai\) par défaut et en
+utilisant la fonction \(f\) sinon, et pour la formule \(G p\), on
+pourrait utiliser de manière équivalente la proposition atomique \(q\),
+avec comme valeur par défaut \(faux\) et comme fonction d'évaluation
+\(\lnot f\). La formule LTL serait alors \(G \lnot q\). Divine
+\cite{Divine_LTL} utilise ce principe.
+
+Cependant, il nous a semblé plus pratique et confortable de permettre à
+l'utilisateur de fixer cette valeur de manière cohérente avec
+l'utilisation qui est faite de la proposition atomique. Ainsi, dans le
+cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
+valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
+double négation.
+
+\subsubsection{Exprimer des propositions atomiques globales sur des
+variables globales}
+
+Les propositions atomiques utilisées usuellement par les outils de model
+checking logiciels (des expressions pures portant uniquement sur les
+variables globales) peuvent s'exprimer à l'aide de notre spécification
+en choisissant le programme entier comme zone de validité.
+
+\subsubsection{Exprimer des assertions}
+
+Notre spécification permet de spécifier l'équivalent d'une assertion. En
+effet, une assertion signifie : ``si un pointeur d'instruction du
+programme pointe sur l'assertion et que l'état ne vérifie pas la
+condition exprimée, alors il y a une erreur''.
+
+On peut donc représenter cela par une propriété de sûreté. On exprime
+une assertion par la formule \(G p\), avec \(p\) une proposition
+atomique telle que :
+
+\begin{itemize}
+\item
+  sa zone de validité correspond à l'emplacement de l'assertion dans le
+  programme
+\item
+  sa fonction d'évaluation est la condition utilisée dans l'assertion,
+  elle s'évalue donc à la valeur de cette expression dans la zone de
+  validité
+\item
+  sa valeur par défaut est \emph{vrai}, elle s'évalue donc à \emph{vrai}
+  hors de la zone de validité
+\end{itemize}
+
+Notre spécification correspond donc bien à une extension recouvrant à la
+fois les formules LTL classiquement utilisées et les assertions.
