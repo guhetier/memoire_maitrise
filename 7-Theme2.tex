@@ -118,21 +118,21 @@ Les valeurs sont :
 
 \begin{itemize}
 \item
-  True : utilisée lorsque, étant donnée une trace finie \lstinline!t!,
-  toutes les traces ayant \lstinline!t! pour préfixe sont acceptées par
+  True : utilisée lorsque, étant donnée une trace finie \texttt{t},
+  toutes les traces ayant \texttt{t} pour préfixe sont acceptées par
   l'automate.
 \item
   Maybe true : utilisée lorsque, étant donnée une trace finie
-  \lstinline!t!, l'extension infinie de \lstinline!t! en répétant son
+  \texttt{t}, l'extension infinie de \texttt{t} en répétant son
   dernier état est acceptée par l'automate.
 \item
   Maybe false : utilisée lorsque étant donnée une trace finie
-  \lstinline!t!, l'extension infinie de \lstinline!t! en répétant son
+  \texttt{t}, l'extension infinie de \texttt{t} en répétant son
   dernier état est rejeté par l'automate mais que au moins une trace
-  ayant \lstinline!t! pour préfixe est acceptée.
+  ayant \texttt{t} pour préfixe est acceptée.
 \item
-  False : utilisée lorsque, étant donnée une trace finie \lstinline!t!,
-  toutes les traces ayant \lstinline!t! pour préfixe sont rejetées par
+  False : utilisée lorsque, étant donnée une trace finie \texttt{t},
+  toutes les traces ayant \texttt{t} pour préfixe sont rejetées par
   l'automate.
 \end{itemize}
 
@@ -157,20 +157,20 @@ l'automate :
 
 \begin{itemize}
 \item
-  une variable globale, \lstinline!ltl2ba_state_var!, contient l'état
+  une variable globale, \texttt{ltl2ba\_state\_var}, contient l'état
   courant de l'automate sous la forme d'un entier (les états sont
   numérotés arbitrairement)
 \item
-  des variables globales, \lstinline!ltl2ba_atomic_{name}! (où name est
+  des variables globales, \texttt{ltl2ba\_atomic\_{name}} (où name est
   l'identifiant d'une proposition atomique), contiennent la valeur
   courante de chaque proposition atomique. Ces valeurs sont maintenues à
   jour pendant le déroulement du programme. Elles sont mises à jour par
   des instructions ajoutées dans le code du programme que nous
   détaillerons dans la partie sur l'instrumentation.
 \item
-  une fonction \lstinline!_ltl2ba_transition! représente la fonction de
+  une fonction \texttt{\_ltl2ba\_transition} représente la fonction de
   transition de l'automate et fait évoluer l'état stocké dans
-  \lstinline!ltl2ba_state_var!. Étant donné l'état courant de
+  \texttt{ltl2ba\_state\_var}. Étant donné l'état courant de
   l'automate, elle choisit de manière non-déterministe une transition
   valide partant de cet état et met à jour l'état courant. Si aucune
   transition n'est valable, le mot est rejeté (et l'exploration courante
@@ -182,15 +182,15 @@ l'automate :
 
   Cette fonction permet de d'explorer l'automate de manière
   non-déterministe. Une valeur non-déterministe est produite l'aide de
-  la fonction intrinsèque au model-checker, \lstinline!nondet_int()!. La
+  la fonction intrinsèque au model-checker, \texttt{nondet\_int()}. La
   transition à emprunter est désignée à l'aide de cette valeur. Le
   model-checker va alors explorer l'ensemble des évolutions possibles de
   l'automate. Les évolutions invalides sont immédiatement interrompues à
   l'aide d'assomptions.
 \item
-  une fonction \lstinline!_ltl2ba_result! permet de déterminer le
+  une fonction \texttt{\_ltl2ba\_result} permet de déterminer le
   résultat d'une exploration. Elle est appelée après la dernière
-  instruction du \lstinline!main!. Elle se base sur l'état courant de
+  instruction du \texttt{main}. Elle se base sur l'état courant de
   l'automate et la valeur des propositions atomiques pour déterminer la
   valeur de vérité associée à cette exécution. Si une erreur est
   possible, elle est remontée au model-checker à l'aide d'une assertion.
@@ -321,8 +321,8 @@ atomique doit prendre la valeur calculée par sa fonction d'évaluation
 (respectivement sa valeur par défaut).
 
 On va donc réaliser l'instrumentation suivante pour un label d'entrée.
-Ici, la proposition atomique \lstinline!p! débute au label
-\lstinline!lbegin! et se termine au label \lstinline!lend!.
+Ici, la proposition atomique \texttt{p} débute au label
+\texttt{lbegin} et se termine au label \texttt{lend}.
 
 \begin{lstlisting}[language=C]
 __atomic_begin();
@@ -343,8 +343,8 @@ lend: ....;
 \end{lstlisting}
 
 Toutes les instructions sont regroupées dans un bloc atomique (ouvert
-par l'instruction \lstinline!__atomic_begin()! et fermé par
-l'instruction \lstinline!atomic_end()!) afin de ne pas générer
+par l'instruction \texttt{\_\_atomic\_begin()} et fermé par
+l'instruction \texttt{atomic\_end()}) afin de ne pas générer
 d'entrelacements supplémentaires dans le code et créer des chemins
 d'exécutions pouvant mener à une conclusion erronée : toutes les
 instructions de l'instrumentation doivent être réalisées de manière
@@ -374,12 +374,12 @@ begin: instr2;
 end: instr3;
 \end{lstlisting}
 
-Dans ce fragment de code, dès que l'instruction \lstinline!instr1! est
+Dans ce fragment de code, dès que l'instruction \texttt{instr1} est
 exécutée, le pointeur d'exécution pointe sur l'instruction
-\lstinline!instr2!. On est donc immédiatement dans la zone de validité
-délimitée par les labels \lstinline!begin! et \lstinline!end!, et il
+\texttt{instr2}. On est donc immédiatement dans la zone de validité
+délimitée par les labels \texttt{begin} et \texttt{end}, et il
 n'est pas possible d'effectuer un changement de contexte après
-\lstinline!instr1! mais avant d'entrer dans la zone de validité.
+\texttt{instr1} mais avant d'entrer dans la zone de validité.
 
 Cependant, après instrumentation, on obtient :
 
@@ -394,12 +394,12 @@ end: instr3;
 L'entrée dans la zone de validité n'est réalisée qu'une fois que
 l'instrumentation a été exécutée et que la valeur des propositions
 atomiques a donc été recalculée. Il est donc maintenant possible de
-réaliser un changement de contexte après \lstinline!instr1!, mais avant
+réaliser un changement de contexte après \texttt{instr1}, mais avant
 d'entrer dans la zone de validité : un nouveau chemin d'exécution a été
 créé.
 
 Pour éviter cette perte de précision, il serait nécessaire de rendre
-atomique l'instruction \lstinline!instr1! et le code d'instrumentation.
+atomique l'instruction \texttt{instr1} et le code d'instrumentation.
 Ceci est extrêmement compliqué dans le cadre d'une instrumentation du
 code. En effet, l'instruction qui précède un label n'est pas facilement
 identifiable et peut varie selon l'exécution et selon les branchements
@@ -496,27 +496,27 @@ void* thread2(void* d) {
 }
 \end{lstlisting}
 
-On désire s'assurer que la variable \lstinline!a! n'est pas nulle dans
-la zone de validité allant de \lstinline!begin! à \lstinline!end! dans
-le première thread. L'affectation \lstinline!a = b;! est susceptible de
+On désire s'assurer que la variable \texttt{a} n'est pas nulle dans
+la zone de validité allant de \texttt{begin} à \texttt{end} dans
+le première thread. L'affectation \texttt{a = b;} est susceptible de
 faire évoluer cette propriété, il est donc nécessaire de l'instrumenter,
 tout comme dans le cas des variables locales.
 
-L'affectation \lstinline!a = 0! dans le second thread peut aussi avoir
+L'affectation \texttt{a = 0} dans le second thread peut aussi avoir
 un impact sur la propriété, mais cela dépend de l'ordre d'exécution des
 instructions. Par exemple :
 
 \begin{itemize}
 \item
-  si l'ordre d'exécution est \lstinline!a = b; a = 0; r = 10 / a!, alors
-  l'affectation \lstinline!a = 0;! du second thread doit impacter la
-  valeur de la proposition atomique : \lstinline!a! est maintenant nulle
+  si l'ordre d'exécution est \texttt{a = b; a = 0; r = 10 / a}, alors
+  l'affectation \texttt{a = 0;} du second thread doit impacter la
+  valeur de la proposition atomique : \texttt{a} est maintenant nulle
   dans la zone de validité.
 \item
   si le second thread s'exécute entièrement avant le premier, quand
-  \lstinline!a = 0;! est exécuté, la proposition atomique n'est pas dans
+  \texttt{a = 0;} est exécuté, la proposition atomique n'est pas dans
   sa zone de validité (le pointeur d'exécution du premier thread n'a pas
-  encore atteint le label \lstinline!begin!). Dans ce cas, la valeur de
+  encore atteint le label \texttt{begin}). Dans ce cas, la valeur de
   la proposition atomique ne doit pas être modifiée.
 \end{itemize}
 
@@ -634,8 +634,8 @@ void* thread2(void* d) {
 }
 \end{lstlisting}
 
-Dans ce code, on veut vérifier que les variables \lstinline!a! et
-\lstinline!b! sont bien égale durant tout l'intervalle de validité de la
+Dans ce code, on veut vérifier que les variables \texttt{a} et
+\texttt{b} sont bien égale durant tout l'intervalle de validité de la
 proposition. Le second thread serait instrumenté de la manière suivante
 :
 
@@ -651,7 +651,7 @@ void* thread2(void* d) {
 }
 \end{lstlisting}
 
-On remarque que la variable \lstinline!b! n'est pas accessible lorsqu'il
+On remarque que la variable \texttt{b} n'est pas accessible lorsqu'il
 est nécessaire d'appeler la fonction d'évaluation.
 
 Cependant, on sait que lorsque cet appel a lieu, un pointeur d'exécution
@@ -743,19 +743,19 @@ Notre implémentation comprend :
 \begin{itemize}
 \item
   la version modifiée de LTL2BA. Son fonctionnement est identique à
-  celui de la version d'origine, seule une option \lstinline!-t! a été
+  celui de la version d'origine, seule une option \texttt{-t} a été
   ajoutée afin de choisir le type de la sortie. Cette option peut
-  prendre les valeurs \lstinline!spin!, \lstinline!c! ou
-  \lstinline!json! pour obtenir un automate en Promela, C et JSON
+  prendre les valeurs \texttt{spin}, \texttt{c} ou
+  \texttt{json} pour obtenir un automate en Promela, C et JSON
   respectivement.
 \item
-  L'utilitaire \lstinline!baProduct!. Il s'agit du programme réalisant
+  L'utilitaire \texttt{baProduct}. Il s'agit du programme réalisant
   l'instrumentation. Il prends en entré un fichier C préprocessé et un
   fichier de spécification, et il produit un fichier instrumenté. Cet
   utilitaire a besoin de la version modifiée de LTL2BA pour fonctionner.
 \item
-  Un script de lancement, \lstinline!baProduct.py!. Il préprocesse les
-  fichiers en entrée et appelle \lstinline!baProduct! avec un ensemble
+  Un script de lancement, \texttt{baProduct.py}. Il préprocesse les
+  fichiers en entrée et appelle \texttt{baProduct} avec un ensemble
   d'options classiques.
 \end{itemize}
 

@@ -9,9 +9,9 @@ batteries sont vides en même temps, le système n'a plus d'énergie et cesse de
 fonctionner.
 
 Un tel système peut être modélisé par le code ci-dessous. Deux threads,
-\lstinline!battery1! et \lstinline!battery2! contrôlent le rythme auquel les
+\texttt{battery1} et \texttt{battery2} contrôlent le rythme auquel les
 batteries se vident. Le pourcentage d'énergie dans la batterie est représenté
-par la variable \lstinline!energy_stored!. Celle-ci est décrémentée dans une
+par la variable \texttt{energy\_stored}. Celle-ci est décrémentée dans une
 boucle, ce qui représente la consommation de l'énergie, avant d'être remise à
 une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
 aucune synchronisation n'existe entre les threads. L'état d'erreur peut donc
@@ -133,9 +133,9 @@ locale ou une position du programme dans ces spécifications.
 Tentons donc de spécifier notre modèle à l'aide d'une formule LTL. Deux
 options sont possibles. La première consiste à vérifier que les deux
 batteries ne sont pas vide en même temps, c'est à dire que les variables
-\lstinline!energy_stored! des threads \lstinline!battery1! et
-\lstinline!battery2! ne valent pas \lstinline!0! simultanément. Mais les
-variables \lstinline!energy_stored! sont des variables locales : la
+\texttt{energy\_stored} des threads \texttt{battery1} et
+\texttt{battery2} ne valent pas \texttt{0} simultanément. Mais les
+variables \texttt{energy\_stored} sont des variables locales : la
 plupart des outils ne permettent pas de les mentionner dans une formule
 LTL. On peut aussi considérer que les opérations de changement de
 batterie ne doivent pas avoir lieu simultanément, en définissant deux
@@ -148,7 +148,7 @@ variables supplémentaires pour rendre accessibles les variables locales
 ou pour délimiter les zones critiques.
 
 Dans notre exemple, on pourrait alors rajouter deux variables booléennes
-\lstinline!c1! et \lstinline!c2! pour représenter les propositions atomiques
+\texttt{c1} et \texttt{c2} pour représenter les propositions atomiques
 ``être dans une zone critique''. La spécification serait alors
 la formule \(G \lnot (c1 \land c2)\), pour le code instrumenté suivant.
 
@@ -238,8 +238,8 @@ Afin d'utiliser une variable dans une spécification, il est nécessaire
 de la désigner de manière unique.
 
 Le language C n'autorise qu'une seule variable globale portant un nom
-donné dans un fichier\footnote{Les mots clefs \lstinline!extern! et
-\lstinline!static! permettent de déclarer plusieurs variables globales
+donné dans un fichier\footnote{Les mots clefs \texttt{extern} et
+\texttt{static} permettent de déclarer plusieurs variables globales
 portant le même nom dans un programme}. Ce nom est donc généralement
 suffisant pour identifier uniquement une variable globale. Ce n'est pas
 aussi simple lorsqu'on considère des variables locales : deux variables
@@ -252,24 +252,24 @@ suivants :
 
 \begin{itemize}
 \item
-  une variable \lstinline!foo! est définie dans plusieurs contextes
+  une variable \texttt{foo} est définie dans plusieurs contextes
   distincts (des fonctions différentes, des blocs différents d'une même
   fonction\ldots{}). La connaissance du contexte de la définition permet
   de les distinguer.
 \item
-  une fonction \lstinline!bar! contenant une variable \lstinline!foo!
+  une fonction \texttt{bar} contenant une variable \texttt{foo}
   est appelée plusieurs fois séquentiellement dans le programme. La
-  variable \lstinline!foo! dépend alors de l'appel à la fonction
-  \lstinline!bar!.
+  variable \texttt{foo} dépend alors de l'appel à la fonction
+  \texttt{bar}.
 \item
-  la variable \lstinline!foo! est définie dans des threads distincts.
+  la variable \texttt{foo} est définie dans des threads distincts.
   Dans ce cas, les deux instances de la variable peuvent exister
   simultanément. L'instance dépend du thread dans lequel elle est
   définie.
 \item
-  la variable \lstinline!foo! est définie dans une fonction récursive
-  \lstinline!bar!. Dans ce cas, une nouvelle instance de \lstinline!foo!
-  est définie à chaque appel récursif de \lstinline!bar!.
+  la variable \texttt{foo} est définie dans une fonction récursive
+  \texttt{bar}. Dans ce cas, une nouvelle instance de \texttt{foo}
+  est définie à chaque appel récursif de \texttt{bar}.
 \end{itemize}
 
 On peut répartir ces cas en deux catégories :
@@ -348,16 +348,16 @@ considéré les options suivantes :
   une proposition atomique désigne une location ou une condition sur les
   variables du programme, de manière exclusive. On fait le lien entre les
   positions et les valeurs des variables du programme à l'aide des opérateurs de
-  la logique des prédicats. Si \lstinline!pos1! et \lstinline!pos2! désignent
-  deux positions du programme, alors on spécifie que la variable \lstinline!x!
-  est non-nulle entre \lstinline!pos1! et \lstinline!pos2! par \(G
+  la logique des prédicats. Si \texttt{pos1} et \texttt{pos2} désignent
+  deux positions du programme, alors on spécifie que la variable \texttt{x}
+  est non-nulle entre \texttt{pos1} et \texttt{pos2} par \(G
   (\{\text{pos1}\}\implies \{x \neq 0\} U \{\text{pos1}\})\).
 \item
   une proposition atomique est constituée d'une condition sur les variables du
   programme et d'une condition sur les positions. En reprenant l'exemple
   précédent, on écrirait alors \(G \lnot p\), avec \(p\) la proposition atomique
-  qui est vérifiée par tous les états ayant une position entre \lstinline!pos1!
-  et \lstinline!pos2! et où \lstinline!x! est nulle.
+  qui est vérifiée par tous les états ayant une position entre \texttt{pos1}
+  et \texttt{pos2} et où \texttt{x} est nulle.
 \item
   les positions viennent contraindre les opérateurs temporels. On pourrait
   envisager une approche semblable à la logique MTL\cite{mtl_definition}, où les
@@ -483,9 +483,9 @@ concise pourrait représenter un développement futur.
 
 Étant donné le code suivant, constitué de deux threads s'exécutant
 simultanément (pour des raisons de concision, la fonction
-\lstinline!main! a été omise), nous allons spécifier le fait que la
-variable \lstinline!a! du premier thread n'est jamais nulle en même temps que
-la variable \lstinline!a! du second thread.
+\texttt{main} a été omise), nous allons spécifier le fait que la
+variable \texttt{a} du premier thread n'est jamais nulle en même temps que
+la variable \texttt{a} du second thread.
 
 \begin{lstlisting}[language=C]
 void* thread1(void* d) {
@@ -573,8 +573,8 @@ particulier d'identifier une variable locale même si d'autres variables
 du même nom sont définie dans la même fonction.
 
 Divine permet de lier une proposition atomique \(P\) à sa fonction
-d'évaluation \lstinline!p!, dépendant d'une variable locale
-\lstinline!y! de la manière suivante :
+d'évaluation \texttt{p}, dépendant d'une variable locale
+\texttt{y} de la manière suivante :
 
 \begin{lstlisting}
 void* thread1(void* d) {
@@ -584,11 +584,11 @@ void* thread1(void* d) {
 }
 \end{lstlisting}
 
-L'instruction \lstinline!ap_local(P, p, y);! lie la proposition atomique
-identifiée par \(P\) dans la formule LTL à la fonction \lstinline!p!, qui prend
-en paramètre la variable \lstinline!p!. La norme du C permet d' identifier la
-variable désignée par le nom \lstinline!y! dans le contexte d'appel de la macro
-\lstinline!ap_local!. Cependant, cette approche introduit d'avantage de
+L'instruction \texttt{ap\_local(P, p, y);} lie la proposition atomique
+identifiée par \(P\) dans la formule LTL à la fonction \texttt{p}, qui prend
+en paramètre la variable \texttt{p}. La norme du C permet d' identifier la
+variable désignée par le nom \texttt{y} dans le contexte d'appel de la macro
+\texttt{ap\_local}. Cependant, cette approche introduit d'avantage de
 spécification dans le code source, ce que nous avons voulu éviter.
 
 \emph{TODO}: pas encore implémenté.
@@ -603,7 +603,7 @@ de l'exécution par une même fonction. Dans ce cas, il est possible
 d'identifier un thread par un indice correspondant à l'ordre de création
 des threads. On pourra alors identifier une variable dans un thread
 uniquement en rajoutant un préfixe à son nom, qui pendra alors la forme
-\lstinline!{thread_id}::{fonction}::{variable}!.
+\texttt{{thread\_id}::{fonction}::{variable}}.
 
 \emph{TODO}: pas encore implémenté.
 
@@ -642,12 +642,12 @@ int main() {
 }
 \end{lstlisting}
 
-Supposons que l'on veuille vérifier que entre \lstinline!begin! et
-\lstinline!end!, on a toujours \lstinline"a != 8". On utilise donc la
+Supposons que l'on veuille vérifier que entre \texttt{begin} et
+\texttt{end}, on a toujours \lstinline"a != 8". On utilise donc la
 formule \(G p\), avec \(p\) la proposition vraie par défaut et
-s'évaluant à \(a != 8\) entre \lstinline!begin! et \lstinline!end!. En
+s'évaluant à \(a != 8\) entre \texttt{begin} et \texttt{end}. En
 déroulant les trois premiers appels, on obtient trois contextes, où
-\lstinline!a! vaut respectivement 6, 7 et 8. Pour \(a = 6\) et
+\texttt{a} vaut respectivement 6, 7 et 8. Pour \(a = 6\) et
 \(a = 7\), \(p\) s'évalue à \(vrai\), qui est aussi la valeur par défaut
 de \(p\). Pour \(a = 8\), \(p\) s'évalue à \(faux\). On retient donc
 cette valeur pour \(p\), ce qui permet de trouver une erreur.
@@ -702,14 +702,14 @@ soient correctement initialisées. Les zones de validités permettent
 aussi d'utiliser des positions du code dans la spécification, et de lier
 directement ces positions à une propositions sur les valeurs des
 variables du programme. Il n'est donc pas nécessaire d'utiliser deux
-propositions atomiques \lstinline!b! et \lstinline!e! pour définir le
+propositions atomiques \texttt{b} et \texttt{e} pour définir le
 début et la fin d'un intervalle de position, une troisième proposition
-atomique \lstinline!p! pour spécifier une propriété sur les valeurs des
+atomique \texttt{p} pour spécifier une propriété sur les valeurs des
 variables et enfin, d'utiliser une formule telle que
-\(G (b \implies (p U e))\) pour spécifier que \lstinline!p! doit être
-valide entre \lstinline!b! et \lstinline!e!. \(G p\) est suffisant, la
+\(G (b \implies (p U e))\) pour spécifier que \texttt{p} doit être
+valide entre \texttt{b} et \texttt{e}. \(G p\) est suffisant, la
 zone de validité étant incluse dans la proposition atomique
-\lstinline!p!. On obtient ainsi une formule LTL plus simple.
+\texttt{p}. On obtient ainsi une formule LTL plus simple.
 
 Nous avons choisi d'utiliser une valeur par défaut que l'utilisateur
 peut fixer. Ce n'est pourtant strictement nécessaire : une valeur par

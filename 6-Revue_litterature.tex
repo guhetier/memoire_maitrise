@@ -199,8 +199,8 @@ d <- a + c
 \end{lstlisting}
 \end{minipage}
 
-Ce programme contient trois variables, \lstinline!a!, \lstinline!c! et
-\lstinline!d!, et deux threads. Les états du systèmes sont donc définis par les
+Ce programme contient trois variables, \texttt{a}, \texttt{c} et
+\texttt{d}, et deux threads. Les états du systèmes sont donc définis par les
 valeurs de ces variables et la position des pointeurs d'instruction de chaque
 thread. On peut modéliser ce programme par le système de transitions en Figure
 \ref{fig:model_example}.
@@ -355,25 +355,25 @@ l'exécution. Une propriété d'accessibilité peut ainsi être déterminée par
 exploration (en largeur par exemple) du système.
 
 Dans un programme, une assertion prends la forme d'une instruction telle que :
-\lstinline!assert(condition);!.
+\texttt{assert(condition);}.
 Si elle est exécutée et que la condition est évaluée à vraie, alors l'exécution
 du programme continue normalement.
 Sinon, le programme a atteint un état d'erreur. Sont comportement est alors
 indéterminé, bien que le comportement le plus fréquent soit de stopper son
 exécution.
 
-Plus formellement, l'assertion \lstinline!assert(c)! désigne comme étant des
+Plus formellement, l'assertion \texttt{assert(c)} désigne comme étant des
 états d'erreur tous les états tels que :
 
 \begin{itemize}
 \item
   un des pointeurs d'instruction du programme pointe sur l'assertion
 \item
-  l'expression \lstinline!c! s'évalue à faux
+  l'expression \texttt{c} s'évalue à faux
 \end{itemize}
 
 Dans le code suivant, une assertion permet ainsi spécifier que la variable
-\lstinline!b! doit être non nulle. Dans le cas contraire, une erreur
+\texttt{b} doit être non nulle. Dans le cas contraire, une erreur
 arithmétique (division par zéro) aurait lieu à la ligne suivante.
 
 \begin{lstlisting}[language=C]
@@ -406,9 +406,9 @@ certains évènements, il est nécessaire d'utiliser une logique temporelle.
 Supposons que notre système soit le code d'un distributeur automatique.
 On voudrait s'assurer que le distributeur ne délivre jamais le produit
 avant que le client ait payé, ce qui va revenir dans le code à vérifier
-que la fonction \lstinline!livrer_produit! (qui commanderait au système
+que la fonction \texttt{livrer\_produit} (qui commanderait au système
 de donner au client l'objet commandé) n'est jamais appelée avant la
-fonction \lstinline!accepter_paiement! (qui validerait que le paiement a
+fonction \texttt{accepter\_paiement} (qui validerait que le paiement a
 été correctement effectué), au cours d'une transaction. Des assertions
 permettent de déterminer si chacune de ces fonction est atteinte, mais
 sans introduire des variables auxiliaires, il n'est pas possible de
@@ -797,9 +797,9 @@ bytecode LLVM dans une machine virtuelle et utilise SPIN comme un
 moniteur d'exécution afin de générer les différents entrelacements à
 explorer.
 
-\lstinline!inspect!\cite{inspect} vérifie du code C et C++
+\texttt{inspect}\cite{inspect} vérifie du code C et C++
 multithread en se basant sur un algorithme de runtime model-checking
-avec une exploration \emph{stateless}. \lstinline!inspect! instrumente
+avec une exploration \emph{stateless}. \texttt{inspect} instrumente
 le programme à vérifier par des instructions lui permettant de
 communiquer avec un ordonnanceur, selon une architecture client/serveur.
 Le programme est ensuite exécuté à plusieurs reprises afin d'explorer les
@@ -816,11 +816,11 @@ chemins, réduction par ordre partiel).
 
 On retrouve à travers ces outils le besoin de performance des outils de
 model-checking explicite. Divine est implémenté dans une architecture
-concurrente pour améliorer ses performances, alors que \lstinline!inspect! et
-Pancam se basent sur du runtime model-checking. SPIN, \lstinline!inspect!,
+concurrente pour améliorer ses performances, alors que \texttt{inspect} et
+Pancam se basent sur du runtime model-checking. SPIN, \texttt{inspect},
 Pancam et Divine sont tous vérifier des violations d'assertions et des
 propriétés built-in, comme les deadlocks et les data-races, cependant, seul
-Divine et SPIN sont capable de vérifier des propriétés LTL. \lstinline!inspect!
+Divine et SPIN sont capable de vérifier des propriétés LTL. \texttt{inspect}
 nécessite un système fermé, et n'est pas capable de gérer le non-déterminisme.
 Il est donc dépendant d'une suite de tests pour fixer les paramètres du
 programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
@@ -1075,7 +1075,7 @@ généralement des méthodes de model-checking symbolique).
 \paragraph{Exemple}
 
 Considérons l'exemple du listing \ref{lst:bool_prog_init}. L'erreur qui a lieu
-lorsque \lstinline!x = 0! pourrait ici correspondre à une division par
+lorsque \texttt{x = 0} pourrait ici correspondre à une division par
 zéro. Considérons les prédicats \(p_1 = (y == 1)\) et \(p_2 = (x == 0)\).
 
 On détermine quatre états abstrait pour chaque position du programme,
@@ -1085,25 +1085,25 @@ initial et en rajoutant des instructions pour actualiser les prédicats. On
 obtient le programme booléen présenté dans le listing \ref{lst:bool_prog_bool}.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, caption=Code initial, frame=tlrb,
+\begin{lstlisting}[language=C, caption=Code initial, frame=single, numbers=left,
     label=lst:bool_prog_init]
-L1: x = 3;
-L2: y = 2;
-L3: if (y == 1)
-L4:    x = 0;
-L5: if (x==0)
-L6:    assert(false);
+x = 3;
+y = 2;
+if (y == 1)
+   x = 0;
+if (x==0)
+   assert(false);
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, caption=Programme booléen,frame=tlrb,
+\begin{lstlisting}[language=C, caption=Programme booléen,frame=single, numbers=left,
     label=lst:bool_prog_bool]
-L1: p_2 = false;
-L2: p_1 = false;
-L3: if (p_1)
-L4:     p_2 = true;
-L5: if (p_2)
-L6:     assert(false);
+p_2 = false;
+p_1 = false;
+if (p_1)
+    p_2 = true;
+if (p_2)
+    assert(false);
 \end{lstlisting}
 \end{minipage}
 
@@ -1138,25 +1138,26 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
   l'abstraction présentée dans le listing \ref{lst:CEGAR_1}.
 \item
   \textbf{Vérification :} Un model-checker pour programmes booléens permet de
-  trouver la trace L1, L2, L3, L5, L6 qui mène à une erreur dans l'abstraction.
+  trouver la trace exécutant les lignes 1, 2, 3, 5, et 6 qui mène à une erreur
+  dans l'abstraction.
 \item
   \textbf{Simulation :} Une simulation symbolique permet de constater que la
-  trace n'est pas réalisable. En effet, \lstinline!x! est non-nul lors
-  du test à \lstinline!L5! donc la transition de \lstinline!L5! vers
-  \lstinline!L6! n'est pas réalisable.
+  trace n'est pas réalisable. En effet, \texttt{x} est non-nul lors
+  du test à la ligne 5 donc la transition de la ligne 5 à la ligne 6 n'est pas
+  réalisable.
 \item
   \textbf{Raffinement :} L'incohérence présente dans la trace est utilisée pour
   raffiner l'abstraction, de manière a éliminer les chemins invalides. Ici, un
-  prédicat \lstinline!{x = 0}! indiquant si \lstinline!x! est nul est ajouté. On
+  prédicat \texttt{{x = 0}} indiquant si \texttt{x} est nul est ajouté. On
   obtient alors l'abstraction plus précise du listing \ref{lst:CEGAR_2}.
 \item
-  \textbf{Vérification :} Le model-checker trouve cette fois l'exécution L1, L2,
-  L3, L4, L5, L6.
+  \textbf{Vérification :} Le model-checker trouve cette fois l'exécution
+  passant par les lignes 1, 2, 3, 4, 5 et 6.
 \item
   \textbf{Simulation :} cette trace est encore une fois incorrecte, puisque
-  \lstinline!y! ne vaut pas \lstinline!1! en L3.
+  \texttt{y} ne vaut pas \texttt{1} à la ligne 3.
 \item
-  \textbf{Raffinement :} un prédicat \lstinline!{y = 1}! est ajouté. On obtient
+  \textbf{Raffinement :} un prédicat \texttt{{y = 1}} est ajouté. On obtient
   l'abstraction du listing \ref{lst:CEGAR_3}.
 \item
   \textbf{Vérification :} Le model-checker ne trouve pas de trace menant à une
@@ -1164,30 +1165,40 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
   programme.
 \end{enumerate}
 
-\begin{lstlisting}[language=C, label=lst:CEGAR_1]
-L1: ;
-L2: ;
-L3: if (*)
-L4:     ;
-L5: if (*)
-L6:    assert(false);
+\noindent\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, label=lst:CEGAR_1, numbers=left, frame=single,
+    caption=Abstraction initiale]
+;
+;
+if (*)
+    ;
+if (*)
+   assert(false);
 \end{lstlisting}
-\begin{lstlisting}[language=C, label=lst:CEGAR_2]
-L1: {x = 0} = {false};
-L2: ;
-L3: if (*)
-L4:     {x = 0} = true;
-L5: if ({x = 0})
-L6:    assert(false);
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, label=lst:CEGAR_2, numbers=left, frame=single,
+    caption=Premier raffinement]
+{x = 0} = {false};
+;
+if (*)
+    {x = 0} = true;
+if ({x = 0})
+   assert(false);
 \end{lstlisting}
-\begin{lstlisting}[language=C, label=lst:CEGAR_3]
-L1: {x = 0} = false;
-L2: {y = 1} = false;
-L3: if ({y = 1})
-L4:     {x = 0} = true;
-L5: if ({x = 0})
-L6:    assert(false);
+\end{minipage}
+
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, label=lst:CEGAR_3, numbers=left, frame=single,
+  caption=Second raffinement]
+{x = 0} = false;
+{y = 1} = false;
+if ({y = 1})
+    {x = 0} = true;
+if ({x = 0})
+   assert(false);
 \end{lstlisting}
+\end{minipage}
 
 La phase de raffinement est critique pour les performances de la méthode
 CEGAR, puisque un améliorer le choix des nouveaux prédicats peut éviter des
@@ -1314,8 +1325,8 @@ vérification.
 
 Au lieu d'explorer entièrement un modèle, les algorithmes de model-checking
 bornés explorent uniquement des préfixes finis des exécutions possibles du
-modèle. Une profondeur maximale d'exploration \lstinline!k! est fixée.
-Les \lstinline!k! premiers pas de chaque exécution du système sont alors
+modèle. Une profondeur maximale d'exploration \texttt{k} est fixée.
+Les \texttt{k} premiers pas de chaque exécution du système sont alors
 encodée dans une formule de la logique propositionnelle.
 On construit alors la conjonction entre cette formule et la négation d'une
 formule représentant la spécification du programme, et on transmet le résultat
@@ -1334,7 +1345,7 @@ structures de contrôle sont remplacées par des expressions conditionnelles une
 fois que les différents branchements se rejoignent. Les fonctions sont inlinées
 --- leur corps est inséré directement à l'emplacement de l'appel --- et les
 boucles sont déroulées un nombre de fois limité par la profondeur d'exploration,
-en une cascade de blocs \lstinline!if!.
+en une cascade de blocs \texttt{if}.
 
 Le passage en forme SSA est illustré par l'exemple ci-dessous.
 
@@ -1557,22 +1568,22 @@ Les idées clefs de la séquentialisation sont les suivantes :
 \end{enumerate}
 
 Dans notre exemple, le premier point consiste à changer la fonction
-\lstinline!main!, qui représente le thread principal, en une fonction
-séparée \lstinline!main_thread!. Les autres threads sont déjà
+\texttt{main}, qui représente le thread principal, en une fonction
+séparée \texttt{main\_thread}. Les autres threads sont déjà
 représentés par une unique fonction, il n'est donc pas utile de les
 modifier (si deux threads exécutaient la même fonction, il serait
 nécessaire de la dupliquer). La seconde étape est réalisée en
 introduisant un saut conditionnel avant chaque instruction du programme,
-à travers la macro \lstinline!J!. Cette macro permet d'interrompre et de
+à travers la macro \texttt{J}. Cette macro permet d'interrompre et de
 reprendre l'exécution d'une fonction à partir d'une instruction donnée,
 en sautant les instructions qui précèdent ou suivent. La variable
-\lstinline!cs! contient à chaque instant le numéro du label
-correspondant à la prochaine interruption, et le tableau \lstinline!pc!
+\texttt{cs} contient à chaque instant le numéro du label
+correspondant à la prochaine interruption, et le tableau \texttt{pc}
 contient le numéro du label de la dernière instruction atteinte lors de
 l'exécution précédente. Pour conserver les valeurs des variables locales
 pendant les interruptions, ces dernières sont rendues statiques. Enfin,
-la fonction \lstinline!main! contient l'ordonnanceur. Il va simuler
-\lstinline!k! passes d'un ordonnancement de type round-robin, en
+la fonction \texttt{main} contient l'ordonnanceur. Il va simuler
+\texttt{k} passes d'un ordonnancement de type round-robin, en
 choisissant de manière non-deterministe le nombre d'instructions à
 exécuter dans chaque thread avant de changer de contexte.
 
