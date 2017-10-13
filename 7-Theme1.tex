@@ -1,5 +1,7 @@
 \Chapter{LTL avec support des positions et des variables locales}\label{sec:Theme1}
 
+\section{Présentation du problème}
+
 Considérons le problème suivant : un système contient deux batteries. Les
 batteries se vident et chacune est changée lorsqu'elle est épuisée. Tant qu'une
 des batteries est présente, le système fonctionne. Cependant, si les deux
@@ -187,8 +189,183 @@ instrumentation manuelle dans le code. Cela peut introduire des
 différences entre le modèle et le système initial, et donc provoquer des
 faux positifs ou des faux négatifs lors de la vérification.
 
+Cet exemple nous a permis de mettre en évidence certaines limites des mécanismes
+de spécification actuellement utilisé par les outils de model-checking logiciel
+actuels. Les assertions ne sont pas adaptées pour vérifier des propriétés
+faisant intervenir plusieurs threads ou des notions temporelles. Peut d'outils
+supportent les logiques temporelles, et lorsque c'est le cas, des modifications
+des modèle sont nécessaire en raison des restrictions imposées sur la
+définitions des propositions atomiques.
+
 Dans cette partie, nous présentons un nouveau formalisme de spécification, basé
 sur LTL. Notre objectif est de permettre de spécifier d'avantage de propriétés
 sans qu'il soit nécessaire d'instrumenter manuellement le programme à vérifier.
 Pour ce faire, nous nous concentrons sur le support des variables locales et la
 possibilité d'utiliser des positions du code dans la spécification.
+
+\section{Établir une spécification qui étend LTL}
+
+Les outils de model-checking pour des programmes C multi-thread
+supportant LTL que nous avons rencontrés restreignent généralement les
+propositions atomiques à une expression pure du C n'utilisant que des
+variables globales. À notre connaissance, seul
+Divine\cite{Divine_LTL} propose un support plus étendu de LTL,
+auquel nous allons comparer ce travail.
+
+Notre objectif est de proposer une spécification basée sur LTL
+permettant de surmonter les restrictions classiques faites sur les
+propositions atomiques. Nous désirons pouvoir faire référence à des
+emplacements du programme afin de pouvoir exprimer des formules
+reproduisant le comportement d'une assertion --- et combiner ces
+assertions par des opérateurs de la logique temporelle. Toujours dans
+l'optique de spécifier un programme sans le modifier, nous désirons
+aussi pouvoir faire référence directement à des variables locales de ce
+programme.
+
+Le formalisme que nous proposons est une restriction de LTL plus souple
+que les restrictions utilisées dans les outils étudiés. Elle se base sur
+une définition plus large des propositions atomiques, en ajoutant à ces
+dernières une \emph{zone de validité}.
+
+\subsection{Difficultés du problème}
+
+Nous allons tout d'abord présenter les différents problèmes à résoudre
+dans le but d'étendre la spécification.
+
+\subsubsection{Désigner les variables}
+
+Afin d'utiliser une variable dans une spécification, il est nécessaire
+de la désigner de manière unique.
+
+Le language C n'autorise qu'une seule variable globale portant un nom
+donné dans un fichier\footnote{Les mots clefs \lstinline!extern! et
+\lstinline!static! permettent de déclarer plusieurs variables globales
+portant le même nom dans un programme}. Ce nom est donc généralement
+suffisant pour identifier uniquement une variable globale. Ce n'est pas
+aussi simple lorsqu'on considère des variables locales : deux variables
+locales portant le même nom peuvent cohabiter sans faire référence au
+même emplacement mémoire.
+
+Deux variables locales distinctes (ne faisant pas référence à la même
+adresse mémoire) mais ayant le même nom peuvent survenir dans les cas
+suivants :
+
+\begin{itemize}
+\item
+  une variable \lstinline!foo! est définie dans plusieurs contextes
+  distincts (des fonctions différentes, des blocs différents d'une même
+  fonction\ldots{}). La connaissance du contexte de la définition permet
+  de les distinguer.
+\item
+  une fonction \lstinline!bar! contenant une variable \lstinline!foo!
+  est appelée plusieurs fois séquentiellement dans le programme. La
+  variable \lstinline!foo! dépend alors de l'appel à la fonction
+  \lstinline!bar!.
+\item
+  la variable \lstinline!foo! est définie dans des threads distincts.
+  Dans ce cas, les deux instances de la variable peuvent exister
+  simultanément. L'instance dépend du thread dans lequel elle est
+  définie.
+\item
+  la variable \lstinline!foo! est définie dans une fonction récursive
+  \lstinline!bar!. Dans ce cas, une nouvelle instance de \lstinline!foo!
+  est définie à chaque appel récursif de \lstinline!bar!.
+\end{itemize}
+
+On peut répartir ces cas en deux catégories :
+
+\begin{itemize}
+\item
+  les deux variables sont lexicalement distinctes, elles sont issues de
+  deux définitions distinctes dans le code source. Dans ce cas, on peut
+  différencier les variables en ajoutant des informations
+  supplémentaires à son nom, pour identifier le contexte de la
+  déclaration de manière unique (fichier, fonction, bloc\ldots{}).
+\item
+  les deux variables sont lexicalement identiques mais elles sont
+  redéfinies. Ce cas est plus complexe : les appels de fonctions et les
+  création de thread peuvent être dynamiques et dépendre de l'exécution.
+  Ils sont donc difficile à identifier de manière statique, et il en va
+  de même pour les variables locales associées.
+\end{itemize}
+
+\subsubsection{Définir globalement une proposition atomique dépendant
+d'une variable locale}
+
+Dans une formule LTL, une proposition atomique est intrinsèquement
+globale : pour tout état \(p\) du programme, il peut être nécessaire de
+déterminer si \(p\) est un modèle de la proposition atomique. Cela est
+généralement déterminé par la valeur prise par une expression booléenne
+dans l'état \(p\). L'expression est évaluée en utilisant la valeur des
+variables dans l'état \(p\). Cependant, si cette expression dépend de
+variables locales, elle ne peut être évaluée que si toutes ces variables
+locales existent dans l'état \(p\). Une proposition atomique n'est
+correctement définie que dans le domaine où sont définies les variables
+locales dont elle dépend.
+
+Il est donc nécessaire de prolonger la définition des propositions
+atomiques à l'ensemble des états.
+
+\subsubsection{Exprimer une position dans le programme}
+
+Un des objectifs de notre spécification est de permettre de manipuler
+des positions dans le programme. Il est donc nécessaire de proposer un
+système permettant de les désigner. La difficulté est de proposer un
+moyen robuste aux modifications du code et suffisamment précis.
+
+TODO : Parler du fait que on s'arrête à la précision du statement. En
+parler aussi pour les entrelacement
+
+Plusieurs options viennent rapidement à l'esprit :
+
+\begin{itemize}
+\item
+  indiquer la position à l'aide de la ligne et du fichier ;
+\item
+  placer des marqueurs dans le code ;
+\end{itemize}
+
+La première méthode souffre d'un inconvénient majeur : la spécification
+n'est plus valide dès qu'une ligne est ajoutée ou enlevée dans le code.
+Nous avons donc retenu la seconde option. Elle impose cependant de
+rajouter une instrumentation dans le code, ce que nous désirions
+minimiser.
+
+\subsubsection{Utilisation des positions dans la formule}
+
+La manière dont les positions du code peuvent être utilisées dans la
+formule et dans les propositions atomiques en particulier doit aussi
+être définie. Le programme a atteint une position dans le code lorsque
+un des pointeurs d'exécution pointe sur la position désignée.
+
+Il est cependant nécessaire de définir comment et dans quelle mesure une
+position peut intervenir dans une proposition atomique. Nous avons
+considéré les options suivantes :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  une proposition atomique désigne une location ou une condition sur les
+  variables du programme, de manière exclusive. On fait le lien entre les
+  positions et les valeurs des variables du programme à l'aide des opérateurs de
+  la logique des prédicats. Si \lstinline!pos1! et \lstinline!pos2! désignent
+  deux positions du programme, alors on spécifie que la variable \lstinline!x!
+  est non-nulle entre \lstinline!pos1! et \lstinline!pos2! par \(G
+  (\{\text{pos1}\}\implies \{x \neq 0\} U \{\text{pos1}\})\).
+\item
+  une proposition atomique est constituée d'une condition sur les variables du
+  programme et d'une condition sur les positions. En reprenant l'exemple
+  précédent, on écrirait alors \(G \lnot p\), avec \(p\) la proposition atomique
+  qui est vérifiée par tous les états ayant une position entre \lstinline!pos1!
+  et \lstinline!pos2! et où \lstinline!x! est nulle.
+\item
+  les positions viennent contraindre les opérateurs temporels. On pourrait
+  envisager une approche semblable à la logique MTL\cite{mtl_definition}, où les
+  opérateurs temporels sont restreints à des intervalles de temps, mais en
+  appliquant la restriction à des positions du programme. On écrirait alors,
+  \(G_{[pos1, pos2]} \lnot \{ x \neq 0 \}\).
+\end{enumerate}
+
+Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande
+de modifier le comportement standard des opérateurs LTL et nous avons
+préféré limiter nos modifications aux propositions atomiques seulement.
