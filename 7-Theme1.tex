@@ -11,7 +11,7 @@ fonctionner.
 Un tel système peut être modélisé par le code ci-dessous. Deux threads,
 \texttt{battery1} et \texttt{battery2} contrôlent le rythme auquel les
 batteries se vident. Le pourcentage d'énergie dans la batterie est représenté
-par la variable \texttt{energy\_stored}. Celle-ci est décrémentée dans une
+par la variable \texttt{energy}. Celle-ci est décrémentée dans une
 boucle, ce qui représente la consommation de l'énergie, avant d'être remise à
 une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
 aucune synchronisation n'existe entre les threads. L'état d'erreur peut donc
@@ -24,29 +24,34 @@ s'agit donc d'un problème d'exclusion mutuelle. Afin d'exécuter la
 vérification, il va tout d'abord être nécessaire de spécifier cette
 propriété.
 
-\begin{lstlisting}[language=C]
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 void* battery1(void* d) {
-    int energy_stored = 100;
-    while(1) {
-      // Empty the battery
-      for(; energy_stored > 0; energy_stored--);
-      // Replace the battery
-      energy_stored = 100;
-    }
-    pthread_exit(NULL);
-}
-
-void* battery2(void* d) {
-    int energy_stored = 100;
-    while(1) {
-      // Empty the battery
-      for(; energy_stored > 0; energy_stored--);
-      // Replace the battery
-      energy_stored = 100;
-    }
-    pthread_exit(NULL);
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    energy = 100;
+  }
+  pthread_exit(NULL);
 }
 \end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2]
+void* battery2(void* d) {
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    energy = 100;
+  }
+  pthread_exit(NULL);
+}
+\end{lstlisting}
+\end{minipage}
 
 Comme nous l'avons vu dans l'état de l'art, la principale limitation du
 model-checking est actuellement l'explosion combinatoire. Les outils de
@@ -66,37 +71,42 @@ en remplacement).
 
 On obtient alors le code suivant :
 
-\begin{lstlisting}[language=C]
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 int critical = 0;
-
 void* battery1(void* d) {
-    int energy_stored = 100;
-    while(1) {
-      // Empty the battery
-      for(; energy_stored > 0; energy_stored--);
-      // Replace the battery
-      assert(critical != 1);
-      critical = 1;
-      energy_stored = 100;
-      critical = 0;
-    }
-    pthread_exit(NULL);
-}
-
-void* battery2(void* d) {
-    int energy_stored = 100;
-    while(1) {
-      // Empty the battery
-      for(; energy_stored > 0; energy_stored--);
-      // Replace the battery
-      assert(critical != 1);
-      critical = 1;
-      energy_stored = 100;
-      critical = 0;
-    }
-    pthread_exit(NULL);
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    assert(critical != 1);
+    critical = 1;
+    energy = 100;
+    critical = 0;
+  }
+  pthread_exit(NULL);
 }
 \end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2]
+
+void* battery2(void* d) {
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    assert(critical != 1);
+    critical = 1;
+    energy = 100;
+    critical = 0;
+  }
+  pthread_exit(NULL);
+}
+\end{lstlisting}
+\end{minipage}
 
 % Cette instrumentation souffre cependant d'un problème : les instructions
 % supplémentaires créent de nouveaux chemins d'exécutions. Ces chemins
@@ -133,9 +143,9 @@ locale ou une position du programme dans ces spécifications.
 Tentons donc de spécifier notre modèle à l'aide d'une formule LTL. Deux
 options sont possibles. La première consiste à vérifier que les deux
 batteries ne sont pas vide en même temps, c'est à dire que les variables
-\texttt{energy\_stored} des threads \texttt{battery1} et
+\texttt{energy} des threads \texttt{battery1} et
 \texttt{battery2} ne valent pas \texttt{0} simultanément. Mais les
-variables \texttt{energy\_stored} sont des variables locales : la
+variables \texttt{energy} sont des variables locales : la
 plupart des outils ne permettent pas de les mentionner dans une formule
 LTL. On peut aussi considérer que les opérations de changement de
 batterie ne doivent pas avoir lieu simultanément, en définissant deux
@@ -152,37 +162,42 @@ Dans notre exemple, on pourrait alors rajouter deux variables booléennes
 ``être dans une zone critique''. La spécification serait alors
 la formule \(G \lnot (c1 \land c2)\), pour le code instrumenté suivant.
 
-\begin{lstlisting}[language=C]
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 int c1;
 int c2;
-
 void* battery1(void* d) {
-    int energy_stored = 100;
-    while(1) {
-        // Empty the battery
-        for(; energy_stored > 0; energy_stored--);
-
-        // Replace the battery
-        c1 = 1;
-        energy_stored = 100;
-        c1 = 0;
-    }
-    pthread_exit(NULL);
-}
-
-void* battery2(void* d) {
-    int energy_stored = 100;
-    while(1) {
-        // Empty the battery
-        for(; energy_stored > 0; energy_stored--);
-        // Replace the battery
-        c2 = 1;
-        energy_stored = 100;
-        c2 = 0;
-    }
-    pthread_exit(NULL);
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    c1 = 1;
+    energy = 100;
+    c1 = 0;
+  }
+  pthread_exit(NULL);
 }
 \end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
+
+
+void* battery2(void* d) {
+  int energy = 100;
+  while(1) {
+    // Empty the battery
+    for(; energy>0; energy--);
+    // Replace the battery
+    c2 = 1;
+    energy = 100;
+    c2 = 0;
+  }
+  pthread_exit(NULL);
+}
+\end{lstlisting}
+\end{minipage}
 
 Cependant, utiliser des variables indicatrices revient à introduire une
 instrumentation manuelle dans le code. Cela peut introduire des
@@ -487,7 +502,8 @@ simultanément (pour des raisons de concision, la fonction
 variable \texttt{a} du premier thread n'est jamais nulle en même temps que
 la variable \texttt{a} du second thread.
 
-\begin{lstlisting}[language=C]
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 void* thread1(void* d) {
   int a
 b_p1:
@@ -496,7 +512,10 @@ b_p1:
 e_p1:
   pthread_exit(NULL);
 }
-
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2]
 void* thread2(void* d) {
   int a;
 b_p2:
@@ -506,6 +525,7 @@ e_p2:
   pthread_exit(NULL);
 }
 \end{lstlisting}
+\end{minipage}
 
 Il est nécessaire de rajouter des fonctions d'évaluation pour les
 propositions atomiques :
@@ -550,7 +570,7 @@ d'obtenir un état qui ne satisfait pas la propriété.
 
 \subsubsection{Justification de la spécification}
 
-Nous allons maintenant expliquer comment, et dans quelle mesure, ce formalisme
+Nous allons maintenant expliquer comment et dans quelle mesure ce formalisme
 de spécification permet de surmonter les obstacles détaillées précédemment.
 
 \paragraph{Identification des variables locales}

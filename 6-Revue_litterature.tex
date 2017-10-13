@@ -1532,21 +1532,18 @@ référer pour plus de détails) :
 
 \begin{lstlisting}[language=C]
 int y = 0;
-
 void* T1(void *d) {
-    int x;
-    x = y;
-    y = x + 1;
+  int x;
+  x = y;
+  y = x + 1;
 }
-
 void* T1(void *d) {
-    y = 3;
+  y = 3;
 }
-
 int main() {
-    pthread_t t0, t1;
-    pthread_create(t0, NULL, T0, NULL);
-    pthread_create(t1, NULL, T1, NULL);
+  pthread_t t0, t1;
+  pthread_create(t0, NULL, T0, NULL);
+  pthread_create(t1, NULL, T1, NULL);
 }
 \end{lstlisting}
 
@@ -1587,49 +1584,45 @@ la fonction \texttt{main} contient l'ordonnanceur. Il va simuler
 choisissant de manière non-deterministe le nombre d'instructions à
 exécuter dans chaque thread avant de changer de contexte.
 
-On obtient alors le code séquentialisé suivant :
+On obtient alors le code séquentialisé du listing \ref{lst:code_seq}.
+Des structures de contrôle supplémentaires permettent de représenter la
+synchronisation des threads.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C, label=lst:code_seq, frame=single,
+  caption=Code séquentialisé, float=*]
 int cs,ct,pc[T],size[T]={2,4,7};
 #define J(A,B) if(pc[ct]>A||A>=cs) goto _##B;
 int y=0;
-
 void T0(void *arg) {
           static int x;
 _0:J(0,1) x = y;
 _1:J(1,2) y = x + 1;
 _2: ;
 }
-
 void T1(void *arg) {
 _3:J(3,4) y = 3;
 _4: ;
 }
-
 int main_thread() {
           static pthread_t t0,t1;
 _5:J(5,6) pthread_create(&t0,NULL,T0,0,1);
 _6:J(6,7) pthread_create(&t1,NULL,T1,0,2);
 _7: ;
 }
-
 int main() {
-    for(r=1; r<=K; r++) {
-        cs=pc[0] + nondet_uint();
-        assume(cs<=size[0]);
-        main_thread();
-        pc[0]=cs;
-        .........
-        cs=pc[2] + nondet_uint();
-        assume(cs<=size[2]);
-        T1();
-        pc[2]=cs;
+  for(r=1; r<=K; r++) {
+    cs=pc[0] + nondet_uint();
+    assume(cs<=size[0]);
+    main_thread();
+    pc[0]=cs;
+    .........
+    cs=pc[2] + nondet_uint();
+    assume(cs<=size[2]);
+    T1();
+    pc[2]=cs;
     }
 }
 \end{lstlisting}
-
-Des structures de contrôle supplémentaires permettent de représenter la
-synchronisation des threads.
 
 La séquentialisation ne préserve pas nécessairement toutes les
 propriétés du code, selon les transformations effectuées. Les propriétés
