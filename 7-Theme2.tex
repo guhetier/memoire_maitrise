@@ -1,2 +1,771 @@
-\Chapter{SECOND THÈME}\label{sec:Theme2}
-Texte.
+\Chapter{Exprimer la spécification par des assertion à l'aide d'une
+instrumentation}\label{sec:Theme2}
+
+La majorité des outils de model-checking pour des programmes concurrents
+en C ne permettent de vérifier que des programmes spécifié par des
+assertions.
+
+Afin de vérifier un programme spécifié à l'aide du formalisme présenté
+dans la partie précédente, nous avons mis en place une instrumentation
+du code du système. Cette dernière permet de construire un code spécifié
+par des assertions dont la validité correspond au respect de la
+spécification par le code d'origine.
+
+Nous avons choisi de créer une transformation de sources à sources
+plutôt que de travailler sur la représentation interne d'un
+model-checker afin d'obtenir un outil compatible avec plusieurs backend,
+ce qui permet de les comparer et de sélectionner le plus adapté pour un
+problème spécifique.
+
+Cela simplifie aussi les tâches d'implémentation, en nous évitant de
+composer avec le code d'un système préexistant. Ce choix a aussi des
+inconvénients. En particulier, une instrumentation représente une perte
+de précision et de performance par rapport à un traitement direct : des
+variables et des instructions sont ajoutées dans le système et vont être
+traitée comme n'importe qu'elle instruction par les model-checker en
+backend, alors qu'elles suivent une logique qui pourrait être utilisée
+pour les traiter plus efficacement.
+
+La transformation de source à source que nous proposons s'inspire
+fortement de celle mise en place dans \cite{morse_ltl}. Elle se base
+sur la composition d'un automate de Büchi représentant la négation de la
+propriété LTL à prouver avec le programme à valider. Un model-checker
+doit ensuite être utilisé pour explorer le produit système x automate.
+La composition du système avec un automate de Büchi est une technique
+classique pour le model-checking de propriétés
+LTL\cite{25_years_of_model_checking}. La particularité de notre
+approche est de construire ce produit au niveau du code source du
+système, et non pas au niveau de la représentation interne d'un
+model-checker (où le système et l'automate sont vue comme des système de
+transitions).
+
+\section{Construction de l'automate de Büchi}
+
+Nous reprenons une technique classique de vérification des propriétés
+LTL, utilisée en particulier par SPIN : construire un automate de Büchi
+représentant la négation de la propriété LTL et le composer avec le
+système. Une exécution acceptée par le système résultant est un
+contre-exemple à la spécification.
+
+Mais alors que de manière générale, le programme à vérifier est
+représenté par un système de transitions avant d'être composé avec
+l'automate de Büchi, nous allons ici représenter l'automate de Büchi en
+C avant de le composer avec le programme.
+
+Des algorithmes efficaces et éprouvés permettent de construire
+l'automate de Büchi représentant une formule LTL\cite{ltl2ba}. Nous
+allons donc nous concentrer sur l'implémentation d'un automate en C.
+
+Vouloir vérifier une propriété LTL à l'aide d'assertion nous a aussi
+imposé de travailler sur des traces finies. Nous allons voir dans un
+premier temps comment interpréter une formule LTL dans le cas d'une
+trace finie, avant d'expliquer notre construction en C de l'automate de
+Büchi associé.
+
+\subsection{Traces finies et logique à 4 valeurs de vérité}
+
+Nous voulons instrumenter un système de manière à produire une
+spécification à l'aide d'assertion qui corresponde à une propriété LTL.
+Ce sont dont des assertions qui vont nous permettre de communiquer une
+erreur au model-checker, en mettant fin à l'exploration lorsqu'elles
+sont violées. Cependant, puisqu'une assertion met fin à l'exploration,
+le fait qu'elle soit violée ou non ne dépend que du préfixe de la trace
+qui a été exploré avant l'assertion. Il n'est donc pas possibles de
+traiter des traces infinies : pour différencier une trace valide d'une
+trace invalide, il nous faut lever une assertion, ce qui doit être fait
+en temps fini.
+
+Nous allons donc nous concentrer uniquement sur des traces finies.
+Cependant, les propriétés LTL ne sont pas définies sur les traces
+finies. Plusieurs variantes de LTL existent pour répondre à ce problème
+(LTL3, FLTL, RV-LTL, infinite extension\ldots{}), aucune ne faisant
+consensus.
+
+Nous avons choisi l'approche du \emph{stuttering} : l'état final de la
+trace finie est répété à l'infini afin d'étendre la trace de manière
+infinie. Cette approche correspond bien avec un programme qui, lorsqu'il
+se termine, n'a pas de raison de voir son état évoluer. Elle a de plus
+l'avantage de ne pas modifier les opérateurs LTL, ce qui nous permet
+d'utiliser les techniques de vérification pour LTL sans modifications.
+Une trace finie est un modèle d'une propriété LTL dans la sémantique
+avec \emph{stuttering} si et seulement si son extension infinie est un
+modèle.
+
+\textbf{TODO} Exemple
+
+Il faut cependant noter que les différentes variantes de LTL pour des
+traces finies diffèrent principalement par la prise en charge de
+l'opérateur \emph{next}. Dans le cadre du software model-checking, le
+sens donné à celui-ci est très variable et il est généralement
+déconseillé de l'utiliser.
+
+Il est possible de raffiner d'avantage les résultats en faisant la
+distinction entre deux types de traces finies :
+
+\begin{itemize}
+\item
+  le préfixe fini est suffisant pour déterminer si la trace est un
+  modèle de la formule ou non, quelque soit l'extension
+  (\emph{stuttering} ou autre)
+\item
+  le préfixe fini n'est pas suffisant, le résultat dépend de l'extension
+\end{itemize}
+
+Nous avons de plus utilisé une logique à 4 valeurs de vérités, comme
+décrite dans \cite{morse_ltl}.
+
+Les valeurs sont :
+
+\begin{itemize}
+\item
+  True : utilisée lorsque, étant donnée une trace finie \lstinline!t!,
+  toutes les traces ayant \lstinline!t! pour préfixe sont acceptées par
+  l'automate.
+\item
+  Maybe true : utilisée lorsque, étant donnée une trace finie
+  \lstinline!t!, l'extension infinie de \lstinline!t! en répétant son
+  dernier état est acceptée par l'automate.
+\item
+  Maybe false : utilisée lorsque étant donnée une trace finie
+  \lstinline!t!, l'extension infinie de \lstinline!t! en répétant son
+  dernier état est rejeté par l'automate mais que au moins une trace
+  ayant \lstinline!t! pour préfixe est acceptée.
+\item
+  False : utilisée lorsque, étant donnée une trace finie \lstinline!t!,
+  toutes les traces ayant \lstinline!t! pour préfixe sont rejetées par
+  l'automate.
+\end{itemize}
+
+Dans les cas d'une conclusion \emph{Maybe true} ou \emph{Maybe false},
+la connaissance supplémentaire du fait que le programme ait terminé ou
+non son exécution (i.e on a vérifié l'exécution complète ou la
+profondeur d'exploration a été bornée) peut permettre de préciser le
+résultat.
+
+\subsection{Implémentation de l'automate}
+
+Nous allons construire une représentation en C de l'automate de Büchi
+correspondant à la négation de la formule LTL de la spécification. Nous
+avons suivis pour cela l'approche décrite dans \cite{morse_ltl}.
+
+L'automate est implémenté par une fonction C, représentant sa fonction
+de transition. Elle permet de déterminer l'évolution de son état selon
+l'état courant et les valeurs des propositions atomiques.
+
+Nous utilisons les variables et fonctions suivantes pour construire
+l'automate :
+
+\begin{itemize}
+\item
+  une variable globale, \lstinline!ltl2ba_state_var!, contient l'état
+  courant de l'automate sous la forme d'un entier (les états sont
+  numérotés arbitrairement)
+\item
+  des variables globales, \lstinline!ltl2ba_atomic_{name}! (où name est
+  l'identifiant d'une proposition atomique), contiennent la valeur
+  courante de chaque proposition atomique. Ces valeurs sont maintenues à
+  jour pendant le déroulement du programme. Elles sont mises à jour par
+  des instructions ajoutées dans le code du programme que nous
+  détaillerons dans la partie sur l'instrumentation.
+\item
+  une fonction \lstinline!_ltl2ba_transition! représente la fonction de
+  transition de l'automate et fait évoluer l'état stocké dans
+  \lstinline!ltl2ba_state_var!. Étant donné l'état courant de
+  l'automate, elle choisit de manière non-déterministe une transition
+  valide partant de cet état et met à jour l'état courant. Si aucune
+  transition n'est valable, le mot est rejeté (et l'exploration courante
+  est stoppée). Si l'état courant est un état puits acceptant, le mot
+  est accepté et une erreur est immédiatement remontée (on rappelle que
+  l'automate représente la négation de la propriété à vérifier, une
+  trace acceptée par l'automate est donc un contre-exemple à la
+  propriété).
+
+  Cette fonction permet de d'explorer l'automate de manière
+  non-déterministe. Une valeur non-déterministe est produite l'aide de
+  la fonction intrinsèque au model-checker, \lstinline!nondet_int()!. La
+  transition à emprunter est désignée à l'aide de cette valeur. Le
+  model-checker va alors explorer l'ensemble des évolutions possibles de
+  l'automate. Les évolutions invalides sont immédiatement interrompues à
+  l'aide d'assomptions.
+\item
+  une fonction \lstinline!_ltl2ba_result! permet de déterminer le
+  résultat d'une exploration. Elle est appelée après la dernière
+  instruction du \lstinline!main!. Elle se base sur l'état courant de
+  l'automate et la valeur des propositions atomiques pour déterminer la
+  valeur de vérité associée à cette exécution. Si une erreur est
+  possible, elle est remontée au model-checker à l'aide d'une assertion.
+  Les valeurs de vérités sont déterminées en utilisant des données
+  pré-calculées par une analyse d'accessibilité dans l'automate de Büchi
+  \cite{morse_ltl}.
+\end{itemize}
+
+Un model-checker n'a pas la possibilité de trancher entre les différents
+résultats possibles de l'analyse à partir de cet automate. Nous
+signalons donc toute les erreurs (\emph{Maybe true}, \emph{Maybe false},
+\emph{Surely false}) par une assertion dont le message indique le type
+d'erreur détecté. Il est donc possible qu'une erreur en maque une autre
+: le model-checker arrête son exploration lors de la première violation
+d'assertion qu'il détecte. Il peut alors s'agir d'un résultat moins fort
+que celui qu'il aurait trouvé dans un entrelacement futur. Il peut donc
+être nécessaire de relancer plusieurs fois l'outil en désactivant les
+assertions donnant les résultats les plus faibles pour obtenir le
+résultat final.
+
+Notre implémentation de l'automate de Büchi en C diffère de celle de
+\cite{morse_ltl} par un point d'importance : dans
+\cite{morse_ltl}, l'automate est implémenté dans un thread
+suplémentaire, utilisé comme un thread observateur. La fonction de
+transition de l'automate est placée dans une boucle, synchronisée avec
+le reste du code à l'aide d'une commande intrinsèque du model-checker.
+Cette commande à été implémentée pour l'occasion. Dans notre cas, la
+fonction de transition est représentée par une fonction dans le code,
+appelée quand nécessaire par l'instrumentation. Cela nous permet de ne
+pas se baser sur une commande intrinsèque au model-checker pour
+synchroniser l'automate au code et ainsi, de supporter plus facilement
+différents model-checkers en back-end.
+
+L'automate pour la propriété LTL \(G p \implies F q\) est implémenté par
+le code suivant.
+
+\begin{lstlisting}[language=C]
+_Bool _ltl2ba_atomic_p = 0;
+_Bool _ltl2ba_atomic_q = 0;
+
+_ltl2ba_state _ltl2ba_state_var = 0;
+
+void _ltl2ba_transition() {
+    int choice = nondet_uint();
+    switch (_ltl2ba_state_var) {
+    case 0:
+        if (choice == 0) {
+            assume(!_ltl2ba_atomic_p);
+            _ltl2ba_state_var = 0;
+        } else if (choice == 1) {
+            assume(1);
+            _ltl2ba_state_var = 1;
+        } else if (choice == 2) {
+            assume(_ltl2ba_atomic_q);
+            _ltl2ba_state_var = 0;
+        } else {
+            assume(0);
+        }
+        break;
+    case 1:
+        if (choice == 0) {
+            assume(1);
+            _ltl2ba_state_var = 1;
+        } else if (choice == 1) {
+            assume(_ltl2ba_atomic_q);
+            _ltl2ba_state_var = 0;
+        } else {
+            assume(0);
+        }
+        break;
+    }
+}
+
+_Bool _ltl2ba_surely_accept[2] = {0, 0};
+_Bool _ltl2ba_surely_reject[2] = {0, 0};
+_Bool _ltl2ba_stutter_accept[8] = {1,0, 0,0, 1,1, 1,1,};
+
+unsigned int _ltl2ba_sym_to_id() {
+    unsigned int id = 0;
+
+    id |= (_ltl2ba_atomic_p << 0);
+    id |= (_ltl2ba_atomic_q << 1);
+    return id;
+};
+
+void _ltl2ba_result() {
+    _Bool reject_sure = _ltl2ba_surely_reject[_ltl2ba_state_var];
+    assume(!reject_sure);
+
+    _Bool accept_sure = _ltl2ba_surely_accept[_ltl2ba_state_var];
+    assert(!accept_sure, "ERROR SURE");
+
+    unsigned int id = _ltl2ba_sym_to_id();
+    _Bool accept_stutter = _ltl2ba_stutter_accept[id * 2 + _ltl2ba_state_var];
+    assert(!accept_stutter, "ERROR MAYBE");
+    assert(accept_stutter, "VALID MAYBE");
+}
+\end{lstlisting}
+
+\section{Instrumentation du code}
+
+Le code est instrumenté afin de construire le produit entre le programme
+et l'automate. L'instrumentation va maintenir à jour la valeur des
+propositions atomiques tout au long de l'exécution du programme et
+appeler la fonction de transition afin de faire évoluer l'automate.
+
+Afin de minimiser l'instrumentation, la valeur d'une propositions
+atomique est mise à jour uniquement lorsque sa valeur est susceptible de
+changer. La fonction de transition de l'automate est appelée uniquement
+à ces occasions. L'opérateur LTL \emph{Next} a alors pour signification
+``lors du prochain appel à la fonction de transition'', c'est à dire la
+prochaine fois qu'une proposition atomique est susceptible d'être
+modifiée.
+
+L'instrumentation est réalisée à l'aide de CIL (C Intermediate Langage).
+CIL permet de simplifier le code en, entre autre, décomposant les
+instructions complexes en instructions simples et sans effets de bord.
+Nous supposons dans notre instrumentation que les instructions produites
+par CIL sont atomiques.
+
+\subsection{Frontière des zones de validité}
+
+Les premiers points nécessitant une instrumentation sont les frontières
+des zones de validité des propositions atomiques. Lorsqu'un pointeur
+d'exécution atteint l'instruction portant le label d'entrée
+(respectivement de sortie) d'une zone de validité, la proposition
+atomique doit prendre la valeur calculée par sa fonction d'évaluation
+(respectivement sa valeur par défaut).
+
+On va donc réaliser l'instrumentation suivante pour un label d'entrée.
+Ici, la proposition atomique \lstinline!p! débute au label
+\lstinline!lbegin! et se termine au label \lstinline!lend!.
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+ltl2ba_atomic_p = fp(..);
+_ltl2ba_transition();
+__atomic_end();
+lbegin: ....;
+\end{lstlisting}
+
+Et pour la sortie de la zone :
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+ltl2ba_atomic_p = {default_val};
+_ltl2ba_transition();
+__atomic_end();
+lend: ....;
+\end{lstlisting}
+
+Toutes les instructions sont regroupées dans un bloc atomique (ouvert
+par l'instruction \lstinline!__atomic_begin()! et fermé par
+l'instruction \lstinline!atomic_end()!) afin de ne pas générer
+d'entrelacements supplémentaires dans le code et créer des chemins
+d'exécutions pouvant mener à une conclusion erronée : toutes les
+instructions de l'instrumentation doivent être réalisées de manière
+atomiques (sans changement de contexte possible) pour garantir un état
+cohérent de l'automate. Si plusieurs entrées et sorties de zone ont
+lieux au même label, les instructions d'instrumentations sont toutes
+réunies dans le même bloc atomique. La fonction de transition n'est
+appelée qu'une seule fois, après l'actualisation de toutes les
+propositions atomiques.
+
+Cependant, cette instrumentation des frontières des zones de validité
+provoque tout de même une perte de précision. L'entrée dans une zone de
+validité correspond à l'instant où le pointeur d'exécution pointe sur
+l'instruction portant le label d'entrée, i.e le moment ou cette
+instruction est susceptible d'être exécutée. Le pointeur d'exécution est
+mis à jour immédiatement après l'exécution de l'instruction précédent
+l'entrée dans la zone, avant tout changement de contexte. Par
+conséquent, l'instrumentation devrait avoir lieu immédiatement après
+cette instruction, sans permettre un changement de contexte, mais ce
+n'est pas le cas dans notre instrumentation.
+
+Illustrons cela sur un exemple.
+
+\begin{lstlisting}[language=C]
+instr1;
+begin: instr2;
+end: instr3;
+\end{lstlisting}
+
+Dans ce fragment de code, dès que l'instruction \lstinline!instr1! est
+exécutée, le pointeur d'exécution pointe sur l'instruction
+\lstinline!instr2!. On est donc immédiatement dans la zone de validité
+délimitée par les labels \lstinline!begin! et \lstinline!end!, et il
+n'est pas possible d'effectuer un changement de contexte après
+\lstinline!instr1! mais avant d'entrer dans la zone de validité.
+
+Cependant, après instrumentation, on obtient :
+
+\begin{lstlisting}[language=C]
+instr1;
+{intrumentation;}
+begin: instr2;
+{instrumentation;}
+end: instr3;
+\end{lstlisting}
+
+L'entrée dans la zone de validité n'est réalisée qu'une fois que
+l'instrumentation a été exécutée et que la valeur des propositions
+atomiques a donc été recalculée. Il est donc maintenant possible de
+réaliser un changement de contexte après \lstinline!instr1!, mais avant
+d'entrer dans la zone de validité : un nouveau chemin d'exécution a été
+créé.
+
+Pour éviter cette perte de précision, il serait nécessaire de rendre
+atomique l'instruction \lstinline!instr1! et le code d'instrumentation.
+Ceci est extrêmement compliqué dans le cadre d'une instrumentation du
+code. En effet, l'instruction qui précède un label n'est pas facilement
+identifiable et peut varie selon l'exécution et selon les branchements
+du programme. De plus, sans dépliage du code, une même instruction peut
+précéder l'entrée ou la sortie d'une zone certaines fois mais pas
+systématiquement (instruction en fin de boucle ou de fonction). Dans le
+cadre d'une instrumentation du code, nous n'avons aucune solution face à
+cette perte de précision. Une implémentation intégrée à un model-checker
+serait nécessaire.
+
+On peut cependant noter que les assertions utilisées de manière
+classique permettent elles aussi ce changement de contexte immédiatement
+avant elles, ce qui n'a généralement pas de conséquences.
+
+\subsection{Variables locales}
+
+Passons à la seconde raison pouvant amener à modifier la valeur d'une
+proposition atomique. Il s'agit de la modification d'une variable dont
+dépend la proposition atomique, dans sa zone de validité (en dehors de
+la zone de validité, la proposition atomique s'évalue toujours à sa
+valeur par défaut, la modification d'une variable n'a donc pas
+d'impact). Nous allons tout d'abord nous concentrer uniquement sur le
+cas des variables locales à une fonction.
+
+Si une variable locale est modifiée dans la zone de validité d'une
+proposition atomique et que la valeur de la proposition atomique dépend
+de la variable, il est toujours nécessaire d'instrumenter l'affectation.
+Instrumenter ces appels est aussi suffisant (car nous ne considérons pas
+les accès indirects aux variables). La variable étant locale, elle ne
+peut s'échapper hors de son contexte : elle ne peut donc pas être
+modifiée par une instruction hors de la zone de validité alors qu'un
+pointeur d'instruction est dans la zone de validité.
+
+On peut alors ajouter une instrumentation autour de l'affectation. Après
+la modification de la variable, les propositions atomiques qui en
+dépendent sont évaluées à nouveau. On tente ensuite d'effectuer une
+transition dans l'automate de Büchi.
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+v = ....;
+ltl2ba_atomic_p = fp(v, ...);
+_ltl2ba_transition();
+__atomic_end();
+\end{lstlisting}
+
+L'affectation de la variable à sa nouvelle valeur et l'instrumentation
+sont placés dans un même bloc atomique, afin de la modification de
+l'état soit répercutée sans changement de contexte possible.
+
+Contrairement à l'instrumentation à l'entrée et la sortie des zones de
+validité, ici, aucun nouveau chemin d'exécution n'est créé : une
+affectation est un statement, que nous considérons comme atomique. Il
+est donc possible de l'inclure dans un bloc atomique pour le
+model-checker.
+
+\subsection{Variables globales}
+
+Passons maintenant au cas où la proposition atomique ne dépend que de
+variables globales.
+
+Tout comme une variable locale, si une variable globale est modifiée
+dans la zone de validité d'une proposition atomique et que cette
+proposition atomique dépend de la variable globale, il est nécessaire
+d'actualiser la valeur de la proposition atomique et d'effectuer une
+transition dans l'automate. Mais une variable globale peut aussi
+affecter la valeur d'une proposition atomique lors d'une affectation
+hors de la zone de validité de cette proposition : si un pointeur
+d'exécution du programme est dans la zone de validité et qu'une variable
+globale dont dépend la proposition est modifiée dans un autre thread,
+cette modification a un impact sur la valeur de la proposition atomique.
+
+L'exemple suivant illustre ce problème :
+
+\begin{lstlisting}
+int a = 1;
+
+int pred(int a) {
+    return a != 0;
+}
+
+void* thread1(void* d) {
+    int b = *(int *)d;
+    int r;
+    begin: ;
+    a = b;
+    r = 10 / a;
+    end: ;
+
+}
+
+void* thread2(void* d) {
+    a = 0;
+}
+\end{lstlisting}
+
+On désire s'assurer que la variable \lstinline!a! n'est pas nulle dans
+la zone de validité allant de \lstinline!begin! à \lstinline!end! dans
+le première thread. L'affectation \lstinline!a = b;! est susceptible de
+faire évoluer cette propriété, il est donc nécessaire de l'instrumenter,
+tout comme dans le cas des variables locales.
+
+L'affectation \lstinline!a = 0! dans le second thread peut aussi avoir
+un impact sur la propriété, mais cela dépend de l'ordre d'exécution des
+instructions. Par exemple :
+
+\begin{itemize}
+\item
+  si l'ordre d'exécution est \lstinline!a = b; a = 0; r = 10 / a!, alors
+  l'affectation \lstinline!a = 0;! du second thread doit impacter la
+  valeur de la proposition atomique : \lstinline!a! est maintenant nulle
+  dans la zone de validité.
+\item
+  si le second thread s'exécute entièrement avant le premier, quand
+  \lstinline!a = 0;! est exécuté, la proposition atomique n'est pas dans
+  sa zone de validité (le pointeur d'exécution du premier thread n'a pas
+  encore atteint le label \lstinline!begin!). Dans ce cas, la valeur de
+  la proposition atomique ne doit pas être modifiée.
+\end{itemize}
+
+Il est donc nécessaire d'instrumenter aussi les affectation à des
+variables globales hors de la zone de validité d'une proposition.
+Cependant, une affectation en dehors d'une zone de validité ne doit pas
+non plus systématiquement donner lieux à une actualisation des
+proposition atomique : il ne faut actualiser la valeur de la proposition
+atomique que lorsqu'un pointeur d'exécution est dans sa zone de
+validité. C'est donc une notion dynamique, qui dépend de l'exécution.
+
+Pour n'actualiser la valeur que lorsque c'est nécessaire,
+l'instrumentation prendra la forme d'une condition. Nous ajoutons une
+variable globale pour chaque proposition atomique, qui indique si le
+programme est dans sa zone de validité. On maintient la valeur de cette
+variable à l'entrée et à la sortie de chaque zone de validité. On peut
+alors tester la valeur de cette variable pour définir si il faut
+actualiser ou non la proposition atomique.
+
+La valeur de cette nouvelle variable globale doit être actualisée
+l'entrée et à la sortie des zones de validités. L'instrumentation de ces
+zones devient donc :
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+_ltl2ba_active_p = 1;
+ltl2ba_atomic_p = fp(..);
+_ltl2ba_transition();
+__atomic_end();
+lbegin: ....;
+\end{lstlisting}
+
+Et pour la sortie d'une zone :
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+_ltl2ba_active_p = false;
+ltl2ba_atomic_p = {default_val};
+_ltl2ba_transition();
+__atomic_end();
+lend: ....;
+\end{lstlisting}
+
+L'instrumentation lors de la modification d'une variable globale prend
+alors la forme suivante :
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  Pour des instructions situées dans la zone de validité de la
+  proposition :
+\end{enumerate}
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+g = ....;
+ltl2ba_atomic_p = fp(g, ...);
+_ltl2ba_transition();
+__atomic_end();
+\end{lstlisting}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\setcounter{enumi}{1}
+\item
+  Pour des instructions situées hors de la zone de validité de la
+  proposition :
+\end{enumerate}
+
+\begin{lstlisting}[language=C]
+__atomic_begin();
+g = ....;
+if (_ltl2ba_active_p) {
+    ltl2ba_atomic_p = fp(g, ...);
+    _ltl2ba_transition();
+}
+__atomic_end();
+\end{lstlisting}
+
+\subsection{Mélange de variables globales et locales}
+
+Enfin, plaçons nous dans le cas où une proposition atomique dépend à la
+fois de variables globales et de variables locales.
+
+Un nouveau problème apparaît : lorsqu'une variable globale est modifiée
+hors de la zone de validité, il peut être nécessaire de mettre à jour la
+proposition atomique à l'aide de sa fonction d'évaluation, comme nous
+l'avons vu précédemment. Cette fonction prend en paramètre les variables
+locales dont dépend la proposition atomique. Mais ces variables locales
+ne sont pas dans le contexte de l'appel ! Celui-ci est réalisé depuis un
+autre thread, depuis lequel ces variables locales ne sont pas
+accessibles.
+
+L'exemple suivant illustre ce problème :
+
+\begin{lstlisting}[language=C]
+int a = 1;
+
+int pred(int a, int b) {
+    return a == b;
+}
+
+void* thread1(void* d) {
+    int b = *(int *)d;
+    int r;
+    begin: ;
+    a = b;
+    r = 10 / a;
+    end: ;
+
+}
+
+void* thread2(void* d) {
+    a = 0;
+}
+\end{lstlisting}
+
+Dans ce code, on veut vérifier que les variables \lstinline!a! et
+\lstinline!b! sont bien égale durant tout l'intervalle de validité de la
+proposition. Le second thread serait instrumenté de la manière suivante
+:
+
+\begin{lstlisting}[language=C]
+void* thread2(void* d) {
+    __atomic_begin();
+    a = 0;
+    if (_ltl2ba_active_p) {
+        ltl2ba_atomic_p = pred(a, b); // Here, b is not in the context
+        _ltl2ba_transition();
+    }
+    __atomic_end();
+}
+\end{lstlisting}
+
+On remarque que la variable \lstinline!b! n'est pas accessible lorsqu'il
+est nécessaire d'appeler la fonction d'évaluation.
+
+Cependant, on sait que lorsque cet appel a lieu, un pointeur d'exécution
+du programme est dans la zone de validité de la proposition : toutes les
+variables locales dont dépend la proposition sont donc dans la pile. On
+peut alors y accéder de manière indirecte, en utilisant des pointeurs
+globaux contenant les adresses de ces variables. Nous allons donc
+compléter l'instrumentation pour maintenir des adresses de toutes les
+variables utilisées comme paramètre d'une proposition atomique.
+
+Pour chaque variable utilisée comme paramètre d'une proposition
+atomique, une variable globale supplémentaire est créée. A l'entrée dans
+la zone de validité d'une proposition, cette variable globale est
+assignée avec l'adresse du paramètre auquel elle correspond. Il est
+alors possible d'accéder à la valeur de la variable en déréférençant ce
+pointeur global.
+
+Notre exemple devient alors, instrumenté en tenant compte de ces
+modifications :
+
+\begin{lstlisting}[language=C]
+void *thread1(void *d) {
+
+int a = 1;
+int _ltl2ba_active_p = 0;
+int *_ltl2ba_ptr_b;
+int _ltl2ba_atomic_p = {default-val};
+
+int pred(int a, int b) {
+    return a == b;
+}
+
+void* thread1(void* d) {
+    int b = *(int *)d;
+    int r;
+
+    begin: ;
+    __atomic_begin();
+    _ltl2ba_active_p = 1;
+    _ltl2ba_ptr_b = &b;
+    ltl2ba_atomic_p = pred(a, *_ltl2ba_prt_b);
+    _ltl2ba_transition();
+    __atomic_end();
+
+    a = b;
+    r = 10 / a;
+
+    __atomic_begin();
+    _ltl2ba_active_p = 0;
+    ltl2ba_atomic_p = {default_val};
+    _ltl2ba_transition();
+    __atomic_end();
+    end: ;
+
+}
+
+void* thread2(void* d) {
+    __atomic_begin();
+    a = 0;
+    if (_ltl2ba_active_p) {
+        ltl2ba_atomic_p = pred(a, *_ltl2ba_ptr_b);
+        _ltl2ba_transition();
+    }
+    __atomic_end();
+}
+\end{lstlisting}
+
+\section{Implémentation}
+
+Nous avons implémenté cette transformation dans un outil, BaProduct.
+
+Nous générons les automates de Büchi correspondant aux formules LTL en
+utilisant le logiciel \emph{LTL2BA}\cite{ltl2ba}. LTL2BA implémente
+une méthode rapide afin de construire l'automate de Büchi associé à une
+formule LTL, en utilisant un co-automate de Büchi alternant très faible
+(\emph{very weak alternating co-Büchi automaton}) et un automate de
+Büchi généralisé (*generalised Büchi automaton) comme intermédiaires.
+
+L'instrumentation est réalisée en utilisant la bibliothèque
+CIL\cite{cil}, en OCaml\cite{ocamlrefman}. CIL permet de parser
+du code C et de construire un arbre de syntaxe abstraite plus concis que
+celui du C mais d'un niveau plus haut que celui des langages
+intermédiaires utilisés dans les procédés de compilation. La
+bibliothèque ocamlgraph\cite{ocamlgraph} est utilisée pour réaliser
+l'analyse d'accessibilité dans les automates.
+
+Notre implémentation comprend :
+
+\begin{itemize}
+\item
+  la version modifiée de LTL2BA. Son fonctionnement est identique à
+  celui de la version d'origine, seule une option \lstinline!-t! a été
+  ajoutée afin de choisir le type de la sortie. Cette option peut
+  prendre les valeurs \lstinline!spin!, \lstinline!c! ou
+  \lstinline!json! pour obtenir un automate en Promela, C et JSON
+  respectivement.
+\item
+  L'utilitaire \lstinline!baProduct!. Il s'agit du programme réalisant
+  l'instrumentation. Il prends en entré un fichier C préprocessé et un
+  fichier de spécification, et il produit un fichier instrumenté. Cet
+  utilitaire a besoin de la version modifiée de LTL2BA pour fonctionner.
+\item
+  Un script de lancement, \lstinline!baProduct.py!. Il préprocesse les
+  fichiers en entrée et appelle \lstinline!baProduct! avec un ensemble
+  d'options classiques.
+\end{itemize}
+
+Une utilisation classique de notre implémentation ressemble donc à
+l'appel suivant :
+
+\begin{lstlisting}
+~ ./baProduct.py -i test.c -s test.spec
+~ esbmc --depth 100 test_instr.c
+\end{lstlisting}
+
+Le code de ces outils et une série de tests sont disponible à {[}TODO:
+mettre sur github, ajouter adresse{]}
