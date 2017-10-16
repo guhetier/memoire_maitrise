@@ -436,22 +436,22 @@ propriété portant sur les états du système.
   propriété d'équité : TODO
 \end{itemize}
 
-Les logiques temporelles les plus utilisées sont LTL (Linear Temporal
-Logic) et CTL (Computation Tree Logic).
+Les logiques temporelles les plus utilisées sont : \acl{LTL} (\ac{LTL})
+et \ac{CTL}.
 
-LTL et CTL différent principalement par leur vision de l'ensemble des
-traces d'exécution. LTL considère chaque trace indépendamment. Un
-système est valide par rapport à une propriété LTL si toutes ses traces
-d'exécution respectent la propriété. CTL considère l'ensemble des traces
+\ac{LTL} et \ac{CTL} différent principalement par leur vision de l'ensemble des
+traces d'exécution. \ac{LTL} considère chaque trace indépendamment. Un
+système est valide par rapport à une propriété \ac{LTL} si toutes ses traces
+d'exécution respectent la propriété. \ac{CTL} considère l'ensemble des traces
 comme un arbre et permet, à chaque noeud, de quantifier universellement
 ou existentiellement sur ses successeurs.
 
-Le pouvoir d'expressivité de LTL et CTL n'est ni équivalent, ni même comparable.
-En effet, LTL ne permet pas de quantifier existentiellement : une formule CTL
-utilisant une quantification existentielle n'a donc pas d'équivalent en LTL. La
-réciproque peut être présentée à l'aide de la propriété LTL \(F (p \land X p)\)
+Le pouvoir d'expressivité de \ac{LTL} et \ac{CTL} n'est ni équivalent, ni même comparable.
+En effet, \ac{LTL} ne permet pas de quantifier existentiellement : une formule \ac{CTL}
+utilisant une quantification existentielle n'a donc pas d'équivalent en \ac{LTL}. La
+réciproque peut être présentée à l'aide de la propriété \ac{LTL} \(F (p \land X p)\)
 (pour toutes les traces, on atteint un état vérifiant \(p\) et dont le
-successeur vérifie \(p\)) n'a pas d'équivalent dans CTL. La formule CTL \(AF (p
+successeur vérifie \(p\)) n'a pas d'équivalent dans \ac{CTL}. La formule \ac{CTL} \(AF (p
 \land AX p)\) (quelque soit le chemin emprunté, on atteint un état vérifiant
 \(p\) et dont tout les successeurs vérifient \(p\)) pourrait sembler un bon
 candidat, mais la Figure \ref{LTL_vs_CTL} présente un modèle vérifiant
@@ -465,7 +465,7 @@ candidat, mais la Figure \ref{LTL_vs_CTL} présente un modèle vérifiant
 \end{center}
 \end{figure}
 
-Par la suite, nous allons nous concentrer sur LTL, car cette logique est
+Par la suite, nous allons nous concentrer sur \ac{LTL}, car cette logique est
 plus utilisée dans le cadre du model-checking logiciel.
 
 \textbf{TODO} : Justifier. Voir articles utilisé dans la thèse de
@@ -475,10 +475,10 @@ J.Morse
 
 \textbf{TODO} : référence
 
-La définition de LTL ajoute deux opérateurs temporels à la logique
+La définition de \ac{LTL} ajoute deux opérateurs temporels à la logique
 classique, \(next\) (\(X\)) et \(until\) (\(U\)). La syntaxe d'une
-formule LTL est définie de la manière suivante, pour \(\phi\) et \(\psi\)
-deux formules LTL :
+formule \ac{LTL} est définie de la manière suivante, pour \(\phi\) et \(\psi\)
+deux formules \ac{LTL} :
 
 \[
 \phi, \psi := \text{true }| \text{ false } | \text{ p } |
@@ -490,7 +490,7 @@ ces propriétés des \emph{proposition atomiques}. On identifiera aussi
 une proposition atomique avec sa fonction d'évaluation, c'est à dire la
 fonction qui indique si un état du système vérifie la propriété ou non.
 
-Étant donnée une trace d'exécution infinie \(s = (s_0, s_1, ...)\), LTL a
+Étant donnée une trace d'exécution infinie \(s = (s_0, s_1, ...)\), \ac{LTL} a
 la sémantique suivante :
 
 \[
@@ -507,7 +507,7 @@ usuelle.
 
 Une trace d'exécution est un modèle d'une proposition atomique si sont premier
 état est un modèle de la proposition atomique.
-L'opérateur \(next\) signifie donc que la propriété LTL passé en
+L'opérateur \(next\) signifie donc que la propriété \ac{LTL} passé en
 paramètre doit être valide sur l'état suivant de la trace, tandis que
 l'opérateur \(until\) signifie que la première propriété passé en
 paramètre doit être valide sur les état rencontrés jusqu'à ce que un
@@ -527,21 +527,21 @@ G p & \equiv \lnot F (\lnot p)\\
 \]
 
 Enfin, on définit un système comme étant valide par rapport à une
-formule LTL si toutes les exécutions de ce système sont des modèles de
+formule \ac{LTL} si toutes les exécutions de ce système sont des modèles de
 la formule.
 
 \subsection{Automates de Büchi}
 
-Vérifier si un système respecte une proposition LTL demande d'être capable de
+Vérifier si un système respecte une proposition \ac{LTL} demande d'être capable de
 manipuler efficacement ces dernières. On utilise pour cela les automates de
-Büchi. Ils permettent de représenter une propriété LTL. Sous cette forme, elles
-sont plus simple à manipuler pour un model-checker. Toute formule LTL peut être
+Büchi. Ils permettent de représenter une propriété \ac{LTL}. Sous cette forme, elles
+sont plus simple à manipuler pour un model-checker. Toute formule \ac{LTL} peut être
 représentée par un automate de Büchi. Il existe des algorithme pour construire
 efficacement et automatiquement cet automate\citep{ltl2ba}.
 
-Afin de vérifier si un système respecte une propriété LTL, une méthode classique
+Afin de vérifier si un système respecte une propriété \ac{LTL}, une méthode classique
 est de construire un automate de Büchi qui représente la négation de cette
-formule LTL et d'explorer la composition entre cet automate et le système de
+formule \ac{LTL} et d'explorer la composition entre cet automate et le système de
 transitions modélisant le système. Un chemin acceptant représente alors une
 exécution du système qui viole la propriété.
 
@@ -578,7 +578,7 @@ infinité de fois par un état final de \(B\).
 L'automate \(B\) accepte un mot \(a\) si et seulement si
 il existe un calcul réussi dans \(B\) ayant le mot \(a\) pour étiquette.
 
-Pour représenter une formule LTL, on prend \(\Sigma = 2^P\), avec \(P\)
+Pour représenter une formule \ac{LTL}, on prend \(\Sigma = 2^P\), avec \(P\)
 l'ensemble des propositions atomiques de la formule. Une lettre de
 l'alphabet représente ainsi une configuration des propositions atomiques
 du système.
@@ -586,7 +586,7 @@ du système.
 \paragraph{Exemples}
 
 La figure \ref{fig:buchi_example} présente les automates de Büchi pour trois propriétés
-LTL simples : \(Gp\), \(F(p \lor q)\) et \(G(Fp)\). Seule la partie accessible des automates
+\ac{LTL} simples : \(Gp\), \(F(p \lor q)\) et \(G(Fp)\). Seule la partie accessible des automates
 est représentée, et les transitions ayant les même sources et destinations sont fusionnées,
 leur étiquette étant remplacées par une garde sous la forme d'une expression logique.
 
@@ -604,7 +604,7 @@ $G(F p)$.}
 \paragraph{Automate produit}
 
 Soient un automate de Büchi \(B = (S_B, \Sigma, I_B, \delta, F_B)\) représentant
-une propriété LTL \(\phi\) et un système de transitions \(T = (S_T, \rightarrow,
+une propriété \ac{LTL} \(\phi\) et un système de transitions \(T = (S_T, \rightarrow,
 I_B)\) modélisant un système.
 
 L'automate produit de \(B\) et \(T\) est définit comme étant \(P = (S_P, \Sigma,
@@ -634,7 +634,7 @@ Un mot est accepté par l'automate produit si et seulement si il représente
 une exécution valide dans le modèle du système et qu'il appartient au langage
 de l'automate de Büchi.
 L'automate produit \(P\) reconnaît donc exactement le langage des exécutions du
-modèle \(T\) qui vérifient la propriété LTL représentée par l'automate de
+modèle \(T\) qui vérifient la propriété \ac{LTL} représentée par l'automate de
 Büchi \(B\).
 
 \paragraph{Vérifier une propriété LTL}
@@ -660,7 +660,7 @@ allant jusqu'au cycle et d'une infinité de répétition de l'étiquette du cycl
 Ce correspond à une exécution du système qui viole la propriété \(\phi\), et
 pourra être servir de contre-exemple à l'utilisateur.
 
-L'encodage de propriétés LTL à l'aide des automates de Büchi permet ainsi de
+L'encodage de propriétés \ac{LTL} à l'aide des automates de Büchi permet ainsi de
 vérifier des propriétés complexes sur les modèles. Cependant, la taille d'un
 automate de Büchi augmente exponentiellement avec la profondeur de la formule
 qu'il représente. Dans le cas de formules de grande taille, il peut donc devenir
@@ -775,7 +775,7 @@ gagner en performances.
 
 La principale force du model-checking explicite est sa précision. Explorer
 l'ensemble des états de manière explicite permet de vérifier la plupart des
-propriétés, spécifiée à l'aide d'assertions ou par une formule LTL. Cependant,
+propriétés, spécifiée à l'aide d'assertions ou par une formule \ac{LTL}. Cependant,
 il est extrêmement dépendant des techniques de réduction et a plus de
 difficultés face à des programmes de grande taille.
 
@@ -783,7 +783,7 @@ difficultés face à des programmes de grande taille.
 
 SPIN\cite{SPIN} est l'un des premiers projets de model-checking
 explicite. Il permet de vérifier des propriétés de la logique temporelle
-LTL sur des modèles exprimés en \bsc{PROMELA}. SPIN supporte nativement
+\ac{LTL} sur des modèles exprimés en \bsc{PROMELA}. SPIN supporte nativement
 les modèles concurrents et implémente de nombreuse méthodes de réduction
 (ordre partiel, bit-state hashing\dots). SPIN ne supporte pas le langage
 C nativement, cependant des travaux ont été menés afin de traduire C
@@ -806,7 +806,7 @@ Le programme est ensuite exécuté à plusieurs reprises afin d'explorer les
 différents entrelacements.
 
 Divine\cite{Divine_3_0} est un model-checker capable de vérifier des
-propriétés LTL et des propriétés d'accessibilités. Il se base sur un
+propriétés \ac{LTL} et des propriétés d'accessibilités. Il se base sur un
 langage interne, DVE. Il est capable de traiter du bytecode LLVM en le
 traduisant vers DVE, ce qui lui permet de supporter des langages comme C
 et C++. La particularité de Divine est de mettre en place une analyse
@@ -820,7 +820,7 @@ concurrente pour améliorer ses performances, alors que \texttt{inspect} et
 Pancam se basent sur du runtime model-checking. SPIN, \texttt{inspect},
 Pancam et Divine sont tous vérifier des violations d'assertions et des
 propriétés built-in, comme les deadlocks et les data-races, cependant, seul
-Divine et SPIN sont capable de vérifier des propriétés LTL. \texttt{inspect}
+Divine et SPIN sont capable de vérifier des propriétés \ac{LTL}. \texttt{inspect}
 nécessite un système fermé, et n'est pas capable de gérer le non-déterminisme.
 Il est donc dépendant d'une suite de tests pour fixer les paramètres du
 programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
@@ -845,7 +845,7 @@ utilisées :
 
 \begin{itemize}
 \item
-  Diagrammes de Décision Booléens, (BDD, Boolean Decision Diagramm) ;
+  \ac{BDD} (Diagrammes de Décision Booléens) ;
 \item
   formules de la logique propositionnelle ;
 \item
@@ -863,10 +863,10 @@ une représentation canonique de taille raisonnable.
 
 \subsubsection{Représentation symbolique par des BDD}
 
-Nous allons utiliser l'exemple des BDD pour illustrer les forces et les
+Nous allons utiliser l'exemple des \ac{BDD} pour illustrer les forces et les
 défis rencontré par les représentations symboliques.
 
-Un BDD permet de représenter une fonction booléenne.
+Un \ac{BDD} permet de représenter une fonction booléenne.
 On va donc représenter un ensemble d'états par une fonction prenant
 en paramètre un état (encodé par des variables booléennes) et indiquant si
 il est dans l'ensemble représenté par la fonction où non.
@@ -896,9 +896,9 @@ vrai pour les éléments de l'ensemble et à faux sinon.
   \end{cases*}
 \end{align}
 
-Nous allons ensuite construire un BDD pour représenter cette fonction.
+Nous allons ensuite construire un \ac{BDD} pour représenter cette fonction.
 
-La construction d'un BDD repose sur la propriété suivante :
+La construction d'un \ac{BDD} repose sur la propriété suivante :
 
 \paragraph{Décomposition des fonctions booléennes}
 Soit \(k > 0\) et \(f: \mathbf{B}^k \to \mathbf{B}\) une
@@ -949,9 +949,9 @@ Pour notre exemple, nous obtenons l'arbre de la Figure \ref{fig:BDD_tree}.
 La représentation par un arbre de décision contient \(2^{n+1} - 1\) noeuds pour
 une fonction booléenne à \(n\) variables, on ne peut donc pas encore parler de
 représentation efficace. Cependant, cet arbre de décision contient aussi
-beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un BDD en
+beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un \ac{BDD} en
 fusionnant tout les sous-arbres identiques et en supprimant les états n'ayant
-qu'un unique successeur. Dans notre exemple, on obtient alors le BDD de la
+qu'un unique successeur. Dans notre exemple, on obtient alors le \ac{BDD} de la
 Figure \ref{fig:BDD_graph}.
 
 \begin{figure}[h]
@@ -962,27 +962,27 @@ Figure \ref{fig:BDD_graph}.
 \label{fig:BDD_graph}
 \end{figure}
 
-Cependant, la taille du BDD est très dépendante de l'ordre choisi pour
+Cependant, la taille du \ac{BDD} est très dépendante de l'ordre choisi pour
 les variables\cite{OBDD}. Dans cet exemple, l'ordre n'a pas une grande importance
 mais lorsque le nombre de variables et la complexité de la fonction
-augmentent, la taille du BDD peut exploser\footnote{Pour s'en
-  convaincre, on peut calculer les BDD de la fonction
+augmentent, la taille du \ac{BDD} peut exploser\footnote{Pour s'en
+  convaincre, on peut calculer les \ac{BDD} de la fonction
   \(x, y, z, t \mapsto x.z + y.t\), avec les ordres \(x<z<y<t\), puis
   \(x<y<z<t\).}.
 
-A partir de la représentation sous forme de BDD, on peut évaluer la
+A partir de la représentation sous forme de \ac{BDD}, on peut évaluer la
 fonction \(f\) efficacement, mais aussi réaliser des opérations logiques
-de manière efficace, en construisant le BDD résultant à partir des
+de manière efficace, en construisant le \ac{BDD} résultant à partir des
 feuilles et en réduisant au fur et à mesure. \cite{OBDD} explique cet
 algorithme plus en détail . Dans le cas (simple) de la
-négation, il suffit par exemple d'échanger les deux feuilles du BDD.
+négation, il suffit par exemple d'échanger les deux feuilles du \ac{BDD}.
 
 \paragraph{Vérification à l'aide des BDD}
 
 On peut définir l'ensemble des états vérifiant une propriété \(\Phi\)
 comme le point fixe d'une fonction (dépendant de \(\Phi\)). On calcule
 alors ce point fixe de manière itérative, en utilisant les opérations définies
-sur les BDD. Si l'état initial du système fait partie des états vérifiant la
+sur les \ac{BDD}. Si l'état initial du système fait partie des états vérifiant la
 propriété, le système est valide.
 
 Par exemple, dans le cas d'une assertion, l'ensemble des états valides
@@ -992,7 +992,7 @@ l'assertion. On peut le définir comme étant le point fixe de la fonction
 d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses prédécesseurs
 dans le modèle de système.
 
-Tout comme les BDD, les autre représentations symboliques sont fortement
+Tout comme les \ac{BDD}, les autre représentations symboliques sont fortement
 dépendantes d'un ordre des variables afin de conserver une taille
 raisonnable. Les formules de la logique propositionnelle sont très
 utilisées actuellement en raison des progrès des solveurs SAT.
@@ -1018,13 +1018,13 @@ problèmes de modélisation d'un langage et les problèmes de vérification. CIV
 adopte une approche conservatrice : il peut signaler des faux-positifs, c'est à
 dire indiquer une erreur dans un modèle correct.
 
-SymDivine\cite{SymDivine} permet la vérification de propriétés LTL sur du
+SymDivine\cite{SymDivine} permet la vérification de propriétés \ac{LTL} sur du
 bytecode LLVM concurrent (et donc, par extension, pour des programmes en C).
 Tout comme CIVL, SymDivine utilise une combinaison de model-checking explicite
 et symbolique. Le non-déterminisme au niveau des données est géré de manière
 symbolique tandis que celui au niveau du contrôle traité explicitement : tous
 les entrelacements sont explorés individuellement. SymDivine peut utiliser les
-formules SMT ou des BDD pour représenter les ensembles abstraits, les premières
+formules SMT ou des \ac{BDD} pour représenter les ensembles abstraits, les premières
 étant plus efficaces dans la plupart de leurs expérimentations.
 
 SymDivine et CIVL utilisent des méthodes de vérification semblables, mais
@@ -1113,11 +1113,11 @@ booléens.
 Il reste cependant à déterminer automatiquement les prédicats utilisés. La
 méthode la plus connue pour construire choisir les prédicats et construire une
 abstraction dans le cas du model-checking logiciel est la méthode
-Counter-Exemple Guided Abstraction Raffinement (CEGAR)\cite{dsilva_survey_2008}.
+\ac{CEGAR}\cite{dsilva_survey_2008}.
 
 \subsubsection{Counter-Example Guided Abstraction Raffinement (CEGAR)}
 
-La méthode CEGAR permet de construire une abstraction en itérant quatre phases :
+La méthode \ac{CEGAR} permet de construire une abstraction en itérant quatre phases :
 Abstraction, Vérification, Simulation et Raffinement. Une première abstraction
 (peu précise) du programme est réalisée. Si la vérification fournit un
 contre-exemple, celui-ci est simulé dans le système initial afin de vérifier
@@ -1201,7 +1201,7 @@ if ({x = 0})
 \end{minipage}
 
 La phase de raffinement est critique pour les performances de la méthode
-CEGAR, puisque un améliorer le choix des nouveaux prédicats peut éviter des
+\ac{CEGAR}, puisque un améliorer le choix des nouveaux prédicats peut éviter des
 itérations supplémentaires de l'algorithme. Des techniques d'analyse statique
 sont souvent utilisées pour trouver les prédicats les plus forts éliminant un
 chemin impossible du modèle. On peut en particulier calculer les plus faibles
@@ -1210,7 +1210,7 @@ qui implique que ce chemin va être emprunté.
 
 \subsubsection{Lazy Abstraction with Interpolant (IMPACT)}
 
-Les méthodes d'abstraction par prédicat, dont l'algorithme CEGAR, se basent sur
+Les méthodes d'abstraction par prédicat, dont l'algorithme \ac{CEGAR}, se basent sur
 le calcul d'une ou plusieurs abstractions du modèle. Calculer cette abstraction,
 et en particulier les successeurs de chaque état abstrait est une tache
 coûteuse.
@@ -1237,7 +1237,7 @@ déterminer si une trace menant à une erreur existe dans le modèle abstrait.
 Cependant, le problème d'accessibilité dans un programme booléen concurrent
 n'est pas décidable. C'est une grande difficulté pour les méthodes
 d'abstraction par prédicats, qui reposent sur la terminaison et la rapidité de
-l'analyse du programme booléen. C'est plus vrai encore pour l'algorithme CEGAR,
+l'analyse du programme booléen. C'est plus vrai encore pour l'algorithme \ac{CEGAR},
 qui effectue plusieurs vérifications successives de ce programme.
 
 Deux alternatives existent pour intégrer la concurrence dans les techniques
@@ -1252,7 +1252,7 @@ d'abstraction par prédicat :
   Cette approximation permet d'assurer la terminaison du programme
   booléen, mais elle peut générer des faux positifs. Il reste possible
   de détecter ces faux positifs dans la partie \emph{Simulation} de
-  l'algorithme CEGAR\cite{predicate_abstraction_over_approximation}.
+  l'algorithme \ac{CEGAR}\cite{predicate_abstraction_over_approximation}.
   Une autre solution est de limiter la profondeur d'exploration et le
   nombre de changements de contexte. Cependant, cette approche rend
   nécessairement la vérification incomplète.
@@ -1273,7 +1273,7 @@ IMPACT : dérouler naïvement la relation de transition d'un modèle concurrent,
 comme le fait une extension directe de l'algorithme IMPACT, revient à
 énumérer un nombre exponentiel d'entrelacements.
 
-La plupart des model-checkers utilisant la méthode CEGAR basent leurs procédures
+La plupart des model-checkers utilisant la méthode \ac{CEGAR} basent leurs procédures
 de décision sur des prouveurs limités à l'arithmétique linéaire sur des nombres
 réels uniquement. Ils ne peuvent alors pas raisonner sur des tableaux de bits.
 Satabs\cite{Satabs}\cite{clarkesatabs} implémente ses procédures de décision à
@@ -1285,7 +1285,7 @@ erreurs arithmétiques, accès hors des bornes d'un tableau), en plus de
 propriétés spécifiées par des assertions.
 
 Threader\cite{Threader}\cite{Threader_theory} se base aussi sur la méthode
-CEGAR. Cependant, il utilise des techniques basées sur des raisonnements de type
+\ac{CEGAR}. Cependant, il utilise des techniques basées sur des raisonnements de type
 \emph{Rely-guarantee} afin de rechercher une preuve modulaire du programme.
 Threader gagne ainsi en performance lorsqu'une preuve modulaire existe, mais
 il peut être plus lent qu'une méthode classique dans les autres cas.
@@ -1293,7 +1293,7 @@ il peut être plus lent qu'une méthode classique dans les autres cas.
 CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
 BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
 (\emph{Configurables program analysis}). Un CPA définit un domaine abstrait
-(BDDs, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
+(\ac{BDDs}, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
 de mener une analyse d'accessibilité sur une combinaison arbitraire de CPAs. La
 concurrence est prise en charge à l'aide d'un CPA qui définit une exploration
 explicite des entrelacements\cite{CPAChecker_multithread}. De manière similaire
@@ -1306,7 +1306,7 @@ Les techniques d'abstraction par prédicat son principalement tournées vers les
 propriétés d'accessibilité spécifiées par des assertions. Parmi les outils
 supportant le C multithread, tous supportent les assertions. Cependant, seul
 Satabs est orienté vers la vérification de propriétés built-in et aucun ne
-permet de vérifier des propriétés LTL.
+permet de vérifier des propriétés \ac{LTL}.
 
 De manière générale, les techniques d'abstraction par prédicat sont très
 efficaces dans le cas du model-checking de logiciels séquentiels, car elles
@@ -1315,9 +1315,9 @@ plus de difficultés à traiter des structures de données complexes (tableaux e
 allocations dans le tas). La vérification de programmes concurrents constitue
 aussi une difficulté majeure.
 
-\subsection{Bounded model-checking}
+\subsection{Model-checking borné}
 
-Le model-checking borné (\emph{Bounded model-checking}, BMC) est l'une des
+Le model-checking borné, ou \ac{BMC}) est l'une des
 techniques les plus utilisées dans l'industrie des semi-conducteurs. Elle a été
 adapté dans le cas du model-checking logiciel. Le model-checking borné se base
 sur les avancées des solveurs SAT et SMT pour effectuer les tâches de
@@ -1337,8 +1337,8 @@ satisfait la formule représente le contre-exemple.
 
 \paragraph{Forme SSA}
 Afin d'encoder les exécutions d'un programme dans une
-formule, on met tout d'abord ce programme dans la forme SSA (\emph{Single Static
-Assignment}). Elle consiste à transformer le programme de telle sorte que chaque
+formule, on met tout d'abord ce programme dans la forme \ac{SSA}.
+Elle consiste à transformer le programme de telle sorte que chaque
 variable ne soit assigné qu'une seule fois. Pour ce faire, les variables sont
 dupliquées, une nouvelle copie étant utilisée à chaque assignation. Les
 structures de contrôle sont remplacées par des expressions conditionnelles une
@@ -1347,7 +1347,7 @@ fois que les différents branchements se rejoignent. Les fonctions sont inlinée
 boucles sont déroulées un nombre de fois limité par la profondeur d'exploration,
 en une cascade de blocs \texttt{if}.
 
-Le passage en forme SSA est illustré par l'exemple ci-dessous.
+Le passage en forme \ac{SSA} est illustré par l'exemple ci-dessous.
 
 \noindent\begin{minipage}{.45\textwidth}
 \begin{lstlisting}[language=C, caption=Code initial, frame=tlrb]
@@ -1371,7 +1371,7 @@ int c_2 = a_1 > 0 ? c_0 : c_1;
 \end{minipage}
 
 \paragraph{Dépliage de la relation de transition}
-Dans le cadre du BMC, le programme est vu comme une relation de transition
+Dans le cadre du \ac{BMC}, le programme est vu comme une relation de transition
 \(R\). Étant donnés deux états \(s\) et \(q\) du programme, \(R(s, q)\) s'évalue
 à vrai si et seulement si il existe une transition dans le programme permettant
 de passer de l'état \(s\) à l'état \(q\). On peut alors établir la formule
@@ -1387,8 +1387,8 @@ dans le programme : \(I(s_0)\) impose que l'exécution commence dans un état
 initial, et \(\bigwedge_{i\in \{1..k\}} R(s_{i-1}, s_i)\) impose que les
 transitions entre deux états successifs de la trace soient valides.
 
-Partant de la forme SSA, la relation de transition se déplie facilement
-en construisant la conjonction des instructions. Les variables de la forme SSA
+Partant de la forme \ac{SSA}, la relation de transition se déplie facilement
+en construisant la conjonction des instructions. Les variables de la forme \ac{SSA}
 peuvent directement être considérée comme des variables logiques. La principale
 difficulté consiste à établir une théorie pour représenter les
 instructions, en particulier les utilisations dynamiques de la mémoire.
@@ -1417,7 +1417,7 @@ Un modèle de cette formule est représente donc les \(k\) premiers pas d'une
 exécution valide, et qui ne respecte pas la propriété \(\Phi\). Il s'agit donc
 d'une exécution contenant une erreur.
 
-Le BMC explore un système sur une profondeur bornée, il est donc nécessairement
+Le \ac{BMC} explore un système sur une profondeur bornée, il est donc nécessairement
 incomplet. Il permet de trouver des erreurs, ou de prouver des propriétés
 d'accessibilité, mais il ne peut prouver des propriétés de sûreté ou trouver des
 erreurs à des propriétés de vivacité : une erreur ou l'évènement attendu
@@ -1425,21 +1425,21 @@ pourraient être présent à une profondeur plus importante que la profondeur
 maximale d'exploration.
 
 Lorsque le modèle contient un nombre d'états finis, il est possible de rendre le
-BMC complet : il suffit de fixer une profondeur maximale d'exploration
+\ac{BMC} complet : il suffit de fixer une profondeur maximale d'exploration
 suffisamment grande pour que toutes les traces du programme n'affiche plus de
 nouveaux comportement une fois cette profondeur atteinte. avant la que la
 profondeur maximale soit atteinte. Cette profondeur est appelée le seuil de
 complétion (\emph{completness threshold}). Calculer la valeur exacte du seuil de
 complétion est un problème difficile. On utilise donc des sur-approximations.
 Cependant, l'exploration d'un système jusqu'au seuil de complétion est souvent
-trop coûteuse en temps et en mémoire pour être réalisable. Le BMC est donc
+trop coûteuse en temps et en mémoire pour être réalisable. Le \ac{BMC} est donc
 souvent utilisé pour détecter des erreurs dans un système plutôt que pour
 prouver leur absence, en effectuant plusieurs exploration avec une profondeur
 maximale croissante.
 
 \paragraph{Support du multi-threading}
 
-Plusieurs approches ont été développées pour prendre étendre le BMC à des
+Plusieurs approches ont été développées pour prendre étendre le \ac{BMC} à des
 logiciels multi-thread\cite{ESBMC_multithread}.
 
 Deux techniques sont principalement utilisées.
@@ -1691,7 +1691,7 @@ La figure \ref{tab:prop_type_table}, en annexe, récapitule les types de
 propriétés qu'il est possible de vérifier avec chaque outil (selon les articles
 que nous avons passés en revue). On remarque en particulier que si la plupart
 des outils supportent une spécification à l'aide d'assertions, le support pour
-LTL est bien plus réduit.
+\ac{LTL} est bien plus réduit.
 
 La gestion de la concurrence reste encore un problème ouvert.
 Elle est actuellement prise en charge par différents mécanismes : les
