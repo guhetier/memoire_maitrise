@@ -2,6 +2,172 @@
 
 \section{Présentation du problème}
 
+À travers notre revue de littérature, nous avons dégagés deux principales
+limitations concernant les méthodes de spécification utilisée dans
+model-checking de programmes concurrents.
+
+La première limitation concerne les assertions.
+Les assertions sont le mécanisme de spécification le plus utilisé dans le cadre
+du model-checking logiciel. Cependant, les propriétés que l'on peut spécifier
+par des assertions sont limitées à un sous-ensemble des propriétés de sûretés
+--- une certaine condition doit être vrai à une certaine position du code.
+
+L'entrelacement entre les instruction d'un programme concurrent est généralement
+complexe. On désire donc souvent vérifier des propriétés portant sur l'ordre
+d'occurrence de certains évènements du programme.
+Les assertions ne sont pas adaptées pour spécifier ce type de propriétés.
+
+\paragraph{Exemple}
+L'absence de data-races dans un programme est une propriété généralement
+désirable. Elle fait partie de l'ensemble plus vaste des propriétés d'exclusion
+mutuelle. Les listings \ref{lst:data-race_t1} et \ref{lst:data-race_t2}
+présentent un cas très simple de data-race.
+
+\noindent\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
+    label=lst:data-race_t1]
+int p = 0;
+void* thread1(void* d) {
+  ...
+  p += 1;
+  ...
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2,
+    label=lst:data-race_t2]
+
+void* thread2(void* d) {
+  ...
+  p += 1;
+  ...
+}
+\end{lstlisting}
+\end{minipage}
+
+Si les instructions \texttt{p += 1} des deux threads ont lieux simultanément, la
+valeur finale de \texttt{p} est indéterminée.
+
+Spécifier l'absence de data-race dans ce programme à l'aide d'assertion n'est
+pas immédiat : les assertions ne permettent pas d'exprimer la notion de
+simultanéité. Il est nécessaire d'introduire des variables supplémentaires, et
+donc de modifier le système. La spécification la plus simple que nous avons pu
+produire est présentée dans les listings \ref{lst:data-race_assert1} et
+\ref{lst:data-race_assert2}\footnote{On remarque que cette spécification permet
+  d'atteindre une race condition sans violer les assertions. Ce n'est pas un
+problème ici car si il est possible d'atteindre une race-condition, alors au
+moins un entrelacement viole les assertions, un model-checker signalera donc
+correctement l'erreur.}.
+
+\noindent\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
+    label=lst:data-race_assert1]
+int p = 0;
+int flag = 0;
+void* thread1(void* d) {
+  ...
+  assert(!flag);
+  flag = 1;
+  p += 1;
+  flag = 0;
+  ...
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2,
+    label=lst:data-race_assert2]
+
+
+void* thread2(void* d) {
+  ...
+  assert(!flag);
+  flag = 1;
+  p += 1;
+  flag = 0;
+  ...
+}
+\end{lstlisting}
+\end{minipage}
+
+Cet exemple souligne le fait que, dans un programme concurrent, on
+s'intéresse fréquemment au lien entre plusieurs \emph{assertions} plutôt qu'au
+déclenchement d'une assertion simple. On aimerait pouvoir formuler des
+propriétés telles que ``si deux assertions sont brisées en même temps, une
+erreur est présente'' ou ``si une assertion est brisée, puis une seconde
+assertion est brisée, une erreur est présente''.
+
+Notre seconde limitation concerne les spécification utilisant \ac{LTL}. \ac{LTL}
+peut sembler une solution au problème rencontré par les assertions. En effet,
+les logiques temporelles permettent d'exprimer facilement des relations d'ordre
+entre différents évènements.
+Cependant, les model-checkers logiciels supportant LTL ne restreignent
+généralement les propositions atomiques à des fonction booléenne portant sur la
+valeur des variables globales du programme. Il n'est en particulier pas possible
+d'utiliser une position du programme dans la spécification, ce qui limite le
+type de propriété qu'il est possible d'exprimer. Par exemple, une assertion n'a
+pas d'équivalent dans cette restriction de LTL.
+
+\paragraph{Exemple}
+Reprenons l'exemple précédent. La propriété d'exclusion
+mutuelle que l'on veut spécifier peut s'écrire \(G \lnot (p_1 \land p_2)\) où
+\(p_1\) (respectivement \(p_2\)) est la proposition atomique indiquant si le
+thread 1 (respectivement le thread 2) est dans sa zone critique. Mais on ne
+exprimer \(p_1\) et \(p_2\) directement, sans mentionner des positions du
+programme. Encore une fois, il est nécessaire d'introduire des variables
+supplémentaires et de modifier le système. Les listings \ref{lst:data-race_ltl1}
+et \ref{lst:data-race2} présentent une solution, associée avec la spécification
+\(G \lnot (flag1 == 1 \land flag_2 == 1)\).
+
+\noindent\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
+    label=lst:data-race_ltl1]
+int p = 0;
+int flag1 = 0;
+void* thread1(void* d) {
+  ...
+  assert(!flag);
+  flag1 = 1;
+  p += 1;
+  flag1 = 0;
+  ...
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2,
+    label=lst:data-race_ltl2]
+
+int flag2 = 0;
+void* thread2(void* d) {
+  ...
+  assert(!flag);
+  flag2 = 1;
+  p += 1;
+  flag2 = 0;
+  ...
+}
+\end{lstlisting}
+\end{minipage}
+
+
+Nous sommes donc face à une situation où les deux principaux mécanismes de
+spécification utilisé par les techniques de model-checking sont limités. En
+pratique, le cas des data-races est généralement implémenté en temps que
+propriété built-in, mais d'autres propriétés (d'exclusion mutuelles ou autre)
+sont difficiles à exprimer en raison de ces limitations.
+
+Dans cette partie, nous allons présenter un nouveau mécanisme de spécification
+permettant de remédier à ce problème. Ce mécanisme de spécification se base sur
+une restriction de \ac{LTL} plus souple que celle utilisée classiquement par les
+model-checker, afin de permettre l'utilisation de variables locales et de
+positions dans les propositions atomiques. Cela permet à ce formalisme de
+spécification d'englober les assertions et les proposition LTL classiquement
+utilisées, tout en levant les limitations mentionnées.
+
+---------------------------------------
+
 Considérons le problème suivant : un système contient deux batteries. Les
 batteries se vident et chacune est changée lorsqu'elle est épuisée. Tant qu'une
 des batteries est présente, le système fonctionne. Cependant, si les deux
