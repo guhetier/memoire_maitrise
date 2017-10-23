@@ -180,26 +180,29 @@ aux autres travaux sur le sujet.
 
 \section{Difficultés du problème}
 
-Nous allons tout d'abord présenter les différents problèmes à résoudre
-dans le but d'étendre la spécification.
+Différents problèmes doivent être surmontés afin de permettre l'utilisation de
+variables locales et de positions dans une spécification.
+Limiter \ac{LTL} à des propositions atomiques portant sur les variables globales
+a permis d'éviter ces problèmes, qui sont spécifiquement liés aux variables
+locales et aux positions.
 
 \subsection{Désigner les variables}
 
-Afin d'utiliser une variable dans une spécification, il est nécessaire
-de la désigner de manière unique.
-
+Pour utiliser une variable dans la spécification d'un programme, il est
+nécessaire de la désigner de manière unique.
 Le language C n'autorise qu'une seule variable globale portant un nom
 donné dans un fichier\footnote{Les mots clefs \texttt{extern} et
 \texttt{static} permettent de déclarer plusieurs variables globales
-portant le même nom dans un programme}. Ce nom est donc généralement
-suffisant pour identifier uniquement une variable globale. Ce n'est pas
+portant le même nom dans un programme}. Une variable globale peut donc être
+identifiée de manière unique par son nom dans la plupart des cas (en ajoutant le
+nom du fichier où elle est déclarée si nécessaire). Ce n'est pas
 aussi simple lorsqu'on considère des variables locales : deux variables
 locales portant le même nom peuvent cohabiter sans faire référence au
 même emplacement mémoire.
 
 Deux variables locales distinctes (ne faisant pas référence à la même
-adresse mémoire) mais ayant le même nom peuvent survenir dans les cas
-suivants :
+adresse mémoire) mais ayant le même nom peuvent survenir diverses situations,
+parmi lesquelles :
 
 \begin{itemize}
 \item
@@ -240,54 +243,57 @@ On peut répartir ces cas en deux catégories :
   de même pour les variables locales associées.
 \end{itemize}
 
-\subsection{Définir globalement une proposition atomique dépendant
-d'une variable locale}
+\subsection{Prolongation des propositions atomiques}
 
-Dans une formule LTL, une proposition atomique est intrinsèquement
-globale : pour tout état \(p\) du programme, il peut être nécessaire de
-déterminer si \(p\) est un modèle de la proposition atomique. Cela est
-généralement déterminé par la valeur prise par une expression booléenne
-dans l'état \(p\). L'expression est évaluée en utilisant la valeur des
-variables dans l'état \(p\). Cependant, si cette expression dépend de
-variables locales, elle ne peut être évaluée que si toutes ces variables
-locales existent dans l'état \(p\). Une proposition atomique n'est
-correctement définie que dans le domaine où sont définies les variables
-locales dont elle dépend.
+Dans une formule LTL, une proposition atomique est intrinsèquement globale :
+pour tout état \(s\) du programme, il peut être nécessaire de déterminer si
+\(s\) est un modèle de la proposition atomique. Cela est généralement déterminé
+selon la valeur prise par une expression booléenne dans l'état \(s\).
+L'expression est évaluée en utilisant la valeur des variables dans l'état \(s\).
 
-Il est donc nécessaire de prolonger la définition des propositions
-atomiques à l'ensemble des états.
+Cependant, si cette expression dépend de variables locales, elle ne peut être
+évaluée que si toutes ces variables locales existent dans l'état \(s\). Une
+proposition atomique n'est donc correctement définie que dans le domaine où sont
+définies les variables locales dont elle dépend.
+
+Pour obtenir une définition correcte d'une proposition atomique dépendant de
+variables locales, il est donc nécessaire de prolonger sa définition à
+l'ensemble des états.
 
 \subsection{Exprimer une position dans le programme}
 
-Un des objectifs de notre spécification est de permettre de manipuler
-des positions dans le programme. Il est donc nécessaire de proposer un
-système permettant de les désigner. La difficulté est de proposer un
-moyen robuste aux modifications du code et suffisamment précis.
+Tout comme pour les variables, il est nécessaire de désigner de manière unique
+une position du code pour l'utiliser dans une spécification.
 
-TODO : Parler du fait que on s'arrête à la précision du statement. En
-parler aussi pour les entrelacement
+Il faut donc concevoir un moyen de désigner une position dans le code qui soit
+à la fois pratique pour l'utilisateur, robuste par rapport aux modifications du
+code et suffisamment précis.
+
+Il est aussi nécessaire de tenir compte de la précision recherchée. Sur ce
+point, nous nous limiterons à désigner une instruction. En effet, si l'on veut
+désigner une expression au sein d'une instruction, il est toujours possible de
+la transformer en une instruction indépendante.
 
 Plusieurs options viennent rapidement à l'esprit :
 
 \begin{itemize}
 \item
-  indiquer la position à l'aide de la ligne et du fichier ;
+  indiquer la position à l'aide du numéro de la ligne et du nom du fichier ;
 \item
   placer des marqueurs dans le code ;
 \end{itemize}
 
-La première méthode souffre d'un inconvénient majeur : la spécification
-n'est plus valide dès qu'une ligne est ajoutée ou enlevée dans le code.
-Nous avons donc retenu la seconde option. Elle impose cependant de
-rajouter une instrumentation dans le code, ce que nous désirions
-minimiser.
+La première méthode souffre d'un inconvénient majeur : la spécification doit
+être corrigée dès qu'une ligne est ajoutée ou enlevée dans le code. Nous avons
+donc retenu la seconde option. Elle impose cependant de rajouter une
+instrumentation dans le code, ce que nous désirons minimiser.
 
 \subsection{Utilisation des positions dans la formule}
 
-La manière dont les positions du code peuvent être utilisées dans la
-formule et dans les propositions atomiques en particulier doit aussi
-être définie. Le programme a atteint une position dans le code lorsque
-un des pointeurs d'exécution pointe sur la position désignée.
+Une fois la manière de désigner une position établie, il faut déterminer comment
+l'utiliser dans la spécification. Nous dirons par la suite qu'un programme a
+atteint une position dans le code lorsque un des pointeurs d'instruction du
+programme pointe sur l'instruction désignée par la position.
 
 Il est cependant nécessaire de définir comment et dans quelle mesure une
 position peut intervenir dans une proposition atomique. Nous avons
@@ -296,7 +302,7 @@ considéré les options suivantes :
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi})}
 \item
-  une proposition atomique désigne une location ou une condition sur les
+  une proposition atomique désigne une position ou une condition sur les
   variables du programme, de manière exclusive. On fait le lien entre les
   positions et les valeurs des variables du programme à l'aide des opérateurs de
   la logique des prédicats. Si \texttt{pos1} et \texttt{pos2} désignent
@@ -317,9 +323,9 @@ considéré les options suivantes :
   \(G_{[pos1, pos2]} \lnot \{ x \neq 0 \}\).
 \end{enumerate}
 
-Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande
-de modifier le comportement standard des opérateurs LTL et nous avons
-préféré limiter nos modifications aux propositions atomiques seulement.
+Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande de
+modifier le comportement standard des opérateurs LTL et nous avons préféré
+limiter nos modifications aux propositions atomiques seulement.
 
 \section{Syntaxe et sémantique de la spécification}
 
