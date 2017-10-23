@@ -334,7 +334,7 @@ limiter nos modifications aux propositions atomiques seulement.
 Nous allons tout d'abord présenter la grammaire de la spécification que
 nous avons finalement retenue, avant de justifier nos choix.
 
-Notre spécification est composés de partie. D'une part, une formule LTL
+Notre spécification est composés de deux parties. D'une part, une formule LTL
 classique. D'autre part, la définition des propositions atomiques utilisées
 par la formule LTL.
 
@@ -346,10 +346,7 @@ La définition d'une proposition atomique est composée des éléments suivants 
 \item
   \textbf{une zone de validité} : elle délimite un bloc d'instructions dans
   le code (au sens du langage C). Une zone de validité est délimitée par deux
-  labels (placés dans le code par l'ingénieur réalisant la spécification). La
-  proposition atomique est dans sa zone de validité à partir de l'instant où un
-  pointeur d'instruction du programme pointe sur l'instruction portant le label
-  de début et jusqu'à ce qu'il pointe sur l'instruction portant le label de fin.
+  labels (placés dans le code par l'ingénieur réalisant la spécification).
   L'entrée et la sortie d'une zone de validité doivent être dans le même
   contexte et tout pointeur d'exécution atteignant le label de début doit
   atteindre le label de fin avant de sortir du contexte (i.e un branchement ne
@@ -380,18 +377,17 @@ Le tableau \ref{tab:spe_gram} résume la grammaire de notre spécification.
 \label{tab:spe_gram}
 \begin{tabular}[]{@{}rcl@{}}
 \hline
-atomic-proposition  & := & proposition-id \(\times\) evaluation-function \(\times\) parameters\\
-                    &    & \(\times\) default \(\times\) validity-area\\
-proposition-id      & := & \emph{name of the proposition}\\
-evaluation-function & := & \emph{C pure boolean function}\\
-parameters          & := & parameter list\\
-parameter           & := & global-parameter\\
-                    & \textbar{} & local-parameter\\
-global-parameter    & := & \emph{variable name}\\
-local-parameter     & := & \emph{function name} \(\times\) \emph{variable name}\\
-default             & := & \emph{boolean}\\
-validity-area       & := & label \(\times\) label\\
-label               & := & \emph{name of a C label}\\
+<atomic-proposition>  & ::= & <proposition-id> <evaluation-function> <parameters>\\
+                      &     &  <default> <validity-area>\\
+<proposition-id>      & ::= & \emph{name of the proposition}\\
+<evaluation-function> & ::= & \emph{C pure boolean function}\\
+<parameters>          & ::= & <parameter> <parameters> \textbar{} \emph{nil}\\
+<parameter>           & ::= & <global-parameter> \textbar{} <local-parameter>\\
+<global-parameter>    & ::= & \emph{variable name}\\
+<local-parameter>     & ::= & \emph{function name} :: \emph{variable name}\\
+<default>             & ::= & \emph{boolean}\\
+<validity-area>       & ::= & <label> <label>\\
+<label>               & ::= & \emph{name of a C label}\\
 \hline
 \end{tabular}
 \end{table}
@@ -430,7 +426,7 @@ On évalue alors la proposition atomique en un état \(p\) par :
   de la proposition atomiques, dans l'ordre.
 \end{itemize}
 
-\subsection{Exemple}\label{exemple}
+\subsection{Exemple}
 
 Nous avons choisi par la suite de représenter cette spécification en
 \ac{JSON}\cite{json}. Ce format est
@@ -472,31 +468,35 @@ e_p2:
 Il est nécessaire de rajouter des fonctions d'évaluation pour les
 propositions atomiques :
 
-\begin{lstlisting}[language=C]
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Proposition atomique p1]
 int f_ev_1(int x) {
     return x == 0;
 }
-
-int fp2(int x) {
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Proposition atomique p2]
+int f_ev_2(int x) {
     return x == 0;
 }
 \end{lstlisting}
+\end{minipage}
 
-Nous avons donc la spécification suivante :
+On obtient alors la spécification présentée dans le listing
+\ref{lst:specifiation}.
 
-\begin{lstlisting}
-{
-  "ltl": "G(! (p1 && p2))",
+\begin{figure}[h]
+\begin{lstlisting}[frame=single, caption=Spécification, label=lst:specifiation]
+{ "ltl": "G(! (p1 && p2))",
   "pa": [
-    {
-      "name": "p1",
+    {"name": "p1",
       "default": false,
       "expr": "f_ev_p1",
       "span": ["b_p1", "e_p1"],
       "params": ["thread1::a"]
     },
-    {
-      "name": "p2",
+    { "name": "p2",
       "default": false,
       "expr": "f_ev_p2",
       "span": ["b_p2", "e_p2"],
@@ -505,8 +505,9 @@ Nous avons donc la spécification suivante :
   ]
 }
 \end{lstlisting}
+\end{figure}
 
-Ici, le code ne respecte pas cette spécification. L'exécution
+Dans cet exemple, le code ne respecte pas la spécification. L'exécution
 \(t1: a = 0 \rightarrow t2: a = 1 \rightarrow t2: a = a - 1\) permet
 d'obtenir un état qui ne satisfait pas la propriété.
 
