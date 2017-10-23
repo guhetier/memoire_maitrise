@@ -163,44 +163,27 @@ exemple est suffisamment pour être implémenté en tant que propriété built-i
 mais ce n'est pas le cas pour d'autres propriétés (d'exclusion mutuelles ou non).
 
 Dans ce chapitre, nous allons présenter un nouveau mécanisme de spécification
-permettant de remédier à ce problème. Ce mécanisme de spécification se base sur
-une restriction de \ac{LTL} plus souple que celle utilisée classiquement par les
-model-checker logiciel. L'utilisation de variables locales et de positions est
-rendue possible dans les propositions atomiques. Ce formalisme de
-spécification englobe ainsi les assertions et les proposition LTL classiquement
-utilisées. Il permet ainsi de surmonter les limitations des assertions et de
-\ac{LTL} que nous avons présentées.
+permettant de remédier à ce problème. Il se base sur une restriction de \ac{LTL}
+plus souple que celle utilisée classiquement par les model-checker logiciel.
+Nous introduisons le concept de \emph{zones de validités} afin de permettre
+l'utilisation de variables locales et de positions dans les propositions
+atomiques. Nous produisons ainsi un formalisme de spécification qui englobe les
+assertions et les proposition LTL (telles que classiquement utilisées par les
+model-checkers logiciel), tout en permettant de surmonter les limitations que
+nous avons présenté.
 
-\section{Établir une spécification qui étend LTL}
+Nous allons tout d'abord présenter les différents obstacles a résoudre afin
+d'étendre \ac{LTL}. Nous présenterons ensuite les solutions (parfois partielles)
+que nous apportons à ces problèmes, ainsi que le formalisme de spécification que
+nous avons établi. Enfin, nous justifierons nos choix et nous les comparerons
+aux autres travaux sur le sujet.
 
-Les outils de model-checking pour des programmes C multi-thread
-supportant LTL que nous avons rencontrés restreignent généralement les
-propositions atomiques à une expression pure du C n'utilisant que des
-variables globales. À notre connaissance, seul
-Divine\cite{Divine_LTL} propose un support plus étendu de LTL,
-auquel nous allons comparer ce travail.
-
-Notre objectif est de proposer une spécification basée sur LTL
-permettant de surmonter les restrictions classiques faites sur les
-propositions atomiques. Nous désirons pouvoir faire référence à des
-emplacements du programme afin de pouvoir exprimer des formules
-reproduisant le comportement d'une assertion --- et combiner ces
-assertions par des opérateurs de la logique temporelle. Toujours dans
-l'optique de spécifier un programme sans le modifier, nous désirons
-aussi pouvoir faire référence directement à des variables locales de ce
-programme.
-
-Le formalisme que nous proposons est une restriction de LTL plus souple
-que les restrictions utilisées dans les outils étudiés. Elle se base sur
-une définition plus large des propositions atomiques, en ajoutant à ces
-dernières une \emph{zone de validité}.
-
-\subsection{Difficultés du problème}
+\section{Difficultés du problème}
 
 Nous allons tout d'abord présenter les différents problèmes à résoudre
 dans le but d'étendre la spécification.
 
-\subsubsection{Désigner les variables}
+\subsection{Désigner les variables}
 
 Afin d'utiliser une variable dans une spécification, il est nécessaire
 de la désigner de manière unique.
@@ -257,7 +240,7 @@ On peut répartir ces cas en deux catégories :
   de même pour les variables locales associées.
 \end{itemize}
 
-\subsubsection{Définir globalement une proposition atomique dépendant
+\subsection{Définir globalement une proposition atomique dépendant
 d'une variable locale}
 
 Dans une formule LTL, une proposition atomique est intrinsèquement
@@ -274,7 +257,7 @@ locales dont elle dépend.
 Il est donc nécessaire de prolonger la définition des propositions
 atomiques à l'ensemble des états.
 
-\subsubsection{Exprimer une position dans le programme}
+\subsection{Exprimer une position dans le programme}
 
 Un des objectifs de notre spécification est de permettre de manipuler
 des positions dans le programme. Il est donc nécessaire de proposer un
@@ -299,7 +282,7 @@ Nous avons donc retenu la seconde option. Elle impose cependant de
 rajouter une instrumentation dans le code, ce que nous désirions
 minimiser.
 
-\subsubsection{Utilisation des positions dans la formule}
+\subsection{Utilisation des positions dans la formule}
 
 La manière dont les positions du code peuvent être utilisées dans la
 formule et dans les propositions atomiques en particulier doit aussi
@@ -338,9 +321,9 @@ Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande
 de modifier le comportement standard des opérateurs LTL et nous avons
 préféré limiter nos modifications aux propositions atomiques seulement.
 
-\subsection{Syntaxe et sémantique de la spécification}
+\section{Syntaxe et sémantique de la spécification}
 
-\subsubsection{Syntaxe}
+\subsection{Syntaxe}
 
 Nous allons tout d'abord présenter la grammaire de la spécification que
 nous avons finalement retenue, avant de justifier nos choix.
@@ -410,7 +393,7 @@ label               & := & \emph{name of a C label}\\
 La spécification est alors constituée d'une formule LTL portant sur des
 propositions atomiques définies selon cette grammaire.
 
-\subsubsection{Sémantique}
+\subsection{Sémantique}
 
 Les opérateurs de la logique classique et de la logique temporelle
 suivent la sémantique usuelle de la logique propositionnelle et de LTL.
@@ -441,7 +424,7 @@ On évalue alors la proposition atomique en un état \(p\) par :
   de la proposition atomiques, dans l'ordre.
 \end{itemize}
 
-\subsubsection{Exemple}\label{exemple}
+\subsection{Exemple}\label{exemple}
 
 Nous avons choisi par la suite de représenter cette spécification en
 JSON (JavaScript Object Notation)\cite{json}. Ce format est
@@ -521,7 +504,7 @@ Ici, le code ne respecte pas cette spécification. L'exécution
 \(t1: a = 0 \rightarrow t2: a = 1 \rightarrow t2: a = a - 1\) permet
 d'obtenir un état qui ne satisfait pas la propriété.
 
-\subsubsection{Justification de la spécification}
+\subsection{Justification de la spécification}
 
 Nous allons maintenant expliquer comment et dans quelle mesure ce formalisme
 de spécification permet de surmonter les obstacles détaillées précédemment.
@@ -703,7 +686,7 @@ cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
 valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
 double négation.
 
-\subsubsection{Exprimer des propositions atomiques globales sur des
+\subsection{Exprimer des propositions atomiques globales sur des
 variables globales}
 
 Les propositions atomiques utilisées usuellement par les outils de model
@@ -711,7 +694,7 @@ checking logiciels (des expressions pures portant uniquement sur les
 variables globales) peuvent s'exprimer à l'aide de notre spécification
 en choisissant le programme entier comme zone de validité.
 
-\subsubsection{Exprimer des assertions}
+\subsection{Exprimer des assertions}
 
 Notre spécification permet de spécifier l'équivalent d'une assertion. En
 effet, une assertion signifie : ``si un pointeur d'instruction du
