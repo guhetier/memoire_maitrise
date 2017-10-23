@@ -2,26 +2,30 @@
 
 \section{Présentation du problème}
 
-À travers notre revue de littérature, nous avons dégagés deux principales
-limitations concernant les méthodes de spécification utilisée dans
+À travers la revue de littérature, nous avons dégagés deux principales
+limitations concernant les méthodes de spécification utilisées pour
 model-checking de programmes concurrents.
 
-La première limitation concerne les assertions.
-Les assertions sont le mécanisme de spécification le plus utilisé dans le cadre
-du model-checking logiciel. Cependant, les propriétés que l'on peut spécifier
-par des assertions sont limitées à un sous-ensemble des propriétés de sûretés
---- une certaine condition doit être vrai à une certaine position du code.
+La première limitation concerne les assertions. Les assertions sont le mécanisme
+de spécification le plus utilisé dans le cadre du model-checking logiciel.
+Cependant, les propriétés que l'on peut spécifier par des assertions sont
+limitées à un sous-ensemble des propriétés de sûretés --- une assertion spécifie
+qu'une certaine condition doit être vrai à une certaine position du code. Dans
+le cas de programmes concurrents, ce type de propriétés est souvent insuffisant.
 
-L'entrelacement entre les instruction d'un programme concurrent est généralement
-complexe. On désire donc souvent vérifier des propriétés portant sur l'ordre
-d'occurrence de certains évènements du programme.
-Les assertions ne sont pas adaptées pour spécifier ce type de propriétés.
+En effet, l'entrelacement entre les instruction d'un programme concurrent est
+généralement complexe. Il est donc fréquent de vouloir vérifier des propriétés
+portant sur l'ordre d'apparition de certains évènements au cours d'une exécution
+du programme. Les assertions ne sont pas adaptées pour spécifier ce type de
+propriétés.
 
 \paragraph{Exemple}
-L'absence de data-races dans un programme est une propriété généralement
-désirable. Elle fait partie de l'ensemble plus vaste des propriétés d'exclusion
-mutuelle. Les listings \ref{lst:data-race_t1} et \ref{lst:data-race_t2}
-présentent un cas très simple de data-race.
+L'absence de data-races dans un programme est une propriété
+généralement désirable. Elle fait partie de l'ensemble plus vaste des propriétés
+d'exclusion mutuelle : il s'agit de vérifier que deux instructions accédant à
+une même variable partagée ne peuvent être exécutée simultanément. Les listings
+\ref{lst:data-race_t1} et \ref{lst:data-race_t2} présentent un cas très simple
+de data-race.
 
 \noindent\begin{minipage}{.45\textwidth}
   \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
@@ -94,31 +98,32 @@ void* thread2(void* d) {
 Cet exemple souligne le fait que, dans un programme concurrent, on
 s'intéresse fréquemment au lien entre plusieurs \emph{assertions} plutôt qu'au
 déclenchement d'une assertion simple. On aimerait pouvoir formuler des
-propriétés telles que ``si deux assertions sont brisées en même temps, une
-erreur est présente'' ou ``si une assertion est brisée, puis une seconde
-assertion est brisée, une erreur est présente''.
+propriétés telles que ``si deux assertions sont violée simultanément, une
+erreur est présente'' ou ``si une assertion est violée, puis une seconde
+assertion est violée, une erreur est présente''.
 
-Notre seconde limitation concerne les spécification utilisant \ac{LTL}. \ac{LTL}
-peut sembler une solution au problème rencontré par les assertions. En effet,
-les logiques temporelles permettent d'exprimer facilement des relations d'ordre
-entre différents évènements.
-Cependant, les model-checkers logiciels supportant LTL ne restreignent
-généralement les propositions atomiques à des fonction booléenne portant sur la
-valeur des variables globales du programme. Il n'est en particulier pas possible
-d'utiliser une position du programme dans la spécification, ce qui limite le
-type de propriété qu'il est possible d'exprimer. Par exemple, une assertion n'a
-pas d'équivalent dans cette restriction de LTL.
+La seconde limitation concerne les spécification utilisant \ac{LTL}.
+Les model-checker logiciels supportant LTL restreignent en généralement les
+propositions atomiques à des fonctions booléenne portant sur la valeur des
+variables globales du programme. Il n'est donc pas possible de différencier des
+états selon leur position dans le code ou la valeur de variables locales, ce qui
+limite le type de propriétés qu'il est possible de spécifier.
+
+En particulier, ces restrictions rendent impossible d'exprimer une assertion par
+une formule \ac{LTL}. Alors que les logiques temporelles permettent d'exprimer
+facilement des relation d'ordre entre différents évènements, \ac{LTL} n'est donc
+pas une solution aux limitations rencontrés par les assertions.
 
 \paragraph{Exemple}
-Reprenons l'exemple précédent. La propriété d'exclusion
-mutuelle que l'on veut spécifier peut s'écrire \(G \lnot (p_1 \land p_2)\) où
-\(p_1\) (respectivement \(p_2\)) est la proposition atomique indiquant si le
-thread 1 (respectivement le thread 2) est dans sa zone critique. Mais on ne
-exprimer \(p_1\) et \(p_2\) directement, sans mentionner des positions du
-programme. Encore une fois, il est nécessaire d'introduire des variables
-supplémentaires et de modifier le système. Les listings \ref{lst:data-race_ltl1}
-et \ref{lst:data-race2} présentent une solution, associée avec la spécification
-\(G \lnot (flag1 == 1 \land flag_2 == 1)\).
+Reprenons l'exemple précédent. La propriété d'exclusion mutuelle que l'on veut
+spécifier peut s'écrire \(G \lnot (p_1 \land p_2)\) où \(p_1\) (respectivement
+\(p_2\)) est la proposition atomique indiquant si le thread 1 (respectivement le
+thread 2) est dans sa zone critique. Mais on ne exprimer \(p_1\) et \(p_2\)
+directement, sans mentionner des positions du programme. Encore une fois, il est
+nécessaire d'introduire des variables supplémentaires et de modifier le système.
+Les listings \ref{lst:data-race_ltl1} et \ref{lst:data-race_ltl2} présentent une
+solution, associée avec la spécification \(G \lnot (flag1 == 1 \land flag_2 ==
+1)\).
 
 \noindent\begin{minipage}{.45\textwidth}
   \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
@@ -151,14 +156,13 @@ void* thread2(void* d) {
 \end{lstlisting}
 \end{minipage}
 
+Les deux mécanismes de spécification les plus utilisés par le model-checking
+logiciel sont donc limités, sans être complémentaires. Certaines propriétés sont
+alors complexes à spécifier. En pratique, le cas des data-races présenté en
+exemple est suffisamment pour être implémenté en tant que propriété built-in,
+mais ça n'est pas le cas pour d'autres propriétés (d'exclusion mutuelles ou non).
 
-Nous sommes donc face à une situation où les deux principaux mécanismes de
-spécification utilisé par les techniques de model-checking sont limités. En
-pratique, le cas des data-races est généralement implémenté en temps que
-propriété built-in, mais d'autres propriétés (d'exclusion mutuelles ou autre)
-sont difficiles à exprimer en raison de ces limitations.
-
-Dans cette partie, nous allons présenter un nouveau mécanisme de spécification
+Dans ce chapitre, nous allons présenter un nouveau mécanisme de spécification
 permettant de remédier à ce problème. Ce mécanisme de spécification se base sur
 une restriction de \ac{LTL} plus souple que celle utilisée classiquement par les
 model-checker, afin de permettre l'utilisation de variables locales et de
