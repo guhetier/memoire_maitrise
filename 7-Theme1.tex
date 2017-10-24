@@ -511,22 +511,169 @@ Dans cet exemple, le code ne respecte pas la spécification. L'exécution
 \(t1: a = 0 \rightarrow t2: a = 1 \rightarrow t2: a = a - 1\) permet
 d'obtenir un état qui ne satisfait pas la propriété.
 
-\subsection{Justification de la spécification}
+\section{Motivation de nos choix}
 
 Nous allons maintenant expliquer comment et dans quelle mesure ce formalisme
 de spécification permet de surmonter les obstacles détaillées précédemment.
 
-\paragraph{Identification des variables locales}
+\subsection{Identification des variables}
 
 Nous avons choisi d'identifier une variable globale par son nom et une
 variable locale par le nom de la fonction dans laquelle elle est définie
-suivie de son nom. Nous n'apportons pas de solution pour le cas où deux
-variables ont le même nom dans une fonction : il est laissé à
-l'utilisateur le soin de ne pas définir une variable utilisée dans la
-spécification portant le même nom qu'une autre variable de la fonction.
-En pratique, il est peut fréquent de définir plusieurs variables ayant le
-même nom dans une fonction, ce problème n'est donc pas une réelle
-limitation.
+et le nom de la variable. Cela n'apporte qu'une solution partielle au problème
+de l'identification des variables.
+
+\paragraph{Cas de deux variables lexicalement distinctes}
+Notre solution permet de distinguer des variables lexicalement distinctes tant
+qu'elles ne sont pas définie dans une même fonction. Nous avons jugé que ce cas
+est suffisamment peu fréquent pour ne pas le traiter. Nous laissons donc le soin
+à l'utilisateur de renommer les variables concernées.
+
+\paragraph{Cas de plusieurs instances d'une variable lexicalement identique}
+Nous ne proposons pas de solution dans ce cas de manière générale. Cependant,
+il existe des solutions pour quelques cas particuliers.
+
+L'un des cas où identifier une variable dépends d'une notion dynamique a lieu
+lorsque une même fonction est utilisée pour créer plusieurs thread. En effet,
+les threads peuvent être créés de manière dynamique, leur nombre et leur ordre
+de création peut donc dépendre de l'exécution. Cependant, il est fréquent de
+créer les threads d'un programme de manière statique, en créant toujours le même
+nombre de threads dans le même ordre (dans la fonction \texttt{main} par
+exemple). Dans ce cas, il est possible d'identifier un thread par un indice
+correspondant à l'ordre de création des threads. On pourra alors identifier de
+manière unique une variable dans un thread uniquement en rajoutant un préfixe à
+son nom, qui pendra alors la forme
+\texttt{{thread\_id}::{fonction}::{variable}}\footnote{\label{fn:notimplemented}
+Cette fonctionnalité n'est pas implémentée dans l'outil présenté dans le
+Chapitre~\ref{sec:Theme2}}.
+
+Un autre cas est lié à l'identification d'une variable locale à une fonction
+appelée plusieurs fois dans un programme. Une instance de la variable est créée
+à chaque appel. Si les appels à la fonction sont séquentiels (il
+existe donc plusieurs instance de la variable dans le programme, mais une seule
+existe à chaque instant), considérer que ces différentes instances correspondent
+à la même variable dans la spécification est généralement le comportement
+attendu.
+
+Cependant, lors d'appels récursifs ou concurrents, plusieurs instances de la
+variables existent simultanément : pour évaluer une proposition atomique, il
+faut alors décider quelle instance doit être utilisée. Dans ce cas, nous ne
+proposons pas de solution. Il est cependant possible de reprendre l'approche de
+Divine \cite{Divine_LTL}, en l'adaptant à notre système de valeurs par
+défaut\textsuperscript{\ref{fn:notimplemented}}. Nous présentons cette approche
+plus en détail dans la section~\ref{sec:related_work}.
+
+\subsection{Identification des positions dans le code}
+
+Identifier une position dans le code sans y placer un marqueur n'est pas une
+solution viable : elle est trop sensible aux modifications du code, d'autant
+plus que lors de la vérification d'un programme, on s'attend à plusieurs
+itérations avec des modifications mineurs du code, afin de corriger les erreurs
+détectées.
+
+Nous avons donc utilisé des marqueurs. Nous avons choisis des labels, puisqu'ils
+permettent de désigner une instruction du code. Des alternatives auraient été
+d'utiliser des commentaires ou des macros afin de marquer les instruction. Nous
+avons préféré les labels pour des raisons d'implémentation, les commentaires
+n'étant pas conservé par de nombreuses bibliothèques de transformation de code,
+mais aussi en raison de leur signification : un label a pour rôle de désigner
+une instruction.
+
+Cependant, la précision d'une position à l'aide d'un marqueur reste de, au
+mieux, une ligne, et donc d'une instruction. On ne peut donc pas désigner une
+position plus précisément, au niveau d'une expression par exemple. Nous avons
+considéré que ce cas est suffisamment peut fréquent pour qu'il soit possible de
+l'ignorer. Il reste de plus possible de décomposer une instruction afin d'en
+désigner ses parties.
+
+Nous avons choisi de former des intervalles de positions car ils représentent un
+bon compromis entre une énumération explicite et des constructions plus
+complexes (union ou intersections d'intervalles\ldots{}). Dans les cas où une
+zone de validité plus complexe est nécessaire, il est possible de la simuler en
+utilisant plusieurs propositions atomiques et les opérateurs de la logiques
+classiques pour les combiner.
+
+\subsection{Définition des propositions atomiques}
+
+Afin de définir correctement les propositions atomiques dans tous les
+états du programme, nous avons choisi d'utiliser des valeurs par défaut
+combinées à des zones de validité.
+
+L'intérêt des zones de validité est double. L'utilisateur peut spécifier
+manuellement quand une proposition doit utiliser sa fonction d'évaluation. Cela
+permet en particulier d'attendre que les variables soient correctement
+initialisées. Les zones de validités permettent aussi d'utiliser des positions
+du code dans la spécification, et de lier directement ces positions à une
+propositions sur les valeurs des variables du programme. Il n'est donc pas
+nécessaire d'utiliser deux propositions atomiques \texttt{b} et \texttt{e} pour
+définir le début et la fin d'un intervalle de position, une troisième
+proposition atomique \texttt{p} pour spécifier une propriété sur les valeurs des
+variables et enfin, d'utiliser une formule telle que \(G (b \implies (p U e))\)
+pour spécifier que \texttt{p} doit être valide entre \texttt{b} et \texttt{e}.
+\(G p\) est suffisant, la zone de validité étant incluse dans la proposition
+atomique \texttt{p}. On obtient ainsi une formule LTL plus simple.
+
+Nous avons choisi d'utiliser une valeur par défaut que l'utilisateur peut fixer,
+plutôt qu'imposer une valeur par défaut. Ce n'est pourtant strictement
+nécessaire : si une valeur par défaut est imposée (\emph{faux} par exemple), on
+peut reproduire les propositions atomiques ayant \emph{vrai} comme valeur par
+défaut en utilisant une double négation. Par exemple, pour une proposition
+atomique \(p\) ayant \(vrai\) comme valeur par défaut et \(f\) comme fonction
+d'évaluation, et pour la formule \(G p\), on pourrait utiliser de manière
+équivalente la proposition atomique \(q\), avec \(faux\) comme valeur par défaut
+et \(\lnot f\) comme fonction d'évaluation. La formule LTL serait alors \(G
+\lnot q\).
+
+Cependant, il nous a semblé plus pratique et confortable de permettre à
+l'utilisateur de fixer cette valeur de manière cohérente avec
+l'utilisation qui est faite de la proposition atomique. Ainsi, dans le
+cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
+valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
+double négation.
+
+\section{Exprimer les propriétés LTL classiquement supportées}
+
+Notre spécification est une restriction de \ac{LTL} plus faible que celle utilisée
+par la plupart des model-checkers logiciel. Exprimer une formule \ac{LTL} ne
+portant que sur des variables globales est donc très simple. Il suffit de
+désigner le programme complet comme zone de validité pour toutes les
+propositions atomiques. Le reste de la spécification est inchangé.
+
+On vérifie ainsi que notre formalisme de spécification englobe bien les formules
+\ac{LTL} classiquement utilisée par les model-checkers.
+
+\section{Exprimer des assertions}
+
+Notre spécification permet de spécifier l'équivalent d'une assertion. En
+effet, une assertion signifie : ``si un pointeur d'instruction du
+programme pointe sur l'assertion et que l'état ne vérifie pas la
+condition exprimée, alors il y a une erreur''.
+
+On peut donc représenter cela par une propriété de sûreté. On exprime
+une assertion par la formule \(G p\), avec \(p\) une proposition
+atomique telle que :
+
+\begin{itemize}
+\item
+  sa zone de validité correspond à l'emplacement de l'assertion dans le
+  programme ;
+\item
+  sa fonction d'évaluation est la condition utilisée dans l'assertion,
+  elle s'évalue donc à la valeur de cette expression dans la zone de
+  validité ;
+\item
+  sa valeur par défaut est \emph{vrai}, elle s'évalue donc à \emph{vrai}
+  hors de la zone de validité.
+\end{itemize}
+
+Notre formalisme de spécification englobe donc bien les spécifications à l'aide
+d'assertions.
+
+\section{Travaux similaires}\label{sec:related_work}
+
+Des travaux autour de la prise en charge des variables locales ont été réalisé,
+autour du model-checker Divine\cite{Divine}. Ils sont présenté dans
+\cite{Divine_LTL}.
 
 Divine \cite{Divine_LTL} propose une approche différente pour
 identifier les paramètres d'une formule LTL. La spécification de Divine
@@ -554,32 +701,6 @@ variable désignée par le nom \texttt{y} dans le contexte d'appel de la macro
 \texttt{ap\_local}. Cependant, cette approche introduit d'avantage de
 spécification dans le code source, ce que nous avons voulu éviter.
 
-\emph{TODO}: pas encore implémenté.
-
-Lorsque la même fonction est utilisée pour créer plusieurs threads, le
-nom de la fonction ne suffit pas à identifier une variable de manière
-unique : il est nécessaire d'indiquer le thread auquel on se réfère. La
-création de thread est une notion dynamique. Il est donc difficile d'
-identifier un thread de manière statique. Cependant, les threads sont
-souvent utilisés de manière statique : ils sont tous créés dès le début
-de l'exécution par une même fonction. Dans ce cas, il est possible
-d'identifier un thread par un indice correspondant à l'ordre de création
-des threads. On pourra alors identifier une variable dans un thread
-uniquement en rajoutant un préfixe à son nom, qui pendra alors la forme
-\texttt{{thread\_id}::{fonction}::{variable}}.
-
-\emph{TODO}: pas encore implémenté.
-
-Dans le cas où plusieurs instances d'une seule variable lexicale sont
-crées dans le programme, nous n'apportons pas de solution dans le cas
-général. Ce cas arrive lorsque une fonction est appelée plusieurs fois à
-travers différents threads, de manière séquentielle ou lors d'appels
-récursifs. Dans le cas d'appels séquentiels, on désire la plupart du
-temps évaluer la proposition atomique lors de chaque appel, ce n'est
-donc pas un problème majeur. Cependant, lors d'appels récursifs ou
-concurrents, plusieurs instances de la variables existent simultanément
-: il faut alors décider laquelle doit être utilisée pour évaluer la
-proposition atomique.
 
 Nous reprenons l'approche utilisée par Divine \cite{Divine_LTL} en
 l'adaptant aux valeurs par défaut. Si plusieurs zones de validité pour
@@ -619,111 +740,3 @@ Cette approche fait remonter les cas où la proposition atomique ne prend
 pas sa valeur par défaut, ce qui constitue généralement l'évènement
 attendu, en particulier pour des propriétés de sûreté ou
 d'accessibilité.
-
-\paragraph{Identification des positions dans le code}
-
-Identifier une position dans le code sans y placer un marqueur n'est pas
-une solution viable : elle est trop sensible aux modifications du code.
-Ces dernières sont de plus attendues lors de la vérification d'un
-programme, afin de corriger une éventuelle erreur.
-
-Nous avons donc utilisé des marqueurs. Nous avons choisis des labels,
-puisqu'ils permettent de désigner une instruction du code. Une
-alternative aurait été de marquer les instructions à l'aide de
-commentaires dans le code. Nous avons préféré les labels pour des
-raisons d'implémentation, les commentaires n'étant pas conservé par de
-nombreuses bibliothèques de transformation de code.
-
-Cependant, la précision d'une position à l'aide d'un marqueur reste de,
-au mieux, une ligne, et donc d'une instruction. On ne peut donc pas
-désigner une position plus précisément, au niveau d'une expression par
-exemple. Nous avons considéré que ce besoin est rarement présent. Il
-reste de plus possible de décomposer une instruction afin d'en désigner
-ses sous-ensembles.
-
-Nous avons choisi de former des intervalles de positions car ils
-représentent un bon compromis entre une énumération explicite et des
-constructions plus complexes (union ou intersections
-d'intervalles\ldots{}). Dans les cas où une zone de validité plus
-complexe est nécessaire, il reste toujours possible de la simuler en
-utilisant plusieurs propositions atomiques et les opérateurs de la
-logiques classiques.
-
-\paragraph{Définition des propositions atomiques}
-
-Afin de définir correctement les propositions atomiques dans tous les
-états du programme, nous avons choisi d'utiliser des valeurs par défaut
-combinées à des zones de validité. Hors de la zone de validité (un
-intervalle de positions dans le code représenté comme expliqué
-précédemment), la proposition atomique prend sa valeur par défaut,
-sinon, sa fonction d'évaluation est utilisée.
-
-L'intérêt des zones de validité est double : l'utilisateur peut
-spécifier précisément quand une proposition peut utiliser la valeur des
-variables locales, ce qui permet en particulier d'attendre qu'elles
-soient correctement initialisées. Les zones de validités permettent
-aussi d'utiliser des positions du code dans la spécification, et de lier
-directement ces positions à une propositions sur les valeurs des
-variables du programme. Il n'est donc pas nécessaire d'utiliser deux
-propositions atomiques \texttt{b} et \texttt{e} pour définir le
-début et la fin d'un intervalle de position, une troisième proposition
-atomique \texttt{p} pour spécifier une propriété sur les valeurs des
-variables et enfin, d'utiliser une formule telle que
-\(G (b \implies (p U e))\) pour spécifier que \texttt{p} doit être
-valide entre \texttt{b} et \texttt{e}. \(G p\) est suffisant, la
-zone de validité étant incluse dans la proposition atomique
-\texttt{p}. On obtient ainsi une formule LTL plus simple.
-
-Nous avons choisi d'utiliser une valeur par défaut que l'utilisateur
-peut fixer. Ce n'est pourtant strictement nécessaire : une valeur par
-défaut pourrait être imposée (\emph{faux} par exemple), et les autres
-cas peuvent être obtenus en utilisant des négations dans la formule
-logique et la définition de la fonction d'évaluation. Par exemple, pour
-une proposition atomique \(p\) s'évaluant à \(vrai\) par défaut et en
-utilisant la fonction \(f\) sinon, et pour la formule \(G p\), on
-pourrait utiliser de manière équivalente la proposition atomique \(q\),
-avec comme valeur par défaut \(faux\) et comme fonction d'évaluation
-\(\lnot f\). La formule LTL serait alors \(G \lnot q\). Divine
-\cite{Divine_LTL} utilise ce principe.
-
-Cependant, il nous a semblé plus pratique et confortable de permettre à
-l'utilisateur de fixer cette valeur de manière cohérente avec
-l'utilisation qui est faite de la proposition atomique. Ainsi, dans le
-cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
-valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
-double négation.
-
-\subsection{Exprimer des propositions atomiques globales sur des
-variables globales}
-
-Les propositions atomiques utilisées usuellement par les outils de model
-checking logiciels (des expressions pures portant uniquement sur les
-variables globales) peuvent s'exprimer à l'aide de notre spécification
-en choisissant le programme entier comme zone de validité.
-
-\subsection{Exprimer des assertions}
-
-Notre spécification permet de spécifier l'équivalent d'une assertion. En
-effet, une assertion signifie : ``si un pointeur d'instruction du
-programme pointe sur l'assertion et que l'état ne vérifie pas la
-condition exprimée, alors il y a une erreur''.
-
-On peut donc représenter cela par une propriété de sûreté. On exprime
-une assertion par la formule \(G p\), avec \(p\) une proposition
-atomique telle que :
-
-\begin{itemize}
-\item
-  sa zone de validité correspond à l'emplacement de l'assertion dans le
-  programme
-\item
-  sa fonction d'évaluation est la condition utilisée dans l'assertion,
-  elle s'évalue donc à la valeur de cette expression dans la zone de
-  validité
-\item
-  sa valeur par défaut est \emph{vrai}, elle s'évalue donc à \emph{vrai}
-  hors de la zone de validité
-\end{itemize}
-
-Notre spécification correspond donc bien à une extension recouvrant à la
-fois les formules LTL classiquement utilisées et les assertions.
