@@ -672,35 +672,36 @@ d'assertions.
 \section{Travaux similaires}\label{sec:related_work}
 
 Des travaux autour de la prise en charge des variables locales ont été réalisé,
-autour du model-checker Divine\cite{Divine}. Ils sont présenté dans
+autour du model-checker Divine\cite{Divine_3_0}. Ils sont présentés dans
 \cite{Divine_LTL}.
 
-Divine \cite{Divine_LTL} propose une approche différente pour
-identifier les paramètres d'une formule LTL. La spécification de Divine
-met en place des macros qui permettent de lier les variables à une
-proposition atomique, directement dans le code source. Cela permet en
-particulier d'identifier une variable locale même si d'autres variables
-du même nom sont définie dans la même fonction.
+Divine met en place un ensemble de macros permettant de définir les propositions
+atomiques utilisée dans une formule LTL. Deux macros, \texttt{ap(proposition)}
+et \texttt{ap\_set(proposition, value)} permettent respectivement de modifier
+directement la valeur d'une proposition atomique passée en argument. \texttt{ap}
+mets la proposition atomique à \emph{vrai} uniquement pour pendant l'exécution
+de la macro, tandis que \texttt{ap\_set} change la valeur d'une proposition
+atomique de manière durable, jusqu'à une prochaine modification.
 
-Divine permet de lier une proposition atomique \(P\) à sa fonction
-d'évaluation \texttt{p}, dépendant d'une variable locale
-\texttt{y} de la manière suivante :
+Divine permet aussi de lier une proposition à une fonction d'évaluation à l'aide
+de deux autres macros, \texttt{ap\_global(proposition, fonction, N, arg1, \dots,
+  argN)} et \texttt{ap\_local(proposition, fonction, N, arg1, \dots, argN)}.
 
-\begin{lstlisting}
-void* thread1(void* d) {
-    int y;
-    ap_local(P, p, y);
-    ....
-}
-\end{lstlisting}
+La macro \texttt{ap\_global} doit être appelée dans l'espace global. Elle permet
+de lier une proposition atomique à une fonction booléenne dont tout les
+paramètres sont des variables globales.
 
-L'instruction \texttt{ap\_local(P, p, y);} lie la proposition atomique
-identifiée par \(P\) dans la formule LTL à la fonction \texttt{p}, qui prend
-en paramètre la variable \texttt{p}. La norme du C permet d' identifier la
-variable désignée par le nom \texttt{y} dans le contexte d'appel de la macro
-\texttt{ap\_local}. Cependant, cette approche introduit d'avantage de
+La macro \texttt{ap\_local} lie une proposition atomique à une fonction dont
+certains des paramètres peuvent être locaux. Les paramètres sont identifiés
+dans le contexte d'appel selon la norme du C, et peuvent ensuite être masqué.
+Le lien entre la fonction et la proposition atomique dure jusqu'à la sortie du
+contexte (où les paramètres locaux sont détruits). Ensuite, la proposition
+atomique prends la valeur par défaut \emph{faux}.
+
+TODO : Exemple
+
+Cependant, cette approche introduit d'avantage de
 spécification dans le code source, ce que nous avons voulu éviter.
-
 
 Nous reprenons l'approche utilisée par Divine \cite{Divine_LTL} en
 l'adaptant aux valeurs par défaut. Si plusieurs zones de validité pour
