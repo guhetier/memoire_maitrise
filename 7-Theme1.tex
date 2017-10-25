@@ -679,13 +679,13 @@ Divine met en place un ensemble de macros permettant de définir les proposition
 atomiques utilisée dans une formule LTL. Deux macros, \texttt{ap(proposition)}
 et \texttt{ap\_set(proposition, value)} permettent respectivement de modifier
 directement la valeur d'une proposition atomique passée en argument. \texttt{ap}
-mets la proposition atomique à \emph{vrai} uniquement pour pendant l'exécution
-de la macro, tandis que \texttt{ap\_set} change la valeur d'une proposition
+met la proposition atomique à \emph{vrai} uniquement pour pendant l'exécution de
+la macro, tandis que \texttt{ap\_set} change la valeur d'une proposition
 atomique de manière durable, jusqu'à une prochaine modification.
 
 Divine permet aussi de lier une proposition à une fonction d'évaluation à l'aide
 de deux autres macros, \texttt{ap\_global(proposition, fonction, N, arg1, \dots,
-  argN)} et \texttt{ap\_local(proposition, fonction, N, arg1, \dots, argN)}.
+argN)} et \texttt{ap\_local(proposition, fonction, N, arg1, \dots, argN)}.
 
 La macro \texttt{ap\_global} doit être appelée dans l'espace global. Elle permet
 de lier une proposition atomique à une fonction booléenne dont tout les
@@ -696,48 +696,116 @@ certains des paramètres peuvent être locaux. Les paramètres sont identifiés
 dans le contexte d'appel selon la norme du C, et peuvent ensuite être masqué.
 Le lien entre la fonction et la proposition atomique dure jusqu'à la sortie du
 contexte (où les paramètres locaux sont détruits). Ensuite, la proposition
-atomique prends la valeur par défaut \emph{faux}.
+atomique prend la valeur par défaut \emph{faux}.
 
-TODO : Exemple
+\paragraph{Exemple}
+Reprenons l'exemple d'une data-race (Listing \ref{lst:data-race_t1}). Les
+listings~\ref{lst:data-race_divine1} et \ref{lst:data-race_divine2} présentent
+la spécification de l'absence de data-race dans le formalisme de Divine. La
+formule \ac{LTL} correspondante est \(G(\lnot (P1 \land P2)))\).
 
-Cependant, cette approche introduit d'avantage de
-spécification dans le code source, ce que nous avons voulu éviter.
-
-Nous reprenons l'approche utilisée par Divine \cite{Divine_LTL} en
-l'adaptant aux valeurs par défaut. Si plusieurs zones de validité pour
-une même proposition atomique sont ouverte en même temps, alors on
-évaluera la proposition atomique à sa valeur par défaut si et seulement
-si elle s'évalue à sa valeur par défaut en utilisant les variables de
-chaque zone de validité.
-
-Par exemple, considérons la fonction suivante :
-
-\begin{lstlisting}
-int count(int a) {
-   begin:
-   if (a < 10)
-       return count(a + 1);
-   end:
-   return a;
+\noindent\begin{minipage}{.45\textwidth}
+  \begin{lstlisting}[language=C, frame=single, caption=Thread 1,
+    label=lst:data-race_divine1]
+void* thread1(void* d) {
+  ...
+  ap_set(P1, 1);
+  p += 1;
+  ap_set(P1, 0);
+  ...
 }
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2,
+    label=lst:data-race_divine2]
+void* thread2(void* d) {
+  ...
+  ap_set(P2, 1);
+  p += 1;
+  ap_set(P2, 0);
+  ...
+}
+\end{lstlisting}
+\end{minipage}
 
+\paragraph{Exemple}
+Nous allons illustrer l'utilisation de \texttt{ap\_local} en spécifiant un
+programme pour éviter une division par zéro. On considère pour cela la formule
+\ac{LTL} \(G P\), avec \(P\) la proposition atomique indiquant que la variable
+locale \(p\), dans le listing~\ref{lst:zdiv_divine} est non nulle. \(P\) est
+définie à l'aide de la macro \texttt{ap\_local}.
+
+\begin{figure}
+\noindent\begin{minipage}[t]{.45\textwidth}
+  \begin{lstlisting}[language=C, frame=single, caption=\texttt{ap\_local},
+    label=lst:zdiv_divine]
+int non_nul(int p) {
+  return p != 0;
+}
+void* thread1(void* d) {
+  int p;
+  ap_local(P, non_nul, p);
+  ...
+  c = 1/p;
+  ...
+}
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{.45\textwidth}
+\begin{lstlisting}[frame=single, language=C, caption=Fonction récursive,
+  label=lst:divine-rec]
+int p(int a) {
+  return a == 8;
+}
+int count(int a) {
+  ap_local(P, p, a);
+  if (a < 10)
+    return count(a + 1);
+  return a;
+}
 int main() {
     count(6);
     return 0;
 }
 \end{lstlisting}
+\end{minipage}
+\end{figure}
 
-Supposons que l'on veuille vérifier que entre \texttt{begin} et
-\texttt{end}, on a toujours \lstinline"a != 8". On utilise donc la
-formule \(G p\), avec \(p\) la proposition vraie par défaut et
-s'évaluant à \(a != 8\) entre \texttt{begin} et \texttt{end}. En
-déroulant les trois premiers appels, on obtient trois contextes, où
-\texttt{a} vaut respectivement 6, 7 et 8. Pour \(a = 6\) et
-\(a = 7\), \(p\) s'évalue à \(vrai\), qui est aussi la valeur par défaut
-de \(p\). Pour \(a = 8\), \(p\) s'évalue à \(faux\). On retient donc
-cette valeur pour \(p\), ce qui permet de trouver une erreur.
+L'usage de macro permet à Divine de mettre en place une spécification concise et
+intuitive. La désignation des paramètres à passer aux fonctions d'évaluation, en
+particulier, est à la fois moins verbeuse et plus précise --- elle permet de
+designer une variable dont le nom est réutilisé dans la même fonction.
 
-Cette approche fait remonter les cas où la proposition atomique ne prend
-pas sa valeur par défaut, ce qui constitue généralement l'évènement
-attendu, en particulier pour des propriétés de sûreté ou
-d'accessibilité.
+Divine est aussi confronté au problème posé par de multiples instances d'une
+variable lexicalement identique. Divine choisi d'évaluer une proposition
+atomique à vrai dès qu'il existe un contexte dans lequel elle s'évalue à vrai.
+On considère donc la disjonction des valeurs prise par la proposition dans
+l'ensemble des contextes actifs. Cette solution est justifée par le fait qu'on
+est généralement intéressé par l'instant où une proposition atomique ne prends
+pas sa valeur par défaut (imposée à \emph{faux} par Divine).
+
+\paragraph{Exemple}
+Le code du listing~\ref{lst:divine-rec} présente une fonction récursive. Une
+nouvelle instance de la variable \texttt{a} est donc déclarée à chaque appel
+récursif, et les différentes instances existent simultanément.
+
+Supposons que l'on veuille vérifier que la variable \texttt{a} ne vaut jamais 8
+dans la fonction \texttt{count}. On cherche donc a vérifier formule \(G \lnot
+P\). \(P\) est définie de sorte à être vrai si et seulement si \texttt{a} vaut
+8. En déroulant les trois premiers appels, on obtient trois contextes, où
+\texttt{a} vaut respectivement 6, 7 et 8. Pour \(a = 6\) et \(a = 7\), \(P\)
+s'évalue à \(faux\). Pour \(a = 8\), \(P\) s'évalue à \(vrai\). On retient donc
+cette valeur pour la proposition atomique. La formule est alors invalide, ce qui
+permet de trouver une erreur.
+
+Cette solution peut être adaptée dans le cas de notre formalisme de
+spécification, en prenant la conjonction des valeurs si la valeur par défaut est
+\emph{faux}, et la conjonction sinon.
+
+Cependant, Divine ne propose pas l'équivalent d'un intervalle de validité.
+Limiter la vérification d'une propriété à un intervalle de ligne dans le code
+demande donc de définir des propositions atomiques supplémentaires, dont la
+valeur est gérée par \texttt{ap} et \texttt{ap\_set}, et d'utiliser les
+opérateurs \ac{LTL}. Cette approche produit des formules plus complexes, et donc
+plus difficile à vérifier.
