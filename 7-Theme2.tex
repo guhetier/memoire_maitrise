@@ -789,9 +789,26 @@ void* thread2(void* d) {
 }
 \end{lstlisting}
 
+À ce niveau, l'instrumentation est terminée. Le code source obtenu, composé du
+système instrumenté et de l'automate de Büchi peut être vérifié.
+
+\section{Vérification à l'aide d'un model-checker}
+
+Nous en sommes enfin à la dernière étape du processus présenté par la
+Figure~\ref{fig:baProduct_func}. Nous avons produit, à partir de la
+spécification et du code du système, un nouveau code spécifié par des
+assertions.
+
+Un model-checker permet alors de vérifier ce code. Selon les assertions que le
+code va violer, il est possible de déterminer si le programme contient une
+erreur ou non. Le contre-exemple fournis par le model-checker permet de
+retrouver l'erreur dans le programme instrumenté, et donc, en ignorant les
+lignes ajoutée par l'instrumentation, dans le système d'origine.
+
 \section{Implémentation}
 
-Nous avons implémenté cette transformation dans un outil, BaProduct.
+Nous avons implémenté cette transformation de source à source dans un outil,
+baProduct.
 
 Nous générons les automates de Büchi correspondant aux formules LTL en
 utilisant le logiciel LTL2BA\cite{ltl2ba}. LTL2BA implémente
@@ -800,7 +817,7 @@ formule LTL, en utilisant un co-automate de Büchi alternant très faible
 (\emph{very weak alternating co-Büchi automaton}) et un automate de
 Büchi généralisé (*generalised Büchi automaton) comme intermédiaires.
 
-L'instrumentation est réalisée en utilisant la bibliothèque
+L'instrumentation est réalisée à l'aide la bibliothèque
 CIL\cite{cil}, en OCaml\cite{ocamlrefman}. CIL permet de parser
 du code C et de construire un arbre de syntaxe abstraite plus concis que
 celui du C mais d'un niveau plus haut que celui des langages
@@ -830,7 +847,7 @@ Notre implémentation comprend :
 \end{itemize}
 
 Une utilisation classique de notre implémentation ressemble donc à
-l'appel suivant :
+l'appel suivant (avec esbmc\cite{ESBMC} est utilisé en backend) :
 
 \begin{lstlisting}
 ~ ./baProduct.py -i test.c -s test.spec
