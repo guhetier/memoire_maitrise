@@ -856,3 +856,120 @@ l'appel suivant (avec esbmc\cite{ESBMC} est utilisé en backend) :
 
 Le code de ces outils et une série de tests sont disponible à {[}TODO:
 mettre sur github, ajouter adresse{]}
+
+\section{Résultats expérimentaux}
+
+Afin de tester notre approche, nous avons mis en place une suite de tests
+permettant d'évaluer les performances de vérification du code instrumenté avec
+plusieurs model-checkers. Les tests mettent en jeu des erreurs liées au
+non-determinisme de contrôle (i.e les différents entrelacements possibles dans
+le système). Ils modélisent des versions très simplifiées de systèmes usuels,
+parmi lesquels un feux tricolore, un système producteur-consomateur ou un
+système d'alimentation.
+
+Nous avons réalisé les tests sur un ordinateur muni de 6~Go de RAM, équipé d'un
+processeur Intel Core i7 (4 coeurs cadencé à 3,7GHz), sous Fedora~25 (64 bits).
+Nous avons utilisé CBMC\cite{CBMC} version~5.7 et ESBMC\cite{ESBMC} version~4.2.
+ESBMC nécessite une borne sur le nombre de changement de contextes, que nous
+avons fixé à 3, sauf pour le test \emph{prod\_cons\_simple}, où elle est de 7
+(en raison d'un plus grand nombre de threads). En présence de boucles, nous
+avons limité l'exploration à trois itérations.
+
+CBMC et ESBMC étant des model-checkers bornés, ils se combinent très bien avec
+notre approche, qui exige une exécution finie. Nous avons tenté, d'utiliser
+d'autres types de model-checker pour effectuer les taches de vérification (en
+particulier Threader, Divine et Lazy CSeq). Cependant, ces essais n'ont pas été
+fructueux. Nous avons rencontré des difficultés techniques lors de
+l'installation ou la compilation de ces outils, ainsi que des erreurs de parsing
+du code instrumenté. Pour Threader, l'incompatibilité vient de l'approche
+choisie : Threader ne considère pas de fonction \texttt{main} dans un programme
+et vérifie uniquement les threads alors que notre transformation nécessite qu'un
+programme commence et se termine dans la fonction \texttt{main}.
+
+Les tableaux\ref{tbl:resultats} et~\ref{tbl:performances} présentent les
+résultats que nous avons obtenus.
+
+\begin{table}[]
+\centering
+\caption{Résultats de la vérification d'un benchmark instrumenté par baProduct}
+\label{tbl:resultats}
+\begin{tabular}{|l|l|l|l|}
+\hline
+Scénario de test           & CBMC                 & ESBMC            & Résulat attendu \\
+\hline
+answer\_simple             & ERROR MAYBE          & ERROR MAYBE      & ERROR MAYBE     \\
+answer\_simple\_valid      & \textbf{ERROR MAYBE} & VALID MAYBE      & VALID MAYBE     \\
+battery\_simple            & ERROR SURE           & ERROR SURE       & ERROR SURE      \\
+battery\_var               & ERROR SURE           & \textbf{*}\footnote{Erreur à l'exécution}& ERROR SURE      \\
+crossing\_exclusive\_green & VALID MAYBE          & VALID MAYBE      & VALID MAYBE     \\
+crossing\_exclusive\_mutex & VALID MAYBE          & VALID MAYBE      & VALID MAYBE     \\
+crossing\_GF\_green        & ERROR MAYBE          & ERROR MAYBE      & ERROR MAYBE     \\
+crossing\_order            & VALID MAYBE          & VALID MAYBE      & VALID MAYBE     \\
+prod\_cons\_mutex          & VALID MAYBE          & VALID MAYBE      & VALID MAYBE     \\
+prod\_cons\_simple         & ERROR SURE           & \textbf{VALID SURE} & ERROR SURE      \\
+race                       & ERROR MAYBE          & ERROR MAYBE      & ERROR MAYBE     \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[]
+\centering
+\caption{Performances pour la vérification d'un benchmark instrumenté par baProduct}
+\label{tbl:performances}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+                           & \multicolumn{2}{c|}{CBMC} & \multicolumn{2}{c|}{ESBMC}\\
+Scénario de test           & Temps (s) & Mémoire (MB) & Temps (s) & Mémoire (MB) \\
+\hline
+answer\_simple             & 0.87      & 42           & 5.57      & 56           \\
+answer\_simple\_valid      & 0.81      & 41           & 12.91     & 72           \\
+battery\_simple            & 1.07      & 42           & 13.95     & 61           \\
+battery\_var               & 666.04    & 954          & N/A       & OOM          \\
+crossing\_exclusive\_green & 2.93      & 44           & 32.12     & 119          \\
+crossing\_exclusive\_mutex & 1.73      & 44           & 32.20     & 120          \\
+crossing\_GF\_green        & 1.99      & 46           & 41.70     & 117          \\
+crossing\_order            & 1.02      & 40           & 11.62     & 56           \\
+prod\_cons\_mutex          & 10,046.32 & 593          & 229,99    & 28           \\
+prod\_cons\_simple         & 1.70      & 52           & 454.00    & 2711         \\
+race                       & 1.08      & 41           & 5.65      & 28           \\
+\hline
+\end{tabular}
+\end{table}
+
+Comme on peut le constater dans le tableau~\ref{tbl:resultats}, CBMC et ESBMC
+permettent généralement de mener à bien la tâche de vérification et de trouver
+un résultat correct. On observe cependant quelques erreurs. CBMBC indique une
+erreur possible dans un test valide, alors que ESBMC ne détecte pas une erreur
+dans un test incorrect. ESBMC échoue aussi sur le test \emph{battery\_var} après
+avoir consommé l'ensemble de la mémoire disponible.
+
+Les résultats attendus et ceux fournis par les model-checkers sont généralement
+incertains (\texttt{MAYBE}). Cela est normal, puisque on considère des
+propriétés de sûreté ou d'accessibilité sur des programmes finis, pour
+lesquelles on ne peut pas conclure de manière certaine. Le fait de savoir que le
+programme a complètement terminé son exécution dans ces cas permet de rendre le
+verdict définitif.
+
+Pour les mesures de performances, nous ne tenons compte que du temps utilisé par
+le model-checker pour vérifier le fichier instrumenté. Le temps pris par
+l'instrumentation est négligeable (moins d'une seconde). Si plusieurs passes de
+vérification sont nécessaires pour s'assurer qu'une assertion n'en masque pas
+une autre, nous considérons la somme des temps d'exécution. Le
+tableau~\ref{tbl:performances} permet de constater que CBMC est bien plus
+efficace sur ce benchmark que ESBMC. Nous interprétons cet écart de performances
+par la manière dont ces deux model-checkers prennent en charge la concurrence.
+CBMC construit une unique formule représentant tous les entrelacement, qu'il
+délègue ensuite à un SAT solveur, alors que ESBMC explore les entrelacements de
+manière explicite. Les erreurs dans nos tests sont principalement basées sur un
+entrelacement particulier des threads, ce qui est plus compatible avec
+l'approche de CBMC. On peut cependant noter une très bonne performance de ESBMC
+sur le test \emph{prod_cons_mutex}, sur lequel CBMC est extrêmement lent. Dans
+ce cas, ESBMC a probablement eu la chance d'explorer rapidement un entrelacement
+permettant de conclure.
+
+
+\section{Limitations et pistes d'amélioration}
+
+- pas de support des pointeurs (mais pourrait etre ajouté)
+- performances
+- pertes de précision possibles
