@@ -963,13 +963,65 @@ délègue ensuite à un SAT solveur, alors que ESBMC explore les entrelacements 
 manière explicite. Les erreurs dans nos tests sont principalement basées sur un
 entrelacement particulier des threads, ce qui est plus compatible avec
 l'approche de CBMC. On peut cependant noter une très bonne performance de ESBMC
-sur le test \emph{prod_cons_mutex}, sur lequel CBMC est extrêmement lent. Dans
+sur le test \emph{prod\_cons\_mutex}, sur lequel CBMC est extrêmement lent. Dans
 ce cas, ESBMC a probablement eu la chance d'explorer rapidement un entrelacement
 permettant de conclure.
 
+\section{Limitations et pistes d'améliorations}
 
-\section{Limitations et pistes d'amélioration}
+La transformation de source à source et l'outil que nous présentons dans ce
+chapitre restent limités. Parmi ces limitations, nous pensons que certaines
+pourrait être surmontées relativement facilement par des travaux futurs qui
+sortaient du cadre de cette maîtrise. D'autres limitations sont liées au choix
+de construire une instrumentation du code plutôt qu'étendre directement un
+model-checker. Elles pourraient donc être contournées en changeant d'approche.
+Enfin, certaines sont des problèmes plus complexes et difficile à surmonter.
 
-- pas de support des pointeurs (mais pourrait etre ajouté)
-- performances
-- pertes de précision possibles
+La principale limitation de notre travail est qu'il sont limité à l'analyse de
+programmes dont toutes les traces terminent, afin que les appels à la fonction
+d'analyse des résultats soient examinés. Cette restriction est inhérente à une
+instrumentation, une extension d'un model-checker ne rencontrerai pas ce
+problème : l'état final de l'automate peut être examinée une fois l'exploration
+du système terminés, qu'il contienne ou non des traces infinies.
+
+Nous n'avons pas abordé la question des accès indirects aux variables (à travers
+un pointeur ou un tableau par exemple). Ces derniers pourraient être pris en
+charge à l'aide d'une instrumentation plus lourde, se basant sur un analyse
+statique des cibles possibles des pointeurs et procédant ensuite par disjonction
+de cas.
+
+Notre instrumentation provoque potentiellement des pertes de précision dans la
+vérification, en introduisant des chemins dans le programme instrumenté qui
+n'étaient pas présent dans le programme initial. Ce phénomène est présent à
+l'entrée des zones de validité, où l'instrumentation ne peut être regroupée dans
+un bloc atomique avec l'instruction la précédent immédiatement dans une
+exécution. Cette perte de précision ne nous à pas posé de problème au cours de
+nos tests. Une procédure de vérification de notre spécification directement
+intégrée dans un model-checker ne rencontrerai probablement pas cette perte de
+précision.
+
+Nous n'avons pas recherché à optimiser les performances de notre outil ou à
+lutter contre l'explosion combinatoire. En particulier, nous n'utilisons pas de
+techniques de réduction ou d'ordre partiels dans notre instrumentation. Celles
+utilisées par les model-checkers en backend n'ont pas connaissance de la logique
+de l'instrumentation et de la spécification, ce qui peut limiter leur
+efficacité. Une extension à notre travail serait de mettre en place des
+technique de réduction tenant compte de la spécification et de l'instrumentation
+afin de limiter l'exploration de chemins d'exécution équivalents. Rendre
+atomiques les zones du programmes sans impact sur les valeur des propositions
+atomiques pourrait être un premier pas. Une autre approche pourrait être de
+restreindre l'automate de Büchi composé avec le système afin d'éviter
+l'exploration de branches entières de l'arbre des exécutions. La vérification ne
+serait cependant plus complète, mais certaines erreurs pourrait être détectées
+plus efficacement. Il est déjà possible de restreindre manuellement l'automate
+de Büchi dans le code instrumenté.
+
+Nous n'apportons pas de solution au problème de désignation des variables
+locales, dans le cas où plusieurs instances d'une même variable lexicale
+cohabitent. Intégrer l'approche choisie par Divine\cite{Divine_LTL} pourrait
+constituer une solution partielle.
+
+Enfin, notre formalisme de spécification reste très verbeux, ce qui nuit à sa
+clarté. Mettre en place une syntaxe plus concise afin de rassembler les
+constituants d'une proposition atomique permettrai une lecture plus simple d'une
+spécification.
