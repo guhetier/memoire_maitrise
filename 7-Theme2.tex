@@ -417,65 +417,6 @@ réunies dans le même bloc atomique. La fonction de transition n'est
 appelée qu'une seule fois, après l'actualisation de toutes les
 propositions atomiques.
 
-Cependant, cette instrumentation des frontières des zones de validité
-provoque tout de même une perte de précision. L'entrée dans une zone de
-validité correspond à l'instant où le pointeur d'exécution pointe sur
-l'instruction portant le label d'entrée, i.e le moment ou cette
-instruction est susceptible d'être exécutée. Le pointeur d'exécution est
-mis à jour immédiatement après l'exécution de l'instruction précédent
-l'entrée dans la zone, avant tout changement de contexte. Par
-conséquent, l'instrumentation devrait avoir lieu immédiatement après
-cette instruction, sans permettre un changement de contexte, mais ce
-n'est pas le cas dans notre instrumentation.
-
-Illustrons cela sur un exemple.
-
-\begin{lstlisting}[language=C]
-instr1;
-begin: instr2;
-end: instr3;
-\end{lstlisting}
-
-Dans ce fragment de code, dès que l'instruction \texttt{instr1} est
-exécutée, le pointeur d'exécution pointe sur l'instruction
-\texttt{instr2}. On est donc immédiatement dans la zone de validité
-délimitée par les labels \texttt{begin} et \texttt{end}, et il
-n'est pas possible d'effectuer un changement de contexte après
-\texttt{instr1} mais avant d'entrer dans la zone de validité.
-
-Cependant, après instrumentation, on obtient :
-
-\begin{lstlisting}[language=C]
-instr1;
-{intrumentation;}
-begin: instr2;
-{instrumentation;}
-end: instr3;
-\end{lstlisting}
-
-L'entrée dans la zone de validité n'est réalisée qu'une fois que
-l'instrumentation a été exécutée et que la valeur des propositions
-atomiques a donc été recalculée. Il est donc maintenant possible de
-réaliser un changement de contexte après \texttt{instr1}, mais avant
-d'entrer dans la zone de validité : un nouveau chemin d'exécution a été
-créé.
-
-Pour éviter cette perte de précision, il serait nécessaire de rendre
-atomique l'instruction \texttt{instr1} et le code d'instrumentation.
-Ceci est extrêmement compliqué dans le cadre d'une instrumentation du
-code. En effet, l'instruction qui précède un label n'est pas facilement
-identifiable et peut varie selon l'exécution et selon les branchements
-du programme. De plus, sans dépliage du code, une même instruction peut
-précéder l'entrée ou la sortie d'une zone certaines fois mais pas
-systématiquement (instruction en fin de boucle ou de fonction). Dans le
-cadre d'une instrumentation du code, nous n'avons aucune solution face à
-cette perte de précision. Une implémentation intégrée à un model-checker
-serait nécessaire.
-
-On peut cependant noter que les assertions utilisées de manière
-classique permettent elles aussi ce changement de contexte immédiatement
-avant elles, ce qui n'a généralement pas de conséquences.
-
 \subsection{Variables locales}
 
 Passons à la seconde raison pouvant amener à modifier la valeur d'une
