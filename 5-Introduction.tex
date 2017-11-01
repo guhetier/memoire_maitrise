@@ -194,16 +194,14 @@ de conclure : une erreur est possible, mais elle n'est pas certaine.
 
 En pratique, l'interprétation abstraite est souvent utilisée pour
 vérifier des propriétés génériques, intégrées dans les outils
-(\emph{built-in}). L'interprétation abstraite est une technique qui
+(\emph{built-in}). C'est une technique qui
 passe bien à l'échelle et qui peut analyser de large base de code. Des
 propriétés typiquement vérifiées sont l'absence d'erreurs arithmétiques,
 l'absence de variables utilisées avant d'être initialisées, ou le
 respect des bornes des tableaux.
 
-(\textbf{TODO: donner quelques outils et leur domaine de vérification})
-
 Cependant, l'interprétation abstraite souffre de deux principaux défaut
-: tout d'abord, les approximations réalisée peuvent provoquer de
+: tout d'abord, les approximations réalisées peuvent provoquer de
 nombreux faux positifs, signalant une erreur éventuelle dans un code
 correct. La précision de l'analyse peut être parfois être améliorée en
 choisissant un domaine abstrait plus raffiné, mais cela a généralement

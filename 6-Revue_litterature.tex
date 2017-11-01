@@ -430,10 +430,8 @@ propriété portant sur les états du système.
   propriété d'accessibilité : en un temps fini, un état vérifiant la
   propriété \(p\) est atteint.
 \item
-  propriété de vivacité : à partir de tout les états de la trace, on
+  propriété d'équité : à partir de tout les états de la trace, on
   atteindra en temps fini un état vérifiant la propriété \(p\).
-\item
-  propriété d'équité : TODO
 \end{itemize}
 
 Les logiques temporelles les plus utilisées sont : \acl{LTL} (\ac{LTL})
@@ -446,16 +444,17 @@ d'exécution respectent la propriété. \ac{CTL} considère l'ensemble des trace
 comme un arbre et permet, à chaque noeud, de quantifier universellement
 ou existentiellement sur ses successeurs.
 
-Le pouvoir d'expressivité de \ac{LTL} et \ac{CTL} n'est ni équivalent, ni même comparable.
-En effet, \ac{LTL} ne permet pas de quantifier existentiellement : une formule \ac{CTL}
-utilisant une quantification existentielle n'a donc pas d'équivalent en \ac{LTL}. La
-réciproque peut être présentée à l'aide de la propriété \ac{LTL} \(F (p \land X p)\)
-(pour toutes les traces, on atteint un état vérifiant \(p\) et dont le
-successeur vérifie \(p\)) n'a pas d'équivalent dans \ac{CTL}. La formule \ac{CTL} \(AF (p
-\land AX p)\) (quelque soit le chemin emprunté, on atteint un état vérifiant
-\(p\) et dont tout les successeurs vérifient \(p\)) pourrait sembler un bon
-candidat, mais la Figure \ref{LTL_vs_CTL} présente un modèle vérifiant
-\(F (p \land X p)\) mais ne vérifiant pas \(AF (p \land AX p)\).
+Le pouvoir d'expressivité de \ac{LTL} et \ac{CTL} n'est ni équivalent, ni même
+comparable. En effet, \ac{LTL} ne permet pas de quantifier existentiellement :
+une formule \ac{CTL} utilisant une quantification existentielle n'a donc pas
+toujours d'équivalent en \ac{LTL}. La réciproque peut être présentée à l'aide de
+la propriété \ac{LTL} \(F (p \land X p)\) (pour toutes les traces, on atteint un
+état vérifiant \(p\) et dont le successeur vérifie \(p\)) n'a pas d'équivalent
+dans \ac{CTL}. La formule \ac{CTL} \(AF (p \land AX p)\) (quelque soit le chemin
+emprunté, on atteint un état vérifiant \(p\) et dont tout les successeurs
+vérifient \(p\)) pourrait sembler un bon candidat, mais la Figure
+\ref{LTL_vs_CTL} présente un modèle vérifiant \(F (p \land X p)\) mais ne
+vérifiant pas \(AF (p \land AX p)\).
 
 \begin{figure}
 \begin{center}
@@ -465,18 +464,16 @@ candidat, mais la Figure \ref{LTL_vs_CTL} présente un modèle vérifiant
 \end{center}
 \end{figure}
 
-Par la suite, nous allons nous concentrer sur \ac{LTL}, car cette logique est
-plus utilisée dans le cadre du model-checking logiciel.
-
-\textbf{TODO} : Justifier. Voir articles utilisé dans la thèse de
-J.Morse
+\ac{CTL} est considérée comme plus difficile à comprendre par les ingénieurs,
+plus habitué à penser à une unique exécution linéaire plutôt qu'à un arbre
+d'exécution\cite{RCTL_formulas}. \ac{CTL} est par conséquent moins utilisée que
+\ac{LTL} dans le cadre du model-checking logiciel. Par la suite, nous allons
+donc nous concentrer sur \ac{LTL} uniquement.
 
 \subsection{LTL : Logique Temporelle Linéaire}
 
-\textbf{TODO} : référence
-
-La définition de \ac{LTL} ajoute deux opérateurs temporels à la logique
-classique, \(next\) (\(X\)) et \(until\) (\(U\)). La syntaxe d'une
+La définition de \ac{LTL}\cite{pnueli_LTL} ajoute deux opérateurs temporels à la
+logique classique, \(next\) (\(X\)) et \(until\) (\(U\)). La syntaxe d'une
 formule \ac{LTL} est définie de la manière suivante, pour \(\phi\) et \(\psi\)
 deux formules \ac{LTL} :
 
@@ -654,11 +651,11 @@ transitions du modèle et l'automate de Büchi représentant la \emph{négation}
 modèle qui ne respectent pas \(\phi\), soit \(L\).
 
 Il suffit alors d'explorer l'automate produit. Si il est possible de, à partir
-de l'état initial, atteindre un cycle contenant un état final, alors, \(L\)
-n'est pas vide : il contient au moins le mot composé par l'étiquette du chemin
-allant jusqu'au cycle et d'une infinité de répétition de l'étiquette du cycle.
-Ce correspond à une exécution du système qui viole la propriété \(\phi\), et
-pourra être servir de contre-exemple à l'utilisateur.
+de l'état initial, atteindre un cycle contenant au moins un état final, alors,
+\(L\) n'est pas vide : il contient au moins le mot composé par l'étiquette du
+chemin allant jusqu'au cycle et d'une infinité de répétition de l'étiquette du
+cycle. Ce correspond à une exécution du système qui viole la propriété \(\phi\),
+et pourra être servir de contre-exemple à l'utilisateur.
 
 L'encodage de propriétés \ac{LTL} à l'aide des automates de Büchi permet ainsi de
 vérifier des propriétés complexes sur les modèles. Cependant, la taille d'un
@@ -938,7 +935,7 @@ indique la valeur de la fonction pour cette valuation.
 
 Pour notre exemple, nous obtenons l'arbre de la Figure \ref{fig:BDD_tree}.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
 \begin{center}
   \includegraphics[height=0.3\textheight]{BDD_tree.png}
 \end{center}
@@ -1293,7 +1290,7 @@ il peut être plus lent qu'une méthode classique dans les autres cas.
 CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
 BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
 (\emph{Configurables program analysis}). Un CPA définit un domaine abstrait
-(\ac{BDDs}, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
+(\ac{BDD}, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
 de mener une analyse d'accessibilité sur une combinaison arbitraire de CPAs. La
 concurrence est prise en charge à l'aide d'un CPA qui définit une exploration
 explicite des entrelacements\cite{CPAChecker_multithread}. De manière similaire
