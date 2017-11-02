@@ -42,11 +42,15 @@ UL-CSeq    & $\checkmark$ &              &              &              &        
 
 \Annexe{Exemple de spécification}
 
+Dans cette annexe, nous présentons un exemple détaillé de spécification et de
+vérification d'un problème simple à l'aide de baProduct. Nous détaillons les
+étapes intermédiaires.
+
 Considérons le problème suivant : un système contient deux batteries. Les
-batteries se vident et chacune est changée lorsqu'elle est épuisée. Tant qu'une
-des batteries est présente, le système fonctionne. Cependant, si les deux
-batteries sont vides en même temps, le système n'a plus d'énergie et cesse de
-fonctionner.
+batteries se vident simultanément au fil de l'utilisation. Lorsqu'une batterie
+est épuisée, elle est remplacée. Une batterie est suffisante pour que le système
+fonctionne, cependant, si les deux batteries sont vides en même temps, le
+système n'a plus d'énergie et cesse de fonctionner.
 
 Un tel système peut être modélisé par le code ci-dessous. Deux threads,
 \texttt{battery1} et \texttt{battery2} contrôlent le rythme auquel les
@@ -54,25 +58,26 @@ batteries se vident. Le pourcentage d'énergie dans la batterie est représenté
 par la variable \texttt{energy}. Celle-ci est décrémentée dans une
 boucle, ce qui représente la consommation de l'énergie, avant d'être remise à
 une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
-aucune synchronisation n'existe entre les threads. L'état d'erreur peut donc
-évidement avoir lieu. Nous allons tout de même essayer de détecter cette erreur
-à l'aide d'un model-checker logiciel.
-
-La propriété que nous souhaitons vérifier est que, quelque soit
-l'exécution, les deux batteries ne seront jamais simultanément vide : il
-s'agit donc d'un problème d'exclusion mutuelle. Afin d'exécuter la
-vérification, il va tout d'abord être nécessaire de spécifier cette
-propriété.
+aucune synchronisation n'existe entre les threads.
+On peut aussi noter que la boucle principale des threads ne s'exécute que trois
+fois, afin que la trace soit finie. Dans un cas d'utilisation réel, on
+utiliserai une boucle infinie et les options du model-checker permettrai de
+limiter le nombre de dépliage, mais pour des raisons de simplicité, nous codons
+directement ce comportement.
 
 \noindent\begin{minipage}{.45\textwidth}
 \begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 void* battery1(void* d) {
-  int energy = 100;
-  while(1) {
+  int energy;
+  int i;
+  // Initialization
+  energy = 10;
+  for(i=0; i<3; i++) {
     // Empty the battery
-    for(; energy>0; energy--);
+    while (energy > 0)
+        energy--;
     // Replace the battery
-    energy = 100;
+    energy = 10;
   }
   pthread_exit(NULL);
 }
@@ -81,179 +86,276 @@ void* battery1(void* d) {
 \begin{minipage}{.45\textwidth}
 \begin{lstlisting}[language=C, frame=single, caption=Thread 2]
 void* battery2(void* d) {
-  int energy = 100;
-  while(1) {
+  int energy;
+  int i;
+  // Initialization
+  energy = 10;
+  for(i=0; i<3; i++) {
     // Empty the battery
-    for(; energy>0; energy--);
+    while (energy > 0)
+        energy--;
     // Replace the battery
-    energy = 100;
+    energy = 10;
   }
   pthread_exit(NULL);
 }
 \end{lstlisting}
 \end{minipage}
 
-Comme nous l'avons vu dans l'état de l'art, la principale limitation du
-model-checking est actuellement l'explosion combinatoire. Les outils de
-model-checking pour des logiciels concurrents restreignent le type de
-propriétés qu'ils vérifient pour optimiser leurs performances. Ainsi, la
-plupart de ces outils ne permettent de vérifier que des propriétés
-exprimées à l'aide d'assertions.
+Pour s'assurer que le système fonctionne correctement, on souhaite s'assurer que
+une des deux batteries a toujours un niveau d'énergie supérieur à 10\%, une fois
+le système initialisée.
 
-Dans un premier temps, nous allons donc spécifier notre propriété par
-des assertions.
-
-Cependant, sans modification du code, des assertions ne permettent pas
-de spécifier une exclusion mutuelle. Nous allons donc rajouter une
-variable indicatrice, qui va signaler lorsque un pointeur d'exécution
-est dans une des zones critiques (c'est à dire lorsque la batterie est
-en remplacement).
-
-On obtient alors le code suivant :
+Nous allons tout d'abord spécifier cette propriété sur le système. Pour cela, on
+délimite tout d'abord les zones de validités. L'initialisation des batteries ne
+doit pas en faire partie, mais la boucle principale du programme y est incluse.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
-int critical = 0;
+\begin{lstlisting}[language=C, frame=single, caption=Thread 1 avec labels]
 void* battery1(void* d) {
-  int energy = 100;
-  while(1) {
+  int energy;
+  int i;
+  energy = 10;
+b1: for(i=0; i<3; i++) {
     // Empty the battery
-    for(; energy>0; energy--);
+    while (energy > 0)
+        energy--;
     // Replace the battery
-    assert(critical != 1);
-    critical = 1;
-    energy = 100;
-    critical = 0;
+    energy = 10;
   }
-  pthread_exit(NULL);
+e1: pthread_exit(NULL);
 }
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 2]
-
+\begin{lstlisting}[language=C, frame=single, caption=Thread 2 avec labels]
 void* battery2(void* d) {
-  int energy = 100;
-  while(1) {
+  int energy;
+  int i;
+  energy = 10;
+b2: for(i=0; i<3; i++) {
     // Empty the battery
-    for(; energy>0; energy--);
+    while (energy > 0)
+        energy--;
     // Replace the battery
-    assert(critical != 1);
-    critical = 1;
-    energy = 100;
-    critical = 0;
+    energy = 10;
   }
-  pthread_exit(NULL);
+e2: pthread_exit(NULL);
 }
 \end{lstlisting}
 \end{minipage}
 
-% Cette instrumentation souffre cependant d'un problème : les instructions
-% supplémentaires créent de nouveaux chemins d'exécutions. Ces chemins
-% n'existent pas dans le programme d'origine et pourraient permettre
-% d'atteindre des états auparavant inaccessibles. Ce n'est heureusement
-% pas le cas ici. Nous reviendrons plus tard {[}TODO: indiquer où{]} sur
-% ce problème.
+On définit ensuite les fonctions d'évaluation. Ici, nous allons utiliser deux
+propositions atomiques, chacune indiquant si une batterie est a un niveau
+d'énergie faible. Cependant, une seule fonction d'évaluation est nécessaire
+puisque les deux propositions atomiques s'évaluent selon la même formule.
 
-L'utilisation de ces variables indicatrices définit des états (dans et
-hors de la zone critique pour chaque thread), qui peuvent rappeler la
-structure d'un automate de Büchi associé à la propriété ``l'exclusion
-mutuelle est toujours respectée''.
-
-D'autres exemples --- tels que ``une \emph{assertion} doit être atteinte
-avant une autre pour qu'une erreur soit présente'' --- nécessitent aussi
-d'instrumenter le code à l'aide de variables indicatrices. De manière
-similaire, ces variables définissent des états et une évolution entre
-ces états qui rappelle la construction d'un automate de Büchi.
-
-Quitte à construire cet automate de Büchi, pourquoi ne pas spécifier nos
-propriétés en utilisant directement LTL ? Les propriétés LTL sont fréquemment
-représentée par des automates de Büchi par les algorithmes de model-checking, on
-pourrait ainsi déléguer la construction de l'automate au model-checker.
-On réduit ainsi le risque d'introduire des erreurs dans la construction de cet
-automate et son intégration dans le modèle, tout en profitant de la syntaxe plus
-simple de LTL.
-
-Cependant, les outils de model-checking logiciel supportant le C restreignent
-généralement les propositions atomiques des formules LTL qu'ils vérifient à des
-expressions pures (sans effet de bord) du C, ne faisant référence qu'à des
-variables globales. On ne peut donc pas mentionner directement une variable
-locale ou une position du programme dans ces spécifications.
-
-Tentons donc de spécifier notre modèle à l'aide d'une formule LTL. Deux
-options sont possibles. La première consiste à vérifier que les deux
-batteries ne sont pas vide en même temps, c'est à dire que les variables
-\texttt{energy} des threads \texttt{battery1} et
-\texttt{battery2} ne valent pas \texttt{0} simultanément. Mais les
-variables \texttt{energy} sont des variables locales : la
-plupart des outils ne permettent pas de les mentionner dans une formule
-LTL. On peut aussi considérer que les opérations de changement de
-batterie ne doivent pas avoir lieu simultanément, en définissant deux
-zones mutuellement exclusives. Mais les outils ne permettent
-généralement pas de mentionner une position dans le code.
-
-Spécifier le problème en utilisant LTL ne permet donc pas de se libérer
-d'une instrumentation manuelle. Il est nécessaire d'introduire des
-variables supplémentaires pour rendre accessibles les variables locales
-ou pour délimiter les zones critiques.
-
-Dans notre exemple, on pourrait alors rajouter deux variables booléennes
-\texttt{c1} et \texttt{c2} pour représenter les propositions atomiques
-``être dans une zone critique''. La spécification serait alors
-la formule \(G \lnot (c1 \land c2)\), pour le code instrumenté suivant.
-
-\noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
-int c1;
-int c2;
-void* battery1(void* d) {
-  int energy = 100;
-  while(1) {
-    // Empty the battery
-    for(; energy>0; energy--);
-    // Replace the battery
-    c1 = 1;
-    energy = 100;
-    c1 = 0;
-  }
-  pthread_exit(NULL);
+\begin{lstlisting}[language=C, frame=single, caption=Fonction d'évaluation]
+int low_power(int energy) {
+  return energy < 3;
 }
 \end{lstlisting}
-\end{minipage}\hfill
-\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
 
+Il ne reste alors qu'à exprimer la spécification en elle même.
 
-void* battery2(void* d) {
-  int energy = 100;
-  while(1) {
-    // Empty the battery
-    for(; energy>0; energy--);
-    // Replace the battery
-    c2 = 1;
-    energy = 100;
-    c2 = 0;
-  }
-  pthread_exit(NULL);
+\begin{lstlisting}[frame=single, caption=Spécification]
+{ "ltl": "G(! (p1 && p2))",
+  "pa": [
+    {"name": "p1",
+      "default": false,
+      "expr": "low_power",
+      "span": ["b1", "e1"],
+      "params": ["battery1::energy"]
+    },
+    { "name": "p2",
+      "default": false,
+      "expr": "low_power",
+      "span": ["b2", "e2"],
+      "params": ["battery2::energy"]
+    }
+  ]
 }
 \end{lstlisting}
-\end{minipage}
 
-Cependant, utiliser des variables indicatrices revient à introduire une
-instrumentation manuelle dans le code. Cela peut introduire des
-différences entre le modèle et le système initial, et donc provoquer des
-faux positifs ou des faux négatifs lors de la vérification.
+On utilise alors baProduct pour instrumenter ce code. On utilise pour pour cela
+la commande \texttt{baProduct.py -i battery.c -s battery.spec}. Cette commande
+réalise tout d'abord un appel à LTL2BA afin de générer l'automate correspondant
+à la négation de la formule LTL (étape 1 dans la
+Figure~\ref{fig:baProduct_func}). On obtient l'automate en
+Figure~\ref{fig:ba_battery}.
 
-Cet exemple nous a permis de mettre en évidence certaines limites des mécanismes
-de spécification actuellement utilisé par les outils de model-checking logiciel
-actuels. Les assertions ne sont pas adaptées pour vérifier des propriétés
-faisant intervenir plusieurs threads ou des notions temporelles. Peut d'outils
-supportent les logiques temporelles, et lorsque c'est le cas, des modifications
-des modèle sont nécessaire en raison des restrictions imposées sur la
-définitions des propositions atomiques.
+\begin{figure}[ht]
+\begin{center}
+  \includegraphics[height=0.2\textheight]{ba_battery.png}
+\end{center}
+\caption{Automate de Büchi généré par LTL2BA pour la spécification des
+batteries.}
+\label{fig:ba_battery}
+\end{figure}
 
-Dans cette partie, nous présentons un nouveau formalisme de spécification, basé
-sur LTL. Notre objectif est de permettre de spécifier d'avantage de propriétés
-sans qu'il soit nécessaire d'instrumenter manuellement le programme à vérifier.
-Pour ce faire, nous nous concentrons sur le support des variables locales et la
-possibilité d'utiliser des positions du code dans la spécification.
+Cet automate est ensuite représenté en C. On obtient le code suivant (on suppose
+ici que CBMC va être utilisé comme backend).
+
+\begin{lstlisting}[language=C, frame=single, caption=Automate encodé en C]
+// Current values of atomic propositions
+int _ltl2ba_atomic_p1 = 0;
+int _ltl2ba_atomic_p2 = 0;
+// Is a proposition atomic in its validity area ?
+int _ltl2ba_active_p1 = 0;
+int _ltl2ba_active_p2 = 0;
+// In a validity area, point to local variables
+// used in evaluation functions
+int *_ltl2ba_pointer_thread2_energy = 0;
+int *_ltl2ba_pointer_thread1_energy = 0;
+// Current state of the automaton
+int _ltl2ba_state_var = 0;
+
+// Transition function of the automaton
+void _ltl2ba_transition() {
+  int choice = nondet_uint(); // Choose a transition
+  switch (_ltl2ba_state_var) {
+  case 0: // Transitions from state 0
+    if (choice == 0) {
+      __CPROVER_assume(_ltl2ba_atomic_p1 && _ltl2ba_atomic_p2);
+      _ltl2ba_state_var = 1;
+    } else if (choice == 1) {
+       __CPROVER_assume(1);
+       _ltl2ba_state_var = 0;
+    } else {
+       __CPROVER_assume(0);
+    }
+    break;
+  case 1: // State one is an accepting pit
+    __CPROVER_assert(0, "ERROR_SURE");
+    break;
+  }
+}
+
+// Precalculated results for stutter acceptance
+int _ltl2ba_surely_reject[2] = {0, 0};
+int _ltl2ba_surely_accept[2] = {0, 1};
+int _ltl2ba_stutter_accept[8] = {0, 1, 0, 1, 0, 1, 1, 1,};
+
+int _ltl2ba_sym_to_id() {
+  int id = 0;
+  id |= (_ltl2ba_atomic_p2 << 1);
+  id |= (_ltl2ba_atomic_p1 << 0);
+  return id;
+}
+// Raise an assertion according to the final state
+void _ltl2ba_result() {
+  // The automaton accept the word, whatever the suffix
+  int reject_sure = _ltl2ba_surely_accept[_ltl2ba_state_var];
+  __CPROVER_assert(!reject_sure, "ERROR SURE");
+  // The automaton accept the word in stutter-extension semantic
+  int id = _ltl2ba_sym_to_id();
+  int accept_stutter =_ltl2ba_stutter_accept[id * 2
+                                             + _ltl2ba_state_var];
+  __CPROVER_assert(!accept_stutter, "ERROR MAYBE");
+  // The automaton does not surely reject the word
+  int valid_sure = _ltl2ba_surely_reject[_ltl2ba_state_var];
+  __CPROVER_assert(valid_sure, "VALID MAYBE");
+}
+\end{lstlisting}
+
+Le code est ensuite instrumenté pour construire le produit avec l'automate
+(étape 2 dans la Figure~\ref{fig:baProduct_func}).
+
+\begin{lstlisting}[language=C, frame=single, caption=Code instrumenté]
+void *battery1(void *d )
+{
+  int energy ;
+  int i;
+  energy = 10;
+  // Begining of validity area
+  // Open an atomic bloc
+  __CPROVER_atomic_begin();
+  _ltl2ba_pointer_thread1_energy = &energy;
+  _ltl2ba_atomic_p1 =
+      low_power(*_ltl2ba_pointer_thread1_energy);
+  _ltl2ba_active_p1 = 1;
+  _ltl2ba_transition();
+  __CPROVER_atomic_end();
+  b1: for(i=0; i<3; i++) {
+    while (energy > 0) {
+      // Variable modification
+      __CPROVER_atomic_begin();
+      energy--;
+      // Compute the new value of the atomic proposition
+      _ltl2ba_atomic_p1 =
+          low_power(*_ltl2ba_pointer_thread1_energy);
+      // Take a transition in the automaton
+      _ltl2ba_transition();
+      __CPROVER_atomic_end();
+    }
+    __CPROVER_atomic_begin();
+    energy = 10;
+    _ltl2ba_atomic_p1 =
+        low_power(*_ltl2ba_pointer_thread1_energy);
+    _ltl2ba_transition();
+    __CPROVER_atomic_end();
+  }
+  // End of validity area
+  __CPROVER_atomic_begin();
+  // Set the atomic proposition to the default value
+  _ltl2ba_atomic_p1 = 0;
+  // Desacivate the atomic proposition
+  _ltl2ba_active_p1 = 0;
+  // Take a transition in the automaton
+  _ltl2ba_transition();
+  __CPROVER_atomic_end();
+e1: pthread_exit(0);
+}
+void *battery2(void *d )
+{
+  int energy ;
+  int i;
+  energy = 10;
+  __CPROVER_atomic_begin();
+  _ltl2ba_pointer_thread2_energy = & energy;
+  _ltl2ba_atomic_p2 = low_power(*_ltl2ba_pointer_thread2_energy);
+  _ltl2ba_active_p2 = 1;
+  _ltl2ba_transition();
+  __CPROVER_atomic_end();
+  b2: for(i=0; i<3; i++) {
+    while (energy > 0) {
+      __CPROVER_atomic_begin();
+      energy--;
+      _ltl2ba_atomic_p2 =
+          low_power(*_ltl2ba_pointer_thread2_energy);
+      _ltl2ba_transition();
+      __CPROVER_atomic_end();
+    }
+    __CPROVER_atomic_begin();
+    energy = 10;
+    _ltl2ba_atomic_p2 =
+        low_power(*_ltl2ba_pointer_thread2_energy);
+    _ltl2ba_transition();
+    __CPROVER_atomic_end();
+  }
+  __CPROVER_atomic_begin();
+  _ltl2ba_atomic_p2 = 0;
+  _ltl2ba_active_p2 = 0;
+  _ltl2ba_transition();
+  __CPROVER_atomic_end();
+e2: pthread_exit(0);
+}
+int main(int argc , char **argv )
+{
+  pthread_t t1 ;
+  pthread_t t2 ;
+  pthread_create(&t1, 0, &battery1, 0);
+  pthread_create(&t2, 0, &battery2, 0);
+  pthread_join(t1, 0);
+  pthread_join(t2, 0);
+  __CPROVER_atomic_begin();
+  _ltl2ba_result();
+  __CPROVER_atomic_end();
+  return 0;
+}
+\end{lstlisting}
+
+Il ne reste plus qu'à vérifier ce code instrumenté à l'aide d'un model-checker.
+Ici, nous avons utilisé CBMC, à l'aide de la commande \texttt{cbmc
+  battery\_instr.c}. La sortie indique que l'assertion \texttt{ERROR\_SURE} a été
+violée : une erreur est donc détectée de manière certaine dans le code.
