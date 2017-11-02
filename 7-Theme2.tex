@@ -339,7 +339,7 @@ void _ltl2ba_result() {
 \end{lstlisting}
 
 Cet exemple permet de remarquer que le seul moyen de faire remonter un résultat
-est à travers une le déclenchement d'une assertion. La violation d'une assertion
+est à travers le déclenchement d'une assertion. La violation d'une assertion
 met fin à une trace, il est donc important d'ordonner les assertions de manière
 à ce que le résultat le plus fort soit le premier à être reporté pour ne pas
 qu'il soit masqué. De plus, certain model-checker arrêtent d'explorer le modèle
@@ -351,9 +351,10 @@ dans une trace future.
 \section{Instrumentation du code}
 
 Une fois l'automate implémenté, la seconde étape du processus est de construire
-le produit entre le système et l'automate. Cela est réalisé par une
-instrumentation du code, afin de maintenir à jour la valeur des propositions
-atomiques et d'appeler la fonction de transition de l'automate.
+le produit entre le système et l'automate(étape~2 dans la
+Figure~\ref{fig:baProduct_func}). Cela est réalisé par une instrumentation du
+code, afin de maintenir à jour la valeur des propositions atomiques et d'appeler
+la fonction de transition de l'automate.
 
 Afin de minimiser l'instrumentation, la valeur d'une propositions atomique est
 mise à jour uniquement lorsque un des paramètres dont elle dépend est modifiée
@@ -735,7 +736,7 @@ système instrumenté et de l'automate de Büchi peut être vérifié.
 
 \section{Vérification à l'aide d'un model-checker}
 
-Nous en sommes enfin à la dernière étape du processus présenté par la
+Nous en sommes enfin à l'étape~3 du processus présenté par la
 Figure~\ref{fig:baProduct_func}. Nous avons produit, à partir de la
 spécification et du code du système, un nouveau code spécifié par des
 assertions.
@@ -745,6 +746,13 @@ code va violer, il est possible de déterminer si le programme contient une
 erreur ou non. Le contre-exemple fournis par le model-checker permet de
 retrouver l'erreur dans le programme instrumenté, et donc, en ignorant les
 lignes ajoutée par l'instrumentation, dans le système d'origine.
+
+Certains model-checkers arrêtent l'exploration du système dès qu'une assertion
+est violée. Un résultat plus faible que le résultat attendu peut alors
+être remontée, si une trace violant l'assertion correspondant au résultat plus
+faible est explorée avant une trace prouvant le résultat plus fort. Il peut donc
+être nécessaire de réaliser plusieurs passes de vérification en désactivant
+certaines assertions pour s'assurer d'obtenir le résultat le plus fort.
 
 \section{Implémentation}
 
@@ -795,9 +803,11 @@ l'appel suivant (avec esbmc\cite{ESBMC} est utilisé en backend) :
 ~ esbmc --depth 100 test_instr.c
 \end{lstlisting}
 
-Le code de ces outils et une série de tests sont disponible à {[}TODO:
-mettre sur github, ajouter adresse{]}
-
+Le code de ces outils et une série de tests sont disponibles à sur Github, à
+l'adresse
+\href{https://github.com/xNephe/baProduct}{https://github.com/xNephe/baProduct}
+et
+\href{https://github.com/xNephe/ltl2ba}{https://github.com/xNephe/ltl2ba}.
 \section{Résultats expérimentaux}
 
 Afin de tester notre approche, nous avons mis en place une suite de tests
