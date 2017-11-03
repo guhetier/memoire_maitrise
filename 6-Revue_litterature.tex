@@ -44,7 +44,6 @@ automatisée.
 
 \subsection{Modèle}
 
-
 Le point caractéristique du model-checking est l'utilisation de
 \emph{modèles} des systèmes à vérifier. Un modèle est une représentation
 abstraite du système. Au lieu de vérifier un système directement, les techniques
@@ -103,6 +102,33 @@ d'une suite \(t_0, t_1, ... \in \rightarrow\) de transitions telles que
 
 Le model-checking consiste à examiner l'ensemble des traces
 d'exécution du modèle afin de vérifier si elles respectent la spécification.
+
+\subsection{Vocabulaire technique}
+
+Nous allons définir ici un certains nombre de termes liés au model-checking ou
+aux méthodes formelles de manière générale, que nous réutiliserons par la suite.
+
+\paragraph{Faux positif / Faux négatif}
+
+Lorsqu'un outil de vérification indique une erreur dans un système alors que ce
+dernier est en fait correct, on parle de \emph{faux positif}. À l'inverse, si un
+outil reporte un système comme correct alors qu'il contient une erreur, on parle
+de \emph{faux négatif}.
+
+\paragraph{Complet / Correct}
+
+Un outil ou une technique de vérification est complet si il est conçu de sorte à
+ne jamais faire de faux négatif : si une erreur existe dans un système, elle
+sera toujours signalée.
+
+Un outil ou une technique de vérification est correct si il est conçu de sorte à
+ne jamais faire de faux positif : si un système est valide, une erreur ne sera
+jamais signalée.
+
+Concevoir un outil à la fois complet et correct est extrêmement difficile, voir
+impossible dans la plupart des cas en raison du théorème de Rice. Une technique
+de vérification ne vérifie donc généralement qu'une seule de ces
+caractéristique, au mieux.
 
 \subsection{Model-checking logiciel}
 
