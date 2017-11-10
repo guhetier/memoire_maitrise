@@ -78,3 +78,20 @@ exécutable, quitte à remplacer les choix non-déterministes par des choix
 aléatoires. Cela ouvre la porte à des approches de vérification de notre
 spécification en utilisant des outils de test (stress testing ou fuzzing par
 exemple).
+
+\section{Remarques conclusives}
+
+A travers ce mémoire, nous avons contribué à étendre légèrement les possibilités
+de spécification pour le model-checking de programmes concurrents. Cependant,
+ces progrès viennent avec un coût de vérification plus important. Ces coûts de
+vérification, liés en grande partie à l'explosion combinatoire, constituent la
+principale limite du model-checking actuellement. Ce problème ne semble pas
+proche d'être résolu, à moins d'une percée spectaculaire dans ce domaine : on
+assiste plutôt à un ensemble d'optimisation qui permettent de vérifier des
+programmes de taille toujours plus grande. De manière concomitante, de nouveaux
+langages de programmation émergent, axés sur la sécurité et permettant de
+prouver certaines propriétés d'un programme à sa compilation. Un exemple est
+Rust\ref{Rust}, qui permet d'assurer l'absence de data-race et une certaine
+forme de consistance entre les threads. Le model-checking pourrait profiter des
+propriétés assurées par ces langages afin de réduire d'avantage la taille des
+modèles.
