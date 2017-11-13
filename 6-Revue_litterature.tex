@@ -17,20 +17,20 @@ Dans cette partie, nous présentons les principales techniques de
 model-checking logiciel et nous identifions leurs avantages et
 inconvénients respectifs.
 
-Pour chacune de ces techniques, nous identifions les outils les plus performant
+Pour chacune de ces techniques, nous identifions les outils les plus performants
 les implémentant à l'heure actuelle. Nous restreignons cependant cette étude au
-cadre qui nous intéressera pour la suite de ce rapport. Nous ne considèrerons
+cadre qui nous intéressera pour la suite de ce rapport. Nous ne considérerons
 donc que des outils capables de vérifier des programmes concurrents en C,
-suivant le modèle de d'exécution définis par la norme POSIX (pthread).
+suivant le modèle d'exécution défini par la norme POSIX (pThread).
 
 \textbf{Structure :} Dans la section~\ref{sec:model-checking-logiciel}, nous
-définissons le model-checking logiciel et une représentation formelle des modèle
+définissons le model-checking logiciel et une représentation formelle des modèles
 qui lui sont associés. Dans la section~\ref{sec:specification}, nous présentons
 les types de propriétés des programmes vérifiables grâce au model-checking et
 les formalismes utilisés pour les exprimer et les représenter formellement.
 Enfin, dans la section~\ref{sec:techniques-et-outils-de-model-checking}, nous
 présentons différentes techniques utilisées pour le model-checking de programmes
-multi-thread ainsi que les outils qui les implémentent.
+multi thread ainsi que les outils qui les implémentent.
 
 \section{Model-checking logiciel}\label{sec:model-checking-logiciel}
 
@@ -47,10 +47,10 @@ automatisée.
 Le point caractéristique du model-checking est l'utilisation de
 \emph{modèles} des systèmes à vérifier. Un modèle est une représentation
 abstraite du système. Au lieu de vérifier un système directement, les techniques
-de modèle checking s'appliquent sur le modèle du système. On considère un
+de model-checking s'appliquent sur le modèle du système. On considère un
 système comme correct lorsque son modèle ne contient pas d'erreurs.
 
-L'origine des modèle est liée au domaine d'application initial du
+L'origine des modèles est liée au domaine d'application initial du
 model-checking : la vérification du design de composants électroniques. Il
 était nécessaire de représenter ces derniers de manière abstraite afin de les
 vérifier, ce qui a donné naissance à la notion de modèles.
@@ -74,7 +74,7 @@ automatisant celle-ci.
 
 \subsection{Système de transitions et trace d'exécution}
 
-Un modèle prends souvent la forme d'un système de transitions.
+Un modèle prend souvent la forme d'un système de transitions.
 
 \paragraph{Système de transitions}
 Formellement, un système de transitions est une paire \((S, \rightarrow)\),
@@ -95,7 +95,7 @@ actions qui peuvent le faire évoluer.
 \paragraph{Trace d'exécution}
 Une trace d'exécution est un chemin dans le système de transition
 représentant le modèle, possiblement infini, dont le premier état est
-l'état initial du modèle. Une trace d'exécution est donc formé d'une
+l'état initial du modèle. Une trace d'exécution est donc formée d'une
 suite \(s_0, s_1, .. \in S\) d'états, avec \(s_0\) un état initial, et
 d'une suite \(t_0, t_1, ... \in \rightarrow\) de transitions telles que
 \(\forall i, t_i = (s_i, s_{i+1})\).
@@ -105,7 +105,7 @@ d'exécution du modèle afin de vérifier si elles respectent la spécification.
 
 \subsection{Vocabulaire technique}
 
-Nous allons définir ici un certains nombre de termes liés au model-checking ou
+Nous allons définir ici un certain nombre de termes liés au model-checking ou
 aux méthodes formelles de manière générale, que nous réutiliserons par la suite.
 
 \paragraph{Faux positif / Faux négatif}
@@ -117,30 +117,23 @@ de \emph{faux négatif}.
 
 \paragraph{Complet / Correct}
 
-Un outil ou une technique de vérification est complet si il est conçu de sorte à
+Un outil ou une technique de vérification est complet s’il est conçu de sorte à
 ne jamais faire de faux négatif : si une erreur existe dans un système, elle
 sera toujours signalée.
 
-Un outil ou une technique de vérification est correct si il est conçu de sorte à
+Un outil ou une technique de vérification est correct s’il est conçu de sorte à
 ne jamais faire de faux positif : si un système est valide, une erreur ne sera
 jamais signalée.
 
-Concevoir un outil à la fois complet et correct est extrêmement difficile, voir
-impossible dans la plupart des cas en raison du théorème de Rice. Une technique
+Concevoir un outil à la fois complet et correct est extrêmement difficile, voire
+impossible, dans la plupart des cas en raison du théorème de Rice. Une technique
 de vérification ne vérifie donc généralement qu'une seule de ces
-caractéristique, au mieux.
+caractéristiques, au mieux.
 
 \subsection{Model-checking logiciel}
 
-Lorsque le système à vérifier est un programme, il est possible de
-générer le modèle automatiquement à partir du code source du programme.
-On parle dans ce cas de \emph{software model checking}, ou
-model-checking logiciel. Générer le modèle à partir du code source (ou
-même considérer directement que le modèle \emph{est} le code source)
-permet de gagner sur deux plans :
-
-Le model-checking logiciel, ou \emph{software model checking} est un cas
-particulier de model-checking. Le système a vérifier est un programme, et le
+Le model-checking logiciel, ou \emph{software model-checking} est un cas
+particulier de model-checking. Le système à vérifier est un programme, et le
 modèle va être extrait automatiquement à partir de son code source.
 On automatise ainsi la conception du modèle, ce qui présente les avantages
 suivants :
@@ -150,7 +143,7 @@ suivants :
   on réduit le risque d'une erreur lors de la modélisation du système,
   en supprimant l'intervention humaine ;
 \item
-  on automatise d'avantage le procédé de vérification, ce qui le rend
+  on automatise davantage le procédé de vérification, ce qui le rend
   plus facilement utilisable en pratique.
 \end{itemize}
 
@@ -159,14 +152,14 @@ ce qui constitue une encore une certaine distance entre le modèle et le
 système. Afin de réduire cette distance, certains
 model-checkers logiciels se basent sur des représentations intermédiaires
 plus proches de l'assembleur, comme la représentation intermédiaire de
-LLVM\footnote{L'utilisation de cette représentation est aussi expliquée
-  par des raisons de compatibilité. De nombreux langages dont C, C++ ou
+LLVM\footnote.{L'utilisation de cette représentation est aussi expliquée
+  par des raisons de compatibilité. De nombreux langages, dont C, C++ et
   C\# peuvent en effet être compilés vers la représentation
   intermédiaire de LLVM, un model-checker utilisant cette dernière est
-  alors compatible avec tout ces langages.}.
+  alors compatible avec tous ces langages.}.
 
 La programmation impérative consiste à faire évoluer l'état du programme,
-définis par la valeur de ses variables, à l'aide d'instruction. L'état d'un
+défini par la valeur de ses variables, à l'aide d'instruction. L'état d'un
 programme est défini par l'état de la mémoire à laquelle il a accès. On peut
 donc modéliser un programme par un système de transitions, dont les états sont
 une partition de l'ensemble des états du programme.
@@ -182,7 +175,7 @@ Un état du modèle est donc principalement défini par :
 \end{itemize}
 
 Les instructions permettant de faire évoluer l'état du programme sont
-représentées par des transitions entres les états du modèle. Une transition
+représentées par des transitions entre les états du modèle. Une transition
 représente plus précisément l'action d'une instruction atomique du programme sur
 les trois zones mémoires citées précédemment. Les transitions peuvent aussi
 dépendre de facteurs externes, comme les entrées du programme.
@@ -193,13 +186,13 @@ faites sur le système :
 \begin{itemize}
 \item
   la consistance séquentielle. On considère alors que les écritures et
-  les lectures mémoire ont lieu dans l'ordre où les instructions sont
+  les lectures mémoires ont lieu dans l'ordre où les instructions sont
   rencontrées dans une trace d'exécution. En pratique, cette hypothèse
   n'est pas toujours vérifiée. Les compilateurs et les processeurs
   peuvent modifier l'ordre de ces opérations pour optimiser un
   programme. On parle alors de modèle mémoire \emph{faible}.
 \item
-  la sémantique d'entrelacement. Dans le cas d'un système multi-thread,
+  la sémantique d'entrelacement. Dans le cas d'un système multi thread,
   on considère que les traces d'exécution possibles sont produites par
   un entrelacement des instructions atomiques de chaque thread. Cette
   hypothèse n'est pas valide si le programme est exécuté par plusieurs
@@ -221,12 +214,12 @@ a <- 2
 \begin{minipage}{.45\textwidth}
 \begin{lstlisting}[caption=Thread 2,frame=tlrb]
 c <- 1
-d <- a + c
+d <—a + c
 \end{lstlisting}
 \end{minipage}
 
 Ce programme contient trois variables, \texttt{a}, \texttt{c} et
-\texttt{d}, et deux threads. Les états du systèmes sont donc définis par les
+\texttt{d}, et deux threads. Les états du système sont donc définis par les
 valeurs de ces variables et la position des pointeurs d'instruction de chaque
 thread. On peut modéliser ce programme par le système de transitions en Figure
 \ref{fig:model_example}.
@@ -239,42 +232,42 @@ thread. On peut modéliser ce programme par le système de transitions en Figure
 \label{fig:model_example}
 \end{figure}
 
-\subsection{Non-determinisme}
+\subsection{Non-déterminisme}
 
 Un système est rarement complètement déterministe. De nombreux facteurs (les
 données en entrée du système, l'instant où un évènement à lieu, la réussite des
-allocations mémoire, la concurrence) tendent généralement à rendre l'évolution
-d'un système non-deterministe.
+allocations mémoires, la concurrence) tendent généralement à rendre l'évolution
+d'un système non déterministe.
 
-Face à un choix non-déterministe, les techniques de model-checking doivent
-explorer toute les alternatives possibles.
+Face à un choix non déterministe, les techniques de model-checking doivent
+explorer toutes les alternatives possibles.
 
-Lors de la modélisation, certaine sources de non-determinisme sont ignorées.
+Lors de la modélisation, certaines sources de non-déterminisme sont ignorées.
 Elles sont alors remplacées par une exécution déterministe.
-C'est généralement le cas pour les appels systèmes ayant la possibilité
+C'est généralement le cas pour les appels système ayant la possibilité
 d'échouer (les allocations de mémoire, par exemple).
 
 Pour représenter les évènements et les paramètres extérieurs du programme,
-une fonction simulant le non-determinisme est généralement mise à disposition
+une fonction simulant le non-déterminisme est généralement mise à disposition
 de l'utilisateur par les outils de model-checking.
 
 \subsection{Explosion combinatoire}
 
 Le nombre d'états d'un programme augmente exponentiellement selon de nombreux
 paramètres (nombre de variables du programme, taille des types de données, degré
-de concurrence\dots). Il peut éventuellement être infinis si des appels de
-fonctions ou de l'allocation dynamique de mémoire entre en jeu. Cependant, afin
+de concurrence\dots). Il peut éventuellement être infini si des appels de
+fonctions ou de l'allocation dynamique de mémoire entrent en jeu. Cependant, afin
 de vérifier un système, un model-checker doit explorer l'ensemble de ces états.
 Cette tache devient donc extrêmement coûteuse en temps et en mémoire quand le
-nombre d'état devient trop important.
+nombre d'états devient trop important.
 Ce problème, nommé l'explosion combinatoire, est la principale limite du
 model-checking.
 
-Le non-determinisme est une des principales raison de l'explosion combinatoire :
-le nombre d'exécution est exponentiel selon le nombre de choix non-deterministe.
+Le non-déterminisme est une des principales raisons de l'explosion combinatoire :
+le nombre d'exécutions est exponentiel selon le nombre de choix non déterministe.
 
 Cela explique les difficultés rencontrées par les techniques de model-checking
-face aux programme concurrents : l'ordonnancement entre les instructions est
+face aux programmes concurrents : l'ordonnancement entre les instructions est
 non-déterministe. Il existe un nombre d'entrelacements exponentiel en fonction
 du nombre d'instructions du programme.
 
@@ -286,7 +279,7 @@ limite le passage à l'échelle de la plupart des techniques.
 \section{Spécification}\label{sec:specification}
 
 Afin de vérifier un système, il faut tout d'abord établir ce que signifie être
-correct pour ce système. Un ingénieur en charge du design d'un système à
+correct pour ce système. Un ingénieur responsable du design d'un système a
 généralement une connaissance informelle de la manière dont le système doit se
 comporter. Il est alors nécessaire de traduire cette connaissance d'une manière
 non ambiguë et compréhensible par des outils. On réalise pour cela une
@@ -299,15 +292,15 @@ se comporte pas de la manière attendue. Un outil de vérification peut alors in
 un système afin de vérifier si l'ensemble de la spécification est respecté.
 
 Une spécification peut prendre de nombreux aspects : il existe des langages de
-spécification (UML par exemple), elle peut être constitué de formules logiques
-sur les variables composants le système, prendre la forme d'un système de
+spécification (UML par exemple), elle peut être constituée de formules logiques portant
+sur les variables du système ou prendre la forme d'un système de
 transitions\dots Un langage de programmation constitue en lui même une
 spécification bas niveau du comportement d'un programme.
 
 Les propriétés d'une spécification se répartissent en plusieurs catégories. Une
 propriété peut être un comportement généralement attendu pour le type de système
 concerné. Par exemple, on attend généralement d'un programme qu'il ne contienne
-pas de comportement indéterminé. Une propriété peut aussi être spécifique au
+pas de comportements indéterminés. Une propriété peut aussi être spécifique au
 système et à son comportement. On peut par exemple spécifier qu'une variable ne
 doit jamais dépasser un certain seuil.
 
@@ -325,7 +318,7 @@ opérations arithmétiques, l'initialisation des variables, et, de manière
 plus générale, l'absence de tout comportement ne respectant pas la norme
 du langage.
 Dans le cas de programmes concurrents, on cherche généralement à s'assurer de
-l'absence de deadlock (lorsque tout les threads du programme sont bloqué par une
+l'absence de dreadlocks (lorsque tous les threads du programme sont bloqués par une
 condition, et que le système ne peut plus évoluer) et de data-races (plusieurs
 accès simultanés à une même adresse mémoire, dont au moins un en écriture).
 
@@ -336,11 +329,11 @@ du système.
 Pour vérifier des propriétés plus spécifiques au système (des propriétés
 fonctionnelles par exemple, qui portent sur le résultat que le système doit
 produire) il est cependant nécessaire de permettre à l'utilisateur d'exprimer
-lui même la spécification.
+lui-même la spécification.
 
 \subsection{Assertions}
 
-Dans un article de son blog, John Regehr aborde le sujet des assertion
+Dans un article de son blog, John Regehr aborde le sujet des assertions
 \cite{assertion_regehr}. Il reprend en particulier la définition suivante :
 
 \begin{quotation}
@@ -369,22 +362,22 @@ programmation. Elles ont été naturellement reprises par les méthodes de
 vérification formelle, dont le model-checking logiciel.
 
 Les assertions permettent de vérifier des propriétés d'accessibilités. Ces
-propriétés consistent à vérifier si il est possible d'atteindre un état donné du
+propriétés consistent à vérifier s’il est possible d'atteindre un état donné du
 modèle. Cet état est appelé un état d'erreur. On peut aussi considérer
 l'accessibilité d'un ensemble d'états d'erreurs.
 
 Les propriétés d'accessibilités sont des propriétés relativement simples :
 déterminer si un état est un état d'erreur ne dépend que de cet état. Un
 programme contient donc une erreur dès qu'il est possible d'atteindre un état
-d'erreur, indépendemment des états et des transitions emprunté au cours de
+d'erreur, indépendamment des états et des transitions empruntées au cours de
 l'exécution. Une propriété d'accessibilité peut ainsi être déterminée par une
 exploration (en largeur par exemple) du système.
 
-Dans un programme, une assertion prends la forme d'une instruction telle que :
+Dans un programme, une assertion prend la forme d'une instruction telle que :
 \texttt{assert(condition);}.
-Si elle est exécutée et que la condition est évaluée à vraie, alors l'exécution
+Si elle est exécutée et que la condition est évaluée à vrai, alors l'exécution
 du programme continue normalement.
-Sinon, le programme a atteint un état d'erreur. Sont comportement est alors
+Sinon, le programme a atteint un état d'erreur. Son comportement est alors
 indéterminé, bien que le comportement le plus fréquent soit de stopper son
 exécution.
 
@@ -398,9 +391,9 @@ Plus formellement, l'assertion \texttt{assert(c)} désigne comme étant des
   l'expression \texttt{c} s'évalue à faux
 \end{itemize}
 
-Dans le code suivant, une assertion permet ainsi spécifier que la variable
+Dans le code suivant, une assertion permet de spécifier que la variable
 \texttt{b} doit être non nulle. Dans le cas contraire, une erreur
-arithmétique (division par zéro) aurait lieu à la ligne suivante.
+arithmétique (division par zéro) pourrait avoir lieu à la ligne suivante.
 
 \begin{lstlisting}[language=C]
 int int_div(int a, int b) {
@@ -416,7 +409,7 @@ du programme (bien qu'il ne faille pas les confondre avec un mécanisme de
 gestion d'erreurs).
 
 Cependant, le pouvoir d'expression des assertions est limité. Toutes les
-propriétés d'accessibilités ne peuvent pas être exprimée par une assertion : il
+propriétés d'accessibilités ne peuvent pas être exprimées par une assertion : il
 n'est par exemple pas possible d'utiliser dans la condition d'une assertion des
 variables hors du contexte courant. Il n'est pas non plus possible d'exprimer un
 problème d'exclusion mutuelle : il faudrait pour cela référer à la position des
@@ -436,7 +429,7 @@ que la fonction \texttt{livrer\_produit} (qui commanderait au système
 de donner au client l'objet commandé) n'est jamais appelée avant la
 fonction \texttt{accepter\_paiement} (qui validerait que le paiement a
 été correctement effectué), au cours d'une transaction. Des assertions
-permettent de déterminer si chacune de ces fonction est atteinte, mais
+permettent de déterminer si chacune de ces fonctions est atteinte, mais
 sans introduire des variables auxiliaires, il n'est pas possible de
 déterminer l'ordre des appels.
 
@@ -444,19 +437,19 @@ Les logiques temporelles permettent d'exprimer ce type de propriétés. On
 peut ainsi spécifier, pour un programme, des propriétés sur la
 succession des états d'une trace d'exécution.
 
-Ci-dessous sont listés quelque uns des schémas de propriétés les plus
-courantes. D'avantage sont présenté par \citep{LTL_scheme}. \(p\) est une
+Ci-dessous sont listés quelques-un des schémas de propriétés les plus
+courantes. Davantage sont présenté par \citep{LTL_scheme}. \(p\) est une
 propriété portant sur les états du système.
 
 \begin{itemize}
 \item
-  propriété de sûreté : tout les états atteints pendant l'exécution
+  propriété de sûreté : tous les états atteints pendant l'exécution
   vérifient la propriété \(p\).
 \item
   propriété d'accessibilité : en un temps fini, un état vérifiant la
   propriété \(p\) est atteint.
 \item
-  propriété d'équité : à partir de tout les états de la trace, on
+  propriété d'équité : à partir de tous les états de la trace, on
   atteindra en temps fini un état vérifiant la propriété \(p\).
 \end{itemize}
 
@@ -467,17 +460,17 @@ et \ac{CTL}.
 traces d'exécution. \ac{LTL} considère chaque trace indépendamment. Un
 système est valide par rapport à une propriété \ac{LTL} si toutes ses traces
 d'exécution respectent la propriété. \ac{CTL} considère l'ensemble des traces
-comme un arbre et permet, à chaque noeud, de quantifier universellement
-ou existentiellement sur ses successeurs.
+comme un arbre et permet de quantifier universellement
+ou existentiellement sur les successeurs de chaque nœud.
 
-Le pouvoir d'expressivité de \ac{LTL} et \ac{CTL} n'est ni équivalent, ni même
-comparable. En effet, \ac{LTL} ne permet pas de quantifier existentiellement :
+Les pouvoirs d'expressivités de \ac{LTL} et \ac{CTL} ne sont ni équivalents, ni même
+comparables. En effet, \ac{LTL} ne permet pas de quantifier existentiellement :
 une formule \ac{CTL} utilisant une quantification existentielle n'a donc pas
 toujours d'équivalent en \ac{LTL}. La réciproque peut être présentée à l'aide de
 la propriété \ac{LTL} \(F (p \land X p)\) (pour toutes les traces, on atteint un
 état vérifiant \(p\) et dont le successeur vérifie \(p\)) n'a pas d'équivalent
 dans \ac{CTL}. La formule \ac{CTL} \(AF (p \land AX p)\) (quelque soit le chemin
-emprunté, on atteint un état vérifiant \(p\) et dont tout les successeurs
+emprunté, on atteint un état vérifiant \(p\) et dont tous les successeurs
 vérifient \(p\)) pourrait sembler un bon candidat, mais la Figure
 \ref{LTL_vs_CTL} présente un modèle vérifiant \(F (p \land X p)\) mais ne
 vérifiant pas \(AF (p \land AX p)\).
@@ -491,7 +484,7 @@ vérifiant pas \(AF (p \land AX p)\).
 \end{figure}
 
 \ac{CTL} est considérée comme plus difficile à comprendre par les ingénieurs,
-plus habitué à penser à une unique exécution linéaire plutôt qu'à un arbre
+plus habitués à penser à une unique exécution linéaire plutôt qu'à un arbre
 d'exécution\cite{RCTL_formulas}. \ac{CTL} est par conséquent moins utilisée que
 \ac{LTL} dans le cadre du model-checking logiciel. Par la suite, nous allons
 donc nous concentrer sur \ac{LTL} uniquement.
@@ -509,8 +502,8 @@ deux formules \ac{LTL} :
 \]
 
 \(p\) est une proposition sur l'état du système. On nommera par la suite
-ces propriétés des \emph{proposition atomiques}. On identifiera aussi
-une proposition atomique avec sa fonction d'évaluation, c'est à dire la
+ces propriétés des \emph{propositions atomiques}. On identifiera aussi
+une proposition atomique avec sa fonction d'évaluation, c'est-à-dire la
 fonction qui indique si un état du système vérifie la propriété ou non.
 
 Étant donnée une trace d'exécution infinie \(s = (s_0, s_1, ...)\), \ac{LTL} a
@@ -528,18 +521,18 @@ s \models \phi U \psi & \equiv \exists k, (s_k, s_{k+1}, \dots) \models \psi
 \(\lnot\), \(\land\), \(true\) et \(false\) s'interprètent de la manière
 usuelle.
 
-Une trace d'exécution est un modèle d'une proposition atomique si sont premier
+Une trace d'exécution est un modèle d'une proposition atomique si son premier
 état est un modèle de la proposition atomique.
-L'opérateur \(next\) signifie donc que la propriété \ac{LTL} passé en
+L'opérateur \(next\) signifie donc que la propriété \ac{LTL} passée en
 paramètre doit être valide sur l'état suivant de la trace, tandis que
-l'opérateur \(until\) signifie que la première propriété passé en
-paramètre doit être valide sur les état rencontrés jusqu'à ce que un
+l'opérateur \(until\) signifie que la première propriété passée en
+paramètre doit être valide sur les états rencontrés jusqu'à ce qu’un
 état vérifie la seconde formule.
 
-A partir de ces opérateurs base, on définit les opérateur \(\lor\),
+À partir de ces opérateurs base, on définit les opérateurs \(\lor\),
 \(\implies\), \dots de la manière classique. On définit aussi les
 opérateurs temporels \(always\) (\(G\)), signifiant qu'une propriété est
-vrai pour tout les états d'une trace et \(finally\) (\(F\)), signifiant
+vraie pour tous les états d'une trace et \(finally\) (\(F\)), signifiant
 qu'un état vérifiant une propriété est atteint dans le futur.
 
 \[
@@ -558,8 +551,8 @@ la formule.
 Vérifier si un système respecte une proposition \ac{LTL} demande d'être capable de
 manipuler efficacement ces dernières. On utilise pour cela les automates de
 Büchi. Ils permettent de représenter une propriété \ac{LTL}. Sous cette forme, elles
-sont plus simple à manipuler pour un model-checker. Toute formule \ac{LTL} peut être
-représentée par un automate de Büchi. Il existe des algorithme pour construire
+sont plus simples à manipuler pour un model-checker. Toute formule \ac{LTL} peut être
+représentée par un automate de Büchi. Il existe des algorithmes pour construire
 efficacement et automatiquement cet automate\citep{ltl2ba}.
 
 Afin de vérifier si un système respecte une propriété \ac{LTL}, une méthode classique
@@ -575,7 +568,7 @@ infinis. Formellement, un automate de Büchi est un quintuplé
 
 \begin{itemize}
 \item
-  \(S\) un ensemble d'état ;
+  \(S\) un ensemble d'états ;
 \item
   \(\Sigma\) un alphabet ;
 \item
@@ -595,11 +588,10 @@ c = (s_0, a_0, s_1)(s_1, a_1, s_2)\dots(s_n, a_n, s_{n+1})\dots
 \]
 
 L'étiquette de ce chemin est le mot infini \(a = (a_0, a_1, \dots, a_n) \in
-\Sigma^\omega\). Le chemin \(c\) est réussi si et seulement si il passe une
+\Sigma^\omega\). Le chemin \(c\) est réussi si et seulement s’il passe une
 infinité de fois par un état final de \(B\).
 
-L'automate \(B\) accepte un mot \(a\) si et seulement si
-il existe un calcul réussi dans \(B\) ayant le mot \(a\) pour étiquette.
+L'automate \(B\) accepte un mot \(a\) si et seulement s’il existe un calcul réussi dans \(B\) ayant le mot \(a\) pour étiquette.
 
 Pour représenter une formule \ac{LTL}, on prend \(\Sigma = 2^P\), avec \(P\)
 l'ensemble des propositions atomiques de la formule. Une lettre de
@@ -610,8 +602,8 @@ du système.
 
 La figure \ref{fig:buchi_example} présente les automates de Büchi pour trois propriétés
 \ac{LTL} simples : \(Gp\), \(F(p \lor q)\) et \(G(Fp)\). Seule la partie accessible des automates
-est représentée, et les transitions ayant les même sources et destinations sont fusionnées,
-leur étiquette étant remplacées par une garde sous la forme d'une expression logique.
+est représentée, et les transitions ayant les mêmes sources et destinations sont fusionnées,
+leurs étiquettes étant remplacées par une garde sous la forme d'une expression logique.
 
 \begin{figure}
 \begin{center}
@@ -653,7 +645,7 @@ I_P, \delta_P, F_P)\), avec :
   \end{itemize}
 \end{itemize}
 
-Un mot est accepté par l'automate produit si et seulement si il représente
+Un mot est accepté par l'automate produit si et seulement s’il représente
 une exécution valide dans le modèle du système et qu'il appartient au langage
 de l'automate de Büchi.
 L'automate produit \(P\) reconnaît donc exactement le langage des exécutions du
@@ -663,11 +655,11 @@ Büchi \(B\).
 \paragraph{Vérifier une propriété LTL}
 
 Vérifier si le modèle \(T\) respecte la propriété \(\phi\), revient à calculer
-si le langage des exécutions valide de \(T\) est inclut dans le langage de
+si le langage des exécutions valide de \(T\) est inclus dans le langage de
 l'automate de Büchi \(B\). Cependant, vérifier une inclusion est une opération
 complexe. Il est plus simple de calculer si langage est vide ou non. On va donc
 reformuler le problème : on va chercher à déterminer si le langage \(L\) des
-exécutions valident dans \(T\) et ne respectant \emph{pas} \(\phi\) est vide.
+exécutions valides dans \(T\) et ne respectant \emph{pas} \(\phi\) est vide.
 Si c'est le cas, le système est correct. Sinon, une erreur est présente et les
 éléments de \(L\) représentent des contre-exemples.
 
@@ -676,18 +668,18 @@ transitions du modèle et l'automate de Büchi représentant la \emph{négation}
 \(\phi\). Le langage de l'automate produit est alors constitué des exécutions valides du
 modèle qui ne respectent pas \(\phi\), soit \(L\).
 
-Il suffit alors d'explorer l'automate produit. Si il est possible de, à partir
-de l'état initial, atteindre un cycle contenant au moins un état final, alors,
+Il suffit alors d'explorer l'automate produit. S’il est possible, à partir
+de l'état initial, d'atteindre un cycle contenant au moins un état final, alors,
 \(L\) n'est pas vide : il contient au moins le mot composé par l'étiquette du
-chemin allant jusqu'au cycle et d'une infinité de répétition de l'étiquette du
-cycle. Ce correspond à une exécution du système qui viole la propriété \(\phi\),
+chemin allant jusqu'au cycle et d'une infinité de répétitions de l'étiquette du
+cycle. Ce mot correspond à une exécution du système qui viole la propriété \(\phi\),
 et pourra être servir de contre-exemple à l'utilisateur.
 
-L'encodage de propriétés \ac{LTL} à l'aide des automates de Büchi permet ainsi de
+L'encodage des propriétés \ac{LTL} à l'aide des automates de Büchi permet ainsi de
 vérifier des propriétés complexes sur les modèles. Cependant, la taille d'un
 automate de Büchi augmente exponentiellement avec la profondeur de la formule
 qu'il représente. Dans le cas de formules de grande taille, il peut donc devenir
-problématique de générer l'automate. Sa taille et son aspect non-déterministe
+problématique de générer l'automate. Sa taille et son aspect non déterministe
 viennent renforcer le problème d'explosion combinatoire déjà rencontré par les
 techniques de model-checking.
 
@@ -699,29 +691,29 @@ afin d'explorer l'ensemble des états d'un modèle. Afin de lutter contre
 l'explosion combinatoire, ils établissent des compromis au niveau de la
 précision de la vérification et du type de propriétés qu'ils prennent en charge.
 Leurs performances dépendent aussi fortement de la
-structure du programme : les boucles, le non-determinisme ou la gestion
+structure du programme : les boucles, le non-déterminisme ou la gestion
 de la concurrence sont plus ou moins bien supportés selon
 les algorithmes.
 
 À l'exception des techniques de séquentialisation, ces algorithmes ont été
-initialement appliqué à des programme séquentiels. Le support des programmes
+initialement appliqués à des programmes séquentiels. Le support des programmes
 concurrents est venu ensuite\footnote{Les algorithmes inspirés du model-checking
-  de composants électroniques supportent des modèles concurrent depuis
+  de composants électroniques supportent des modèles concurrents depuis
   longtemps. Cependant, le support de la concurrence pour le model-checking
-  logiciel a été ralentit par l'explosion combinatoire}.
-Ce dernier n'est pas forcément complexe, d'un point de vu théorique : un
-programme multi-thread peut s'exprimer comme un système de transitions
-non-déterministe. Les model-checkers sont capables de vérifier des modèles
-non-déterministe --- ils sont utilisés pour simuler les entrées possibles d'un
+  logiciel a été ralenti par l'explosion combinatoire.}.
+Ce dernier n'est pas forcément complexe, d'un point de vue théorique : un
+programme multi thread peut s'exprimer comme un système de transitions
+non déterministe. Les model-checkers sont capables de vérifier des modèles
+non déterministes --- ils sont utilisés pour simuler les entrées possibles d'un
 système par exemple --- les algorithmes de model-checking peuvent donc
 théoriquement être étendus.
 Le problème est bien plus complexe en pratique, en raison des contraintes de
-temps et de mémoire que rencontrent les model-checker. En raison de l'explosion
+temps et de mémoire que rencontrent les model-checkers. En raison de l'explosion
 combinatoire provoquée par le nombre exponentiel d'entrelacements possibles
 entre les threads, il est difficile de concevoir un algorithme performant.
 
 Nous présentons dans cette partie les principaux algorithmes utilisés dans le
-cadre du model-checking de logiciel multi-thread, ainsi que certains des outils
+cadre du model-checking de logiciel multi thread, ainsi que certains des outils
 qui les implémentent. Pour chaque algorithme, nous avons choisi les outils qui
 nous ont parus les plus aboutis et ceux qui présentaient une approche originale.
 Pour chaque algorithme et outil, nous tentons de mettre en valeur ses points
@@ -745,31 +737,30 @@ emprunté.
 
 Le model-checking explicite est extrêmement vulnérable à l'explosion
 combinatoire. Les états accessibles du système sont examinés individuellement.
-Si ils sont en nombre infinis, une analyse peut ne pas terminer. Le stockage des
+S’ils sont en nombre infinis, une analyse peut ne pas terminer. Le stockage des
 états explorés peut aussi devenir problématique. Plusieurs techniques existent
 pour réduire l'impact de l'explosion combinatoire.
 
-\paragraph{Stateless model-checking}
-Certain outils choisissent de ne pas maintenir la liste des états
-visités afin de ne pas être limité par l'utilisation de la mémoire. On
+\paragraph{Stateless Model-checking}
+Certains outils choisissent de ne pas maintenir la liste des états
+visités afin de ne pas être limités par l'utilisation de la mémoire. On
 parle alors de \emph{stateless model-checking}. Ces outils ne sont pas
 capables de détecter un cycle dans le programme à analyser. Il est donc
 nécessaire que toutes les exécutions du programme à analyser terminent.
 
-\paragraph{State hashing}
+\paragraph{State Hashing}
 Le \emph{state hashing} consiste à ne conserver qu'une valeur de hachage des
 états visités, et non pas l'état complet. L'utilisation de la mémoire est ainsi
 réduite, et les performances peuvent être améliorées par l'utilisation de
 structures de données capables de rechercher un élément de manière efficace
 (ensemble ordonné, \dots). Cependant, il est possible (bien que très peu
 probable) que deux états aient la même valeur de hachage. Ces états sont alors
-considérés comme égaux, ce qui peux mener à un résultat faux de l'analyse.
-Le state hashing rends donc les model-checker incomplets.
+considérés comme égaux, ce qui peut mener à un résultat faux de l'analyse.
+Le state hashing rend donc les model-checkers incomplets.
 
 \paragraph{Runtime model-checking}
 Certains outils explorent l'espace d'états en se basant sur des
-exécutions réelles du programme. Le modèle est alors le programme lui
-même. Son exécution est contrôlée par le model-checker, qui fixe le
+exécutions réelles du programme. Le modèle est alors le programme lui-même. Son exécution est contrôlée par le model-checker, qui fixe le
 non-déterminisme de chaque exécution. Cette approche permet de
 bénéficier des performances réelles du programme lors de l'exploration,
 cependant le backtracking est plus compliqué : les outils de runtime
@@ -781,10 +772,10 @@ checking}.
 
 \paragraph{Réduction par ordre partiel}
 Les techniques de réduction par ordre partiel visent à réduire le nombre de
-chemin à explorer dans un système concurrent. Elles permettent de supprimer les
+chemins à explorer dans un système concurrent. Elles permettent de supprimer les
 chemins équivalents par rapport aux propriétés à vérifier, souvent en supprimant
 des changements de contextes entre des instructions indépendantes. Un cas simple
-de réduction consiste à regrouper en un bloc atomique une série d'instruction
+de réduction consiste à regrouper en un bloc atomique une série d'instructions
 manipulant uniquement des variables locales. L'entrelacement de ces instructions
 avec d'autres threads n'a pas d'impact sur leur résultat, on peut donc conserver
 uniquement l'ordonnancement consistant à les exécuter sans changement de
@@ -792,13 +783,13 @@ contexte.
 
 La plupart des variantes ci-dessus sont aussi utilisées par les autres
 algorithmes que nous présentons par la suite, en particulier les
-techniques de réduction par ordre partiel. Cependant, le model checking
+techniques de réduction par ordre partiel. Cependant, le model-checking
 explicite est particulièrement dépendant de ces techniques afin de
 gagner en performances.
 
 La principale force du model-checking explicite est sa précision. Explorer
 l'ensemble des états de manière explicite permet de vérifier la plupart des
-propriétés, spécifiée à l'aide d'assertions ou par une formule \ac{LTL}. Cependant,
+propriétés, spécifiées à l'aide d'assertions ou par une formule \ac{LTL}. Cependant,
 il est extrêmement dépendant des techniques de réduction et a plus de
 difficultés face à des programmes de grande taille.
 
@@ -807,8 +798,8 @@ difficultés face à des programmes de grande taille.
 SPIN\cite{SPIN} est l'un des premiers projets de model-checking
 explicite. Il permet de vérifier des propriétés de la logique temporelle
 \ac{LTL} sur des modèles exprimés en \bsc{PROMELA}. SPIN supporte nativement
-les modèles concurrents et implémente de nombreuse méthodes de réduction
-(ordre partiel, bit-state hashing\dots). SPIN ne supporte pas le langage
+les modèles concurrents et implémente de nombreuses méthodes de réduction
+(ordre partiel, bit state hashing\dots). SPIN ne supporte pas le langage
 C nativement, cependant des travaux ont été menés afin de traduire C
 vers \bsc{Promela}\cite{jiang_C_to_Promela}, ce qui permet à SPIN de
 vérifier un programme en C de manière indirecte.
@@ -821,7 +812,7 @@ moniteur d'exécution afin de générer les différents entrelacements à
 explorer.
 
 \texttt{inspect}\cite{inspect} vérifie du code C et C++
-multithread en se basant sur un algorithme de runtime model-checking
+multi thread en se basant sur un algorithme de runtime model-checking
 avec une exploration \emph{stateless}. \texttt{inspect} instrumente
 le programme à vérifier par des instructions lui permettant de
 communiquer avec un ordonnanceur, selon une architecture client/serveur.
@@ -847,7 +838,7 @@ Divine et SPIN sont capable de vérifier des propriétés \ac{LTL}. \texttt{insp
 nécessite un système fermé, et n'est pas capable de gérer le non-déterminisme.
 Il est donc dépendant d'une suite de tests pour fixer les paramètres du
 programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
-programmes concurrent lors de l'édition de 2016 de la compétition de
+programmes concurrents lors de l'édition de 2016 de la compétition de
 vérification logicielle SV-COMP\citep{svcomp_2016_result} (les autres outils présentés
 ci-dessus n'ont pas participé à ces compétitions).
 
@@ -887,12 +878,11 @@ une représentation canonique de taille raisonnable.
 \subsubsection{Représentation symbolique par des BDD}
 
 Nous allons utiliser l'exemple des \ac{BDD} pour illustrer les forces et les
-défis rencontré par les représentations symboliques.
+défis rencontrés par les représentations symboliques.
 
 Un \ac{BDD} permet de représenter une fonction booléenne.
 On va donc représenter un ensemble d'états par une fonction prenant
-en paramètre un état (encodé par des variables booléennes) et indiquant si
-il est dans l'ensemble représenté par la fonction où non.
+en paramètre un état (encodé par des variables booléennes) et indiquant s’il est dans l'ensemble représenté par la fonction où non.
 
 \paragraph{Encoder les états}
 La première étape est d'encoder les états du système par des variables
@@ -907,7 +897,7 @@ représentations suivantes : (\(000\), \(001\), \(010\), \dots, \(111\)).
 
 
 Pour représenter l'ensemble composé des états \(110\) et \(111\), il suffit
-de prendre sa fonction caractéristique, c'est à dire la fonction qui s'évalue à
+de prendre sa fonction caractéristique, c'est-à-dire la fonction qui s'évalue à
 vrai pour les éléments de l'ensemble et à faux sinon.
 
 \begin{align}
@@ -969,11 +959,11 @@ Pour notre exemple, nous obtenons l'arbre de la Figure \ref{fig:BDD_tree}.
 \label{fig:BDD_tree}
 \end{figure}
 
-La représentation par un arbre de décision contient \(2^{n+1} - 1\) noeuds pour
+La représentation par un arbre de décision contient \(2^{n+1} - 1\) nœuds pour
 une fonction booléenne à \(n\) variables, on ne peut donc pas encore parler de
 représentation efficace. Cependant, cet arbre de décision contient aussi
 beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un \ac{BDD} en
-fusionnant tout les sous-arbres identiques et en supprimant les états n'ayant
+fusionnant tous les sous-arbres identiques et en supprimant les états n'ayant
 qu'un unique successeur. Dans notre exemple, on obtient alors le \ac{BDD} de la
 Figure \ref{fig:BDD_graph}.
 
@@ -993,7 +983,7 @@ augmentent, la taille du \ac{BDD} peut exploser\footnote{Pour s'en
   \(x, y, z, t \mapsto x.z + y.t\), avec les ordres \(x<z<y<t\), puis
   \(x<y<z<t\).}.
 
-A partir de la représentation sous forme de \ac{BDD}, on peut évaluer la
+À partir de la représentation sous forme de \ac{BDD}, on peut évaluer la
 fonction \(f\) efficacement, mais aussi réaliser des opérations logiques
 de manière efficace, en construisant le \ac{BDD} résultant à partir des
 feuilles et en réduisant au fur et à mesure. \cite{OBDD} explique cet
@@ -1015,7 +1005,7 @@ l'assertion. On peut le définir comme étant le point fixe de la fonction
 d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses prédécesseurs
 dans le modèle de système.
 
-Tout comme les \ac{BDD}, les autre représentations symboliques sont fortement
+Tout comme les \ac{BDD}, les autres représentations symboliques sont fortement
 dépendantes d'un ordre des variables afin de conserver une taille
 raisonnable. Les formules de la logique propositionnelle sont très
 utilisées actuellement en raison des progrès des solveurs SAT.
@@ -1029,23 +1019,23 @@ représentations symboliques utilisées.
 \subsubsection{Outils}
 
 CIVL\cite{CIVL} est un framework pour la vérification de programmes concurrents.
-Il défini un langage intermédiaire, CIVL-C, proche du C11, vers lequel plusieurs
+Il définit un langage intermédiaire, CIVL-C, proche du C11, vers lequel plusieurs
 langages et types de concurrence peuvent être traduits (dont pThread, OpenMP et
 CUDA). CIVL utilise un mélange de model-checking explicite et symbolique : les
 différents entrelacements d'un programme sont explorés de manière explicite et
 une analyse symbolique est utilisée pour analyser chacun de ces entrelacements.
 Les états sont représentés à travers des formules SMT, manipulées à l'aide de la
 bibliothèque SARL\cite{SARL}. CIVL a pour ambition de constituer un point de
-jonction commun entre plusieurs front-ends et backends, afin de découpler les
+jonction commun entre plusieurs frontends et backends, afin de découpler les
 problèmes de modélisation d'un langage et les problèmes de vérification. CIVL
-adopte une approche conservatrice : il peut signaler des faux-positifs, c'est à
-dire indiquer une erreur dans un modèle correct.
+adopte une approche conservatrice : il peut signaler des faux positifs,
+c'est-à-dire indiquer une erreur dans un modèle correct.
 
 SymDivine\cite{SymDivine} permet la vérification de propriétés \ac{LTL} sur du
 bytecode LLVM concurrent (et donc, par extension, pour des programmes en C).
 Tout comme CIVL, SymDivine utilise une combinaison de model-checking explicite
 et symbolique. Le non-déterminisme au niveau des données est géré de manière
-symbolique tandis que celui au niveau du contrôle traité explicitement : tous
+symbolique tandis que celui au niveau du contrôle est traité explicitement : tous
 les entrelacements sont explorés individuellement. SymDivine peut utiliser les
 formules SMT ou des \ac{BDD} pour représenter les ensembles abstraits, les premières
 étant plus efficaces dans la plupart de leurs expérimentations.
@@ -1056,7 +1046,7 @@ relativement haut niveau pour faciliter la conception de modèle et la prise en
 charge de plusieurs langages et paradigmes de concurrence, alors que SymDivine
 privilégie le bytecode LLVM, plus proche du programme compilé final afin de
 réduire la distance entre le modèle et le système. CIVL a terminé troisième
-(respectivement quatrième) lors des édition 2016 (respectivement 2017) de
+(respectivement quatrième) lors des éditions 2016 (respectivement 2017) de
 SV-COMP\cite{svcomp_2016_result, svcomp_2017_result}, dans la catégorie portant
 sur la concurrence.
 
@@ -1075,11 +1065,11 @@ construit un modèle sur mesure pour le système considéré et la propriété
 L'objectif des techniques d'abstraction par prédicat est de construire une
 abstraction du programme exacte par rapport à la propriété à vérifier. Cette
 abstraction est réalisée en choisissant un certain nombre de prédicats portant
-sur les états du programmes. Le choix des prédicats est une étape cruciale,
+sur les états du programme. Le choix des prédicats est une étape cruciale,
 puisque la précision de l'abstraction en dépend. Si l'abstraction n'est pas
-suffisamment précise, des faux-positifs (une erreur est détectée alors qu'elle
-n'est pas réellement présente dans le système) ou des faux-négatifs (une erreur
-présente dans le système n'est pas détectée) peuvent avoir lieux.
+suffisamment précise, des faux positifs (une erreur est détectée alors qu'elle
+n'est pas réellement présente dans le système) ou des faux négatifs (une erreur
+présente dans le système n'est pas détectée) peuvent avoir lieu.
 
 Une fois les prédicats choisis, les états de l'abstraction sont définis comme
 les classes d'équivalence obtenues en partitionnant l'ensemble des états du
@@ -1087,7 +1077,7 @@ système par l'ensemble des prédicats. Une transition existe entre un état
 abstrait \(A\) et un état abstrait \(B\) si une transition existe dans le
 système d'origine entre un des états de \(A\) et un des états de \(B\).
 
-On peut représenter le système abstrait comme un programme booléen, c'est à dire
+On peut représenter le système abstrait comme un programme booléen, c'est-à-dire
 un programme possédant les structures de contrôle classique du C, mais
 uniquement des variables booléennes. Les variables de ce programme représentent
 chacune un prédicat, et leur valeur dans un état du programme représente si
@@ -1101,7 +1091,7 @@ Considérons l'exemple du listing \ref{lst:bool_prog_init}. L'erreur qui a lieu
 lorsque \texttt{x = 0} pourrait ici correspondre à une division par
 zéro. Considérons les prédicats \(p_1 = (y == 1)\) et \(p_2 = (x == 0)\).
 
-On détermine quatre états abstrait pour chaque position du programme,
+On détermine quatre états abstraits pour chaque position du programme,
 correspondant aux différentes valeurs de \(p_1\) et \(p_2\). On peut ensuite
 déduire le programme booléen associé en supprimant les variables du programme
 initial et en rajoutant des instructions pour actualiser les prédicats. On
@@ -1138,7 +1128,7 @@ méthode la plus connue pour construire choisir les prédicats et construire une
 abstraction dans le cas du model-checking logiciel est la méthode
 \ac{CEGAR}\cite{dsilva_survey_2008}.
 
-\subsubsection{Counter-Example Guided Abstraction Raffinement (CEGAR)}
+\subsubsection{Counter-Example Guided Abstraction Refinement (CEGAR)}
 
 La méthode \ac{CEGAR} permet de construire une abstraction en itérant quatre phases :
 Abstraction, Vérification, Simulation et Raffinement. Une première abstraction
@@ -1157,7 +1147,7 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
   prédicats. Il n'y a donc qu'une seule classe d'équivalence, contenant tous les
   états du programme. On ne conserve que les structures de contrôle du
   programme. Toutes les variables sont rendues abstraites, et leurs valeurs dans
-  les structures de contrôles sont non-déterministes. On obtient alors
+  les structures de contrôles sont non déterministes. On obtient alors
   l'abstraction présentée dans le listing \ref{lst:CEGAR_1}.
 \item
   \textbf{Vérification :} Un model-checker pour programmes booléens permet de
@@ -1170,7 +1160,7 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
   réalisable.
 \item
   \textbf{Raffinement :} L'incohérence présente dans la trace est utilisée pour
-  raffiner l'abstraction, de manière a éliminer les chemins invalides. Ici, un
+  raffiner l'abstraction, de manière à éliminer les chemins invalides. Ici, un
   prédicat \texttt{{x = 0}} indiquant si \texttt{x} est nul est ajouté. On
   obtient alors l'abstraction plus précise du listing \ref{lst:CEGAR_2}.
 \item
@@ -1228,7 +1218,7 @@ La phase de raffinement est critique pour les performances de la méthode
 itérations supplémentaires de l'algorithme. Des techniques d'analyse statique
 sont souvent utilisées pour trouver les prédicats les plus forts éliminant un
 chemin impossible du modèle. On peut en particulier calculer les plus faibles
-préconditions d'un chemin impossible --- c'est à dire, la plus faible propriété
+préconditions d'un chemin impossible --- c'est-à-dire la plus faible propriété
 qui implique que ce chemin va être emprunté.
 
 \subsubsection{Lazy Abstraction with Interpolant (IMPACT)}
@@ -1242,12 +1232,12 @@ L'algorithme IMPACT\cite{IMPACT} permet d'éviter le calcul des successeurs des
 états abstraits. Au lieu de raffiner une abstraction de manière itérative,
 IMPACT raffine son modèle au fur et à mesure de sa construction, seulement
 lorsque nécessaire. Pour ce faire, il déroule la relation de transition d'un
-programme. L'arbre ainsi obtenu est ensuite exploré. Lorsqu'un un état d'erreur
-est atteint, les états du chemin vers cet erreur sont annotés par des invariants
+programme. L'arbre ainsi obtenu est ensuite exploré. Lorsqu'un état d'erreur
+est atteint, les états du chemin vers cette erreur sont annotés par des invariants
 prouvant que le chemin est impossible dans le programme d'origine (si de tels
-invariants n'existent pas, une erreur est reportée). Le coeur de l'algorithme
+invariants n'existent pas, une erreur est reportée). Le cœur de l'algorithme
 IMPACT consiste à utiliser ces invariants pour éviter d'explorer des branches
-entières de l'arbre. Si deux noeuds \(A\) et \(B\) partagent la même location et
+entières de l'arbre. Si deux nœuds \(A\) et \(B\) partagent la même location et
 que l'invariant de \(B\) est plus fort (implique) que celui de \(A\), alors il
 est inutile d'explorer les fils de \(B\) : une erreur accessible à partir de
 \(B\) est accessible à partir de \(A\) aussi.
@@ -1270,8 +1260,8 @@ d'abstraction par prédicat :
 \def\labelenumi{\arabic{enumi})}
 \item
   Considérer les entrelacements du programme lors de la vérification du
-  programme booléen. Pour palier le problème de terminaison, il est
-  possible de construire une sur-approximation du programme booléen.
+  programme booléen. Pour pallier le problème de terminaison, il est
+  possible de construire une sur approximation du programme booléen.
   Cette approximation permet d'assurer la terminaison du programme
   booléen, mais elle peut générer des faux positifs. Il reste possible
   de détecter ces faux positifs dans la partie \emph{Simulation} de
@@ -1291,7 +1281,7 @@ d'abstraction par prédicat :
 
 Impara\cite{Impara} adapte l'algorithme \emph{IMPACT}\cite{IMPACT} et le combine
 à des techniques de réduction d'ordre partiel afin de l'étendre à des programmes
-multithread. Il réduit ainsi l'explosion combinatoire présente dans l'algorithme
+multi thread. Il réduit ainsi l'explosion combinatoire présente dans l'algorithme
 IMPACT : dérouler naïvement la relation de transition d'un modèle concurrent,
 comme le fait une extension directe de l'algorithme IMPACT, revient à
 énumérer un nombre exponentiel d'entrelacements.
@@ -1315,7 +1305,7 @@ il peut être plus lent qu'une méthode classique dans les autres cas.
 
 CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
 BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
-(\emph{Configurables program analysis}). Un CPA définit un domaine abstrait
+(\emph{Configurable program analysis}). Un CPA définit un domaine abstrait
 (\ac{BDD}, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
 de mener une analyse d'accessibilité sur une combinaison arbitraire de CPAs. La
 concurrence est prise en charge à l'aide d'un CPA qui définit une exploration
@@ -1325,9 +1315,9 @@ tester de nouvelles approches pour les méthodes basées sur l'abstraction par
 prédicat. CPAchecker permet de construire une spécification sous la forme d'un
 automate, à l'aide d'un formalisme similaire à celui utilisé par BLAST.
 
-Les techniques d'abstraction par prédicat son principalement tournées vers les
+Les techniques d'abstraction par prédicat sont principalement tournées vers les
 propriétés d'accessibilité spécifiées par des assertions. Parmi les outils
-supportant le C multithread, tous supportent les assertions. Cependant, seul
+supportant le C multi thread, tous prennent en charge les assertions. Cependant, seul
 Satabs est orienté vers la vérification de propriétés built-in et aucun ne
 permet de vérifier des propriétés \ac{LTL}.
 
@@ -1340,9 +1330,9 @@ aussi une difficulté majeure.
 
 \subsection{Model-checking borné}
 
-Le model-checking borné, ou \ac{BMC}) est l'une des
+Le model-checking borné, ou \ac{BMC}, est l'une des
 techniques les plus utilisées dans l'industrie des semi-conducteurs. Elle a été
-adapté dans le cas du model-checking logiciel. Le model-checking borné se base
+adaptée dans le cas du model-checking logiciel. Le model-checking borné se base
 sur les avancées des solveurs SAT et SMT pour effectuer les tâches de
 vérification.
 
@@ -1354,7 +1344,7 @@ encodée dans une formule de la logique propositionnelle.
 On construit alors la conjonction entre cette formule et la négation d'une
 formule représentant la spécification du programme, et on transmet le résultat
 à un solveur SAT ou SMT. Si la formule est satisfiable, il existe une
-exécution valide ne respectant pas la spécification (puisque elle satisfait la
+exécution valide ne respectant pas la spécification (puisqu’elle satisfait la
 négation de la spécification). Une erreur est donc reportée, la valuation qui a
 satisfait la formule représente le contre-exemple.
 
@@ -1362,7 +1352,7 @@ satisfait la formule représente le contre-exemple.
 Afin d'encoder les exécutions d'un programme dans une
 formule, on met tout d'abord ce programme dans la forme \ac{SSA}.
 Elle consiste à transformer le programme de telle sorte que chaque
-variable ne soit assigné qu'une seule fois. Pour ce faire, les variables sont
+variable ne soit assignée qu'une seule fois. Pour ce faire, les variables sont
 dupliquées, une nouvelle copie étant utilisée à chaque assignation. Les
 structures de contrôle sont remplacées par des expressions conditionnelles une
 fois que les différents branchements se rejoignent. Les fonctions sont inlinées
@@ -1396,7 +1386,7 @@ int c_2 = a_1 > 0 ? c_0 : c_1;
 \paragraph{Dépliage de la relation de transition}
 Dans le cadre du \ac{BMC}, le programme est vu comme une relation de transition
 \(R\). Étant donnés deux états \(s\) et \(q\) du programme, \(R(s, q)\) s'évalue
-à vrai si et seulement si il existe une transition dans le programme permettant
+à vrai si et seulement s’il existe une transition dans le programme permettant
 de passer de l'état \(s\) à l'état \(q\). On peut alors établir la formule
 représentant les \(k\) premiers pas d'une exécution par :
 
@@ -1412,7 +1402,7 @@ transitions entre deux états successifs de la trace soient valides.
 
 Partant de la forme \ac{SSA}, la relation de transition se déplie facilement
 en construisant la conjonction des instructions. Les variables de la forme \ac{SSA}
-peuvent directement être considérée comme des variables logiques. La principale
+peuvent directement être considérées comme des variables logiques. La principale
 difficulté consiste à établir une théorie pour représenter les
 instructions, en particulier les utilisations dynamiques de la mémoire.
 
@@ -1429,14 +1419,14 @@ Dans notre exemple, la relation de transition se déplierait en :
 
 
 Afin de vérifier une propriété \(\Phi\) du programme, on construit la
-conjonction entre la formule représentant les exécution du système et la
+conjonction entre la formule représentant les exécutions du système et la
 négation de la propriété.
 
 \[
 F' = \lnot \Phi \land I(s_0) \land \bigwedge_{i\in \{1..k\}} R(s_{i-1}, s_i)
 \]
 
-Un modèle de cette formule est représente donc les \(k\) premiers pas d'une
+Un modèle de cette formule représente donc les \(k\) premiers pas d'une
 exécution valide, et qui ne respecte pas la propriété \(\Phi\). Il s'agit donc
 d'une exécution contenant une erreur.
 
@@ -1444,39 +1434,38 @@ Le \ac{BMC} explore un système sur une profondeur bornée, il est donc nécessa
 incomplet. Il permet de trouver des erreurs, ou de prouver des propriétés
 d'accessibilité, mais il ne peut prouver des propriétés de sûreté ou trouver des
 erreurs à des propriétés de vivacité : une erreur ou l'évènement attendu
-pourraient être présent à une profondeur plus importante que la profondeur
+pourraient être présents à une profondeur plus importante que la profondeur
 maximale d'exploration.
 
 Lorsque le modèle contient un nombre d'états finis, il est possible de rendre le
 \ac{BMC} complet : il suffit de fixer une profondeur maximale d'exploration
-suffisamment grande pour que toutes les traces du programme n'affiche plus de
-nouveaux comportement une fois cette profondeur atteinte. avant la que la
-profondeur maximale soit atteinte. Cette profondeur est appelée le seuil de
-complétion (\emph{completness threshold}). Calculer la valeur exacte du seuil de
-complétion est un problème difficile. On utilise donc des sur-approximations.
+suffisamment grande pour que toutes les traces du programme n'affichent plus de
+nouveaux comportements une fois cette profondeur atteinte. Cette profondeur est appelée le seuil de
+complétion (\emph{completeness threshold}). Calculer la valeur exacte du seuil de
+complétion est un problème difficile. On utilise donc des sur approximations.
 Cependant, l'exploration d'un système jusqu'au seuil de complétion est souvent
 trop coûteuse en temps et en mémoire pour être réalisable. Le \ac{BMC} est donc
 souvent utilisé pour détecter des erreurs dans un système plutôt que pour
-prouver leur absence, en effectuant plusieurs exploration avec une profondeur
+prouver leur absence, en effectuant plusieurs explorations avec une profondeur
 maximale croissante.
 
-\paragraph{Support du multi-threading}
+\paragraph{Support du multi threading}
 
 Plusieurs approches ont été développées pour prendre étendre le \ac{BMC} à des
-logiciels multi-thread\cite{ESBMC_multithread}.
+logiciels multi thread\cite{ESBMC_multithread}.
 
 Deux techniques sont principalement utilisées.
-La première consiste encoder tout les entrelacement possibles entre les threads
+La première consiste encoder tout les entrelacements possibles entre les threads
 du programme dans la relation de transition, et donc dans la formule de la
 logique propositionnelle fournie à un SAT-solveur ou un SMT-solveur. Cette
 technique permet au solveur d'optimiser sa preuve en utilisant les similarités
 entre différents entrelacements. Cependant, les formules générées peuvent être
-extrêmement grande et dépasser les capacités des solveurs.
+extrêmement grandes et dépasser les capacités des solveurs.
 
-La seconde approche se base sur l'exploration explicite des entrelacement du
+La seconde approche se base sur l'exploration explicite des entrelacements du
 programme : une formule est passée au solveur pour chaque entrelacement, le
 procédé étant interrompu dès qu'une erreur est détectée. Les formules générées
-sont ainsi plus petite et plus simple à résoudre pour les solveurs, cependant,
+sont ainsi plus petites et plus simples à résoudre pour les solveurs, cependant,
 un nombre exponentiel d'appels au solveur peut être nécessaire, avec des
 formules parfois très semblables.
 
@@ -1488,7 +1477,7 @@ dues au parallélisme sont peu \emph{profondes}, elles peuvent être atteintes e
 un nombre réduit de changements de contexte.
 
 Le model-checking borné est la méthode la plus efficace pour trouver des
-erreurs peu profondes. Elle supporte bien le multi-threading. Cependant,
+erreurs peu profondes. Elle supporte bien le multi threading. Cependant,
 cette méthode est peu efficace pour prouver l'absence d'erreur et ne
 peut généralement valider un programme que si sa profondeur est faible.
 Elle est particulièrement sensible aux boucles dont le nombre
@@ -1497,25 +1486,25 @@ d'itérations n'est pas borné.
 \subsubsection{Outils}
 
 CBMC\cite{CBMC} est le premier model-checker logiciel à avoir utilisé le
-model-checking borné. Il est orienté vers les applications embarqués, et permet
+model-checking borné. Il est orienté vers les applications embarquées, et permet
 de vérifier un programme par rapport à différents modèles d'exécution. Il se
 base sur des SAT-solveurs afin de vérifier les conditions de vérification qu'il
-génère. CBMC remplace les opérateurs arithmétiques par la descriptions de
+génère. CBMC remplace les opérateurs arithmétiques par la description de
 circuits équivalents afin de construire une formule logique
-(\emph{bit-flattening}). CBMC supporte les programmes multithread en encodant
+(\emph{bit-flattening}). CBMC supporte les programmes multi thread en encodant
 symboliquement les entrelacements dans la formule passée au model-checker. Comme
-la majorité des model-checkers, CBMC supporte la consistance séquentielle (i.e
+la majorité des model-checkers, CBMC supporte la consistance séquentielle (i.e.
 un ordre total entre les instructions est considéré). Cependant, CBMC est aussi
-capable de traiter des modèles mémoires faibles (i.e un ordre partiel entre les
-instructions est considéré). En effet, les multi-processeurs modernes ne
-respectent pas la consistance séquentielle : d'autre comportement peuvent
+capable de traiter des modèles mémoires faibles (i.e. un ordre partiel entre les
+instructions est considéré). En effet, les multiprocesseurs modernes ne
+respectent pas la consistance séquentielle : d'autres comportements peuvent
 apparaître, liés à la propagation des valeurs à travers les niveaux de cache.
 
 ESBMC\cite{ESBMC} a été conçu en se basant sur CBMC, dont il reprend le
-front-end. ESBMC utilise un solveur SMT (SAT Modulo Theory) au lieu d'un solveur
+frontend. ESBMC utilise un solveur SMT (SAT Modulo Theory) au lieu d'un solveur
 SAT pour vérifier les formules générées et utilise des théories différentes de
 celles utilisées par CBMC afin de créer ces formules. ESBMC supporte les
-programmes multi-thread en énumérant explicitement tout les entrelacements
+programmes multi thread en énumérant explicitement tous les entrelacements
 possibles du programme, et en effectuant une exploration symbolique sur chacun
 d'entre eux. ESBMC améliore le support des boucles par l'utilisation de preuves
 par induction\cite{ESBMC_k_induction}. Les boucles sont déroulées sur un nombre
@@ -1526,24 +1515,24 @@ boucle par une preuve par induction.
 \subsection{Séquentialisation}
 
 Les techniques de model-checking logiciel pour des programmes séquentiels ont
-largement progressé au niveaux de leurs performances et de leur précision.
+largement progressé au niveau de leurs performances et de leur précision.
 Cependant, les model-checkers restent bien plus limités dans le cas de
 programmes concurrents. La séquentialisation réduit le problème de la
-vérification d'un programme multi-thread à celui de la vérification d'un
+vérification d'un programme multi thread à celui de la vérification d'un
 programme séquentiel pour tirer partit des performances des outils dans ce cas.
 
 La séquentialisation consiste à traduire un programme concurrent en un programme
-séquentiel non-déterministe équivalent. Le non-déterminisme lié au contrôle (les
+séquentiel non déterministe équivalent. Le non-déterminisme lié au contrôle (les
 différents entrelacements) est remplacé par un non-déterminisme lié aux données,
 ce qui permet de mieux le gérer. Les techniques de séquentialisation ne
-s'appliquent donc qu'à un programme multi-thread, il est nécessaire de les
+s'appliquent donc qu'à un programme multi thread, il est nécessaire de les
 combiner avec un outil de model-checking adapté au cas séquentiel pour réaliser
-les taches de vérification.
+les tâches de vérification.
 
 La séquentialisation permet d'attaquer deux problèmes simultanément : améliorer
 la prise en charge de la concurrence en se ramenant au cas séquentiel, et
 proposer une interface de gestion de la concurrence compatible avec plusieurs
-model-checker, sans que ceux-ci n'aient à modifier leurs algorithmes.
+model-checkers, sans que ceux-ci n'aient à modifier leurs algorithmes.
 
 Nous allons énumérer les idées clefs des algorithmes de séquentialisation, tout
 en les illustrant par l'exemple de la transformation réalisée par
@@ -1604,7 +1593,7 @@ l'exécution précédente. Pour conserver les valeurs des variables locales
 pendant les interruptions, ces dernières sont rendues statiques. Enfin,
 la fonction \texttt{main} contient l'ordonnanceur. Il va simuler
 \texttt{k} passes d'un ordonnancement de type round-robin, en
-choisissant de manière non-deterministe le nombre d'instructions à
+choisissant de manière non déterministe le nombre d'instructions à
 exécuter dans chaque thread avant de changer de contexte.
 
 On obtient alors le code séquentialisé du listing \ref{lst:code_seq}.
@@ -1669,14 +1658,14 @@ Lazy-CSeq\cite{LazyCSeq} se base sur le framework mis en place par CSeq mais
 prend une approche paresseuse (\emph{lazy}). Il ajoute des instructions de
 contrôle aux fonctions représentant les threads, ce qui permet d'interrompre ou
 de reprendre l'exécution d'une fonction chaque fois qu'un changement de contexte
-peut avoir lieux. L'ordre d'exécution des instructions dans un entrelacement est
+peut avoir lieu. L'ordre d'exécution des instructions dans un entrelacement est
 ainsi préservé, ce qui permet de réduire considérablement l'utilisation du
-non-determinisme. Lazy-CSeq est compatible avec CBMC, ESBMC et LLBMC.
+non-déterminisme. Lazy-CSeq est compatible avec CBMC, ESBMC et LLBMC.
 
 Mu-CSeq\cite{MuCSeq} se base sur le concept de \emph{memory
 unwinding} (déroulement de la mémoire, MU). Un MU consiste en une
 séquence d'écriture dans la mémoire partagée du programme. Mu-CSeq
-choisi un MU de manière non-déterministe et le confronte à une
+choisit un MU de manière non déterministe et le confronte à une
 simulation du programme afin de vérifier si les écritures correspondent.
 Si c'est le cas, une exécution valide a été détectée. Cette approche
 permet d'éviter d'explorer des entrelacements équivalents, seul l'entrelacement
@@ -1684,11 +1673,11 @@ des écritures étant pris en compte. Mu-CSeq utilise CBMC comme backend.
 
 Unbounded-Lazy-CSeq\cite{ULCSeq} se base sur l'algorithme utilisé
 par Lazy-CSeq, mais permet de ne pas limiter le nombre de changements de
-contexte. Il est aussi capable de traiter des programmes non-bornés.
+contexte. Il est aussi capable de traiter des programmes non bornés.
 Pour cela, UL-CSeq conserve les boucles mais se base sur
 CPAChecker\cite{CPAChecker} en backend et non sur des model-checkers bornés.
 
-De manière générale, les outils de séquentialisation ont obtenus
+De manière générale, les outils de séquentialisation ont obtenu
 d'excellentes performances ces dernières années. Lazy-CSeq a obtenu la
 médaille d'or de la catégorie \emph{concurrence} lors des éditions 2014
 et 2015 de la SVCOMP et une médaille d'argent pour les éditions 2016 et
@@ -1701,7 +1690,7 @@ svcomp_2014_result, svcomp_2017_result}.
 
 Différents outils et techniques de model-checking ont été développés pour
 tenter de résoudre le problème principal du model-checking : l'explosion
-combinatoire. Ces techniques ont différents point forts et défauts, qui
+combinatoire. Ces techniques ont différents points forts et défauts, qui
 dépendent des propriétés types à vérifier, de la structure du modèle (boucles,
 non-déterminisme sur les données ou  le contrôle...) et du résultat attendu
 (détection d'erreurs, preuve de correction...).
@@ -1719,14 +1708,14 @@ des outils supportent une spécification à l'aide d'assertions, le support pour
 La gestion de la concurrence reste encore un problème ouvert.
 Elle est actuellement prise en charge par différents mécanismes : les
 différents entrelacements peuvent être intégrés directement dans le modèle, ils
-peuvent aussi être énuméré explicitement. Une autre approche est de mener une
+peuvent aussi être énumérés explicitement. Une autre approche est de mener une
 preuve modulaire, en examinant chaque thread individuellement et en simulant ses
 interactions avec le reste du système. Enfin, les techniques de
-séquentialisation permettent de ramener le non-determinisme dû aux
-entrelacements à du non-determinisme dû aux données que les model-checkers
+séquentialisation permettent de ramener le non-déterminisme dû aux
+entrelacements à du non-déterminisme dû aux données que les model-checkers
 savent mieux traiter.
 
-Par la suite, nous allons utiliser des model-checker en tant que backend
+Par la suite, nous allons utiliser des model-checkers en tant que backend
 afin de vérifier du code instrumenté. L'objectif sera alors de considérer le
 model-checker comme une boîte noire, dont il est inutile de connaître le
 fonctionnement interne. Connaître les techniques utilisées restera cependant

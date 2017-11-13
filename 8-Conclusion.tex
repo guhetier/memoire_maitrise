@@ -8,20 +8,20 @@
 Dans ce mémoire, nous avons examiné l'état de l'art des techniques de
 model-checking logiciel, en nous concentrant sur la vérification de programmes
 concurrents en C, suivant la norme POSIX (pThread). Nous décrivons les
-principales approches actuellement développés ainsi que les principaux projets
+principales approches actuellement développées ainsi que les principaux projets
 actifs implémentant ces approches. Nous identifions deux principales
 limitations. L'explosion combinatoire reste, malgré les optimisations et les
 techniques de réduction, le principal obstacle à surmonter afin de permettre au
 model-checking logiciel de passer à l'échelle. De plus, les mécanismes de
-spécification dans le cas de programmes concurrents sont peut développés : les
-assertions sont peut adaptées à la concurrence, tandis que peu d'outils sont
+spécification dans le cas de programmes concurrents sont peu développés : les
+assertions sont peu adaptées à la concurrence, tandis que peu d'outils sont
 capables de vérifier des propriétés \ac{LTL}, et toujours dans une forme
 limitée.
 
 Nous nous sommes alors intéressés aux limitations des formalismes de
 spécifications. Nous avons mis en place un nouveau formalisme, basé sur
 \ac{LTL}, et utilisant le concept de \emph{zones de validité} afin de permettre
-de manipuler des positions du programmes et des variables locales dans les
+de manipuler des positions du programme et des variables locales dans les
 propriétés \ac{LTL}. Nous vérifions que ce formalisme permet de représenter à la
 fois la restriction de \ac{LTL} classiquement utilisée ainsi que des assertions,
 tout en permettant de dépasser leurs principales limitations.
@@ -29,14 +29,14 @@ tout en permettant de dépasser leurs principales limitations.
 Enfin, nous présentons une transformation de source à source d'un programme en C
 permettant de vérifier un code spécifié par notre formalisme. Nous contournons
 le manque d'outils supportant le model-checking de propriétés LTL en reprenant
-l'approche présenté par \cite{morse_ltl} et nous l'adaptons à notre cas. Nous
+l'approche présentée par \cite{morse_ltl} et nous l'adaptons à notre cas. Nous
 construisons ainsi un code instrumenté représentant le produit entre le code
 d'origine et un automate de Büchi, spécifié par des assertions. Ce code
 instrumenté peut ensuite être vérifié par un model-checker, sans nécessiter un
 support de LTL. Cette solution reste cependant limitée à l'exploration de traces
 finies. Nous avons testé cette instrumentation sur un jeu de tests, à l'aide des
 model-checkers CBMC et ESBMC, ce qui nous a permis de valider notre approche. Il
-est donc possible de vérifier des programmes spécifié dans notre formalisme à
+est donc possible de vérifier des programmes spécifiés dans notre formalisme à
 l'aide de n'importe quel model-checker borné, d'autres techniques de
 model-checking étant probablement utilisables aussi au prix de modification de
 l'instrumentation ou d'une intégration de cette dernière directement dans le
@@ -57,8 +57,8 @@ limiter l'explosion combinatoire due à la concurrence.
 
 Le formalisme de spécification que nous proposons permet d'exprimer un ensemble
 de propriétés significativement plus large que celui exprimable par des
-assertions. Afin de mesurer l'impact de ce formalisme, des tests plus conséquent
-sur du code issus de système réels serait nécessaire. Une telle étude
+assertions. Afin de mesurer l'impact de ce formalisme, des tests plus conséquents
+sur du code issus de systèmes réels seraient nécessaires. Une telle étude
 permettrait aussi de déterminer si des extensions plus larges sont encore
 nécessaires pour exprimer des propriétés fréquemment utilisées.
 
@@ -74,24 +74,24 @@ d'autres contextes de vérification. En particulier, l'instrumentation donne
 accès à l'automate de Büchi. En le modifiant, il est possible de restreindre les
 exécutions explorées par un model-checker et se concentrer sur des scénarios
 critiques. L'instrumentation pourrait aussi être modifiée afin d'être rendue
-exécutable, quitte à remplacer les choix non-déterministes par des choix
+exécutable, quitte à remplacer les choix non déterministes par des choix
 aléatoires. Cela ouvre la porte à des approches de vérification de notre
 spécification en utilisant des outils de test (stress testing ou fuzzing par
 exemple).
 
 \section{Remarques conclusives}
 
-A travers ce mémoire, nous avons contribué à étendre légèrement les possibilités
+À travers ce mémoire, nous avons contribué à étendre légèrement les possibilités
 de spécification pour le model-checking de programmes concurrents. Cependant,
 ces progrès viennent avec un coût de vérification plus important. Ces coûts de
 vérification, liés en grande partie à l'explosion combinatoire, constituent la
 principale limite du model-checking actuellement. Ce problème ne semble pas
 proche d'être résolu, à moins d'une percée spectaculaire dans ce domaine : on
-assiste plutôt à un ensemble d'optimisation qui permettent de vérifier des
+assiste plutôt à un ensemble d'optimisations qui permettent de vérifier des
 programmes de taille toujours plus grande. De manière concomitante, de nouveaux
 langages de programmation émergent, axés sur la sécurité et permettant de
 prouver certaines propriétés d'un programme à sa compilation. Un exemple est
 Rust\ref{Rust}, qui permet d'assurer l'absence de data-race et une certaine
 forme de consistance entre les threads. Le model-checking pourrait profiter des
-propriétés assurées par ces langages afin de réduire d'avantage la taille des
+propriétés assurées par ces langages afin de réduire davantage la taille des
 modèles.

@@ -12,7 +12,7 @@
 \Annexe{Types de propriétés supportés par différents model-checkers}
 \begin{table}[ht]
 \centering
-\caption{Types de propriétés prise en charge par les outils présentés.}
+\caption{Types de propriétés prises en charge par les outils présentés.}
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
 \hline
 Outils     & \multicolumn{9}{c|}{Types de propriétés vérifiées}                                                                                     \\
@@ -61,8 +61,8 @@ une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
 aucune synchronisation n'existe entre les threads.
 On peut aussi noter que la boucle principale des threads ne s'exécute que trois
 fois, afin que la trace soit finie. Dans un cas d'utilisation réel, on
-utiliserai une boucle infinie et les options du model-checker permettrai de
-limiter le nombre de dépliage, mais pour des raisons de simplicité, nous codons
+utiliserait une boucle infinie et les options du model-checker permettraient de
+limiter le nombre de dépliages, mais pour des raisons de simplicité, nous codons
 directement ce comportement.
 
 \noindent\begin{minipage}{.45\textwidth}
@@ -102,9 +102,8 @@ void* battery2(void* d) {
 \end{lstlisting}
 \end{minipage}
 
-Pour s'assurer que le système fonctionne correctement, on souhaite s'assurer que
-une des deux batteries a toujours un niveau d'énergie supérieur à 10\%, une fois
-le système initialisée.
+Pour s'assurer que le système fonctionne correctement, on souhaite s'assurer qu’une des deux batteries a toujours un niveau d'énergie supérieur à 10\%, une fois
+le système initialisé.
 
 Nous allons tout d'abord spécifier cette propriété sur le système. Pour cela, on
 délimite tout d'abord les zones de validités. L'initialisation des batteries ne
@@ -146,7 +145,7 @@ e2: pthread_exit(NULL);
 \end{minipage}
 
 On définit ensuite les fonctions d'évaluation. Ici, nous allons utiliser deux
-propositions atomiques, chacune indiquant si une batterie est a un niveau
+propositions atomiques, chacune indiquant si une batterie a un niveau
 d'énergie faible. Cependant, une seule fonction d'évaluation est nécessaire
 puisque les deux propositions atomiques s'évaluent selon la même formule.
 
@@ -177,7 +176,7 @@ Il ne reste alors qu'à exprimer la spécification en elle même.
 }
 \end{lstlisting}
 
-On utilise alors baProduct pour instrumenter ce code. On utilise pour pour cela
+On utilise alors baProduct pour instrumenter ce code. On utilise pour cela
 la commande \texttt{baProduct.py -i battery.c -s battery.spec}. Cette commande
 réalise tout d'abord un appel à LTL2BA afin de générer l'automate correspondant
 à la négation de la formule LTL (étape 1 dans la
@@ -231,7 +230,7 @@ void _ltl2ba_transition() {
   }
 }
 
-// Precalculated results for stutter acceptance
+// Pre-calculated results for stutter acceptance
 int _ltl2ba_surely_reject[2] = {0, 0};
 int _ltl2ba_surely_accept[2] = {0, 1};
 int _ltl2ba_stutter_accept[8] = {0, 1, 0, 1, 0, 1, 1, 1,};
@@ -267,7 +266,7 @@ void *battery1(void *d )
   int energy ;
   int i;
   energy = 10;
-  // Begining of validity area
+  // Beginning of the validity area
   // Open an atomic bloc
   __CPROVER_atomic_begin();
   _ltl2ba_pointer_thread1_energy = &energy;
@@ -295,11 +294,11 @@ void *battery1(void *d )
     _ltl2ba_transition();
     __CPROVER_atomic_end();
   }
-  // End of validity area
+  // End of the validity area
   __CPROVER_atomic_begin();
   // Set the atomic proposition to the default value
   _ltl2ba_atomic_p1 = 0;
-  // Desacivate the atomic proposition
+  // Deactivate the atomic proposition
   _ltl2ba_active_p1 = 0;
   // Take a transition in the automaton
   _ltl2ba_transition();
