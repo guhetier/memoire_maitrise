@@ -1,8 +1,8 @@
-\chapter{Exprimer la spécification par des assertion à l'aide d'une
+\chapter{Exprimer la spécification par des assertions à l'aide d'une
 instrumentation}\label{sec:Theme2}
 
 Nous avons présenté un formalisme de spécification basé sur \ac{LTL} dans le
-chapitre~\ref{sec:Theme1}. Notre objectif est maintenant d'établir un outil
+Chapitre~\ref{sec:Theme1}. Notre objectif est maintenant d'établir un outil
 permettant de vérifier un programme concurrent en C, spécifié dans ce
 formalisme.
 
@@ -10,12 +10,12 @@ Construire un outil de model-checking performant et adapté à notre spécificat
 dépasse de loin le cadre de cette maîtrise. Nous allons donc nous baser sur les
 outils existants. Cependant, la plupart des outils de model-checking pour des
 programmes concurrents en C ne supportent pas \ac{LTL}, alors que notre
-spécification est basé sur cette logique temporelle. Adapter un model-checker
+spécification est basée sur cette logique temporelle. Adapter un model-checker
 sera donc une tâche complexe.
 
 Cependant, presque tous les model-checkers logiciels supportent les assertions.
 Nous avons par conséquent mis en place une transformation source à source du
-système. A partir des sources d'un système et de sa spécification, elle produit
+système. À partir des sources d'un système et de sa spécification, elle produit
 un programme instrumenté, contenant des assertions, tel que la validité de ce
 programme instrumenté par rapport aux assertions corresponde à celle du
 programme initial par rapport à sa spécification.
@@ -30,7 +30,7 @@ code d'un système préexistant et la représentation interne d'un model-checker
 Cependant, ce choix a aussi des inconvénients. En particulier, une
 instrumentation représente une perte de précision et de performance par rapport
 à un traitement direct : des variables et des instructions sont ajoutées dans le
-système et vont être traitée comme n'importe quelle instruction par les
+système et vont être traitées comme n'importe quelle instruction par les
 model-checkers en backend, alors qu'elles suivent une logique qui pourrait être
 utilisée pour les traiter plus efficacement.
 
@@ -97,7 +97,7 @@ programme est totalement connu et il est possible de conclure si oui ou non, il
 vérifie une spécification. Mais du point de vue d'une instrumentation, il n'est
 pas possible de détecter un cycle, et il n'est donc pas possible de déterminer à
 quel moment prononcer une conclusion pour une trace infinie : l'ensemble des
-comportement du programme n'a peut être pas encore eu lieu, un nouveau
+comportements du programme n'a peut être pas encore eu lieu, un nouveau
 comportement pourrait modifier le verdict. Dans le cas d'une trace finie, par
 contre, il suffit de conclure à la fin de la trace. Pour une instrumentation,
 cela revient à placer une fonction de ``conclusion'' juste avant les points de
@@ -140,22 +140,22 @@ déconseillé de l'utiliser.
 
 Une trace finie ne correspond pas toujours à une exécution réelle du système.
 Il peut s'agir seulement d'un préfixe d'une exécution plus longue, par exemple,
-le nombre d'itération d'une boucle à pu être limité. La prolongation de la
+le nombre d'itérations d'une boucle a pu être limité. La prolongation de la
 sémantique d'extension infinie ne reflète donc pas forcément le comportement
 réel du système.
 
 \paragraph{Exemple}
-La trace \(t = pqpqpqp\) de l'exemple précédent est peut être le préfixe d'une
+La trace \(t = pqpqpqp\) de l'exemple précédent est peut-être le préfixe d'une
 trace \(t'' = pqpqpq\dots pq\dots\), qui aurait été interrompue. Cette trace ne
 vérifie pas la propriété \(F (G p)\), contrairement à \(t\).
 
-Pour tenir compte de ce comportement, il est possible de raffiner d'avantage les
+Pour tenir compte de ce comportement, il est possible de raffiner davantage les
 résultats en faisant la distinction entre deux types de traces finies :
 
 \begin{itemize}
 \item
   le préfixe fini est suffisant pour déterminer si la trace est un
-  modèle de la formule ou non, quelque soit l'extension
+  modèle de la formule ou non, quelleque soit l'extension
   (\emph{stuttering} ou autre)
 \item
   le préfixe fini n'est pas suffisant, le résultat dépend de l'extension
@@ -164,14 +164,14 @@ résultats en faisant la distinction entre deux types de traces finies :
 \paragraph{Exemple}
 Le préfixe fini \(t = pqpqpqp\) est suffisant pour établir que \(t\) ne vérifie
 pas \(G p\), quelque soit l'extension. Pour \(F (G p)\), cependant, nous avons
-vu que le résultat dépends de l'extension choisie.
+vu que le résultat dépend de l'extension choisie.
 
-Nous avons de plus utilisé une logique à 4 valeurs de vérités, comme
+Nous avons de plus utilisé une logique à 4 valeurs de vérité, comme
 décrite dans \cite{morse_ltl}. Nous pourrons ainsi, selon la catégorie d'une
-trace, affecter des valeurs de vérités différentes.
+trace, affecter des valeurs de vérité différentes.
 
 Étant donné une propriété et un automate de Büchi associé à cette propriété, on
-définie les quatre valeurs de vérité par :
+définit les quatre valeurs de vérité par :
 
 \begin{itemize}
 \item
@@ -196,12 +196,12 @@ définie les quatre valeurs de vérité par :
 Les deux valeurs \emph{True} et \emph{False} permettent de conclure de manière
 certaine, lorsque le résultat ne dépend pas de l'extension. Si le résultat
 dépend de l'extension, les valeurs \emph{Maybe true} et \emph{Maybe false}
-permette d'indiquer que le résultat est relatif à la sémantique d'extension
+permettent d'indiquer que le résultat est relatif à la sémantique d'extension
 infinie.
 
 Dans les cas d'une conclusion \emph{Maybe true} ou \emph{Maybe false},
 la connaissance supplémentaire du fait que le programme ait terminé ou
-non son exécution (i.e on a vérifié l'exécution complète ou la
+non son exécution (i.e. on a vérifié l'exécution complète ou la
 profondeur d'exploration a été bornée) peut permettre de préciser le
 résultat.
 
@@ -216,7 +216,7 @@ L'implémentation de cet automate reprend l'approche décrite dans
 
 Les états de l'automate sont indicés selon un ordre arbitraire. On réfère à un
 état dans le code par son indice. La partie principale de l'implémentation de
-l'automate est sa fonction de transition. Elle est implémenté à travers une
+l'automate est sa fonction de transition. Elle est implémentée à travers une
 fonction C, qui permet de déterminer l'évolution de l'état de l'automate selon
 l'état courant et les valeurs des propositions atomiques.
 
@@ -238,7 +238,7 @@ Nous utilisons les variables et fonctions suivantes pour construire l'automate :
   une fonction \texttt{\_ltl2ba\_transition} représente la fonction de
   transition de l'automate et fait évoluer l'état stocké dans
   \texttt{ltl2ba\_state\_var}. Étant donné l'état courant de
-  l'automate, elle choisit de manière non-déterministe une transition
+  l'automate, elle choisit de manière non déterministe une transition
   valide partant de cet état et met à jour l'état courant. Si aucune
   transition n'est valable, le mot est rejeté (et l'exploration courante
   est stoppée). Si l'état courant est un état puits acceptant, le mot
@@ -247,8 +247,8 @@ Nous utilisons les variables et fonctions suivantes pour construire l'automate :
   trace acceptée par l'automate est donc un contre-exemple à la
   propriété).
 
-  Cette fonction permet de d'explorer l'automate de manière
-  non-déterministe. Une valeur non-déterministe est produite l'aide de
+  Cette fonction permet d'explorer l'automate de manière
+  non déterministe. Une valeur non déterministe est produite l'aide de
   la fonction intrinsèque au model-checker, \texttt{nondet\_int()}. La
   transition à emprunter est désignée à l'aide de cette valeur. Le
   model-checker va alors explorer l'ensemble des évolutions possibles de
@@ -261,8 +261,8 @@ Nous utilisons les variables et fonctions suivantes pour construire l'automate :
   l'automate et la valeur des propositions atomiques pour déterminer la
   valeur de vérité associée à cette exécution. Si une erreur est
   possible, elle est remontée au model-checker à l'aide d'une assertion.
-  Les valeurs de vérités sont déterminées en utilisant des données
-  pré-calculées par une analyse d'accessibilité dans l'automate de Büchi
+  Les valeurs de vérité sont déterminées en utilisant des données
+  précalculées par une analyse d'accessibilité dans l'automate de Büchi
   \cite{morse_ltl}.
 \end{itemize}
 
@@ -271,11 +271,11 @@ Notre implémentation de l'automate de Büchi en C diffère de celle de
 est implémenté dans un thread supplémentaire, utilisé comme un thread
 observateur. La fonction de transition de l'automate est placée dans une boucle,
 synchronisée avec le reste du code à l'aide d'une commande interne du
-model-checker. Cette commande à été implémentée pour l'occasion. Dans notre cas,
+model-checker. Cette commande a été implémentée pour l'occasion. Dans notre cas,
 la fonction de transition est représentée par une fonction dans le code, appelée
-quand nécessaire par l'instrumentation. Cela nous permet de ne pas se baser sur
+quand nécessaire par l'instrumentation. Cela nous permet de ne pas nous baser sur
 une commande interne pour synchroniser l'automate avec le code et ainsi, de
-supporter plus facilement différents model-checkers en back-end.
+supporter plus facilement différents model-checkers en backend.
 
 \paragraph{Exemple}
 L'automate pour la propriété LTL \(G p \implies F q\) est implémenté par
@@ -341,11 +341,10 @@ void _ltl2ba_result() {
 Cet exemple permet de remarquer que le seul moyen de faire remonter un résultat
 est à travers le déclenchement d'une assertion. La violation d'une assertion
 met fin à une trace, il est donc important d'ordonner les assertions de manière
-à ce que le résultat le plus fort soit le premier à être reporté pour ne pas
-qu'il soit masqué. De plus, certain model-checker arrêtent d'explorer le modèle
+à ce que le résultat le plus fort soit le premier à être reporté pour qu'il ne soit pas masqué. De plus, certains model-checkers arrêtent d'explorer le modèle
 dès qu'une erreur est reportée. Dans ce cas, il peut être nécessaire de réaliser
-plusieurs vérification successive en désactivant les assertions les plus
-faibles, pour ne pas qu'un résultat faible masque un résultat plus fort présent
+plusieurs vérifications successives en désactivant les assertions les plus
+faibles, pour qu'un résultat faible ne masque pas un résultat plus fort présent
 dans une trace future.
 
 \section{Instrumentation du code}
@@ -356,8 +355,8 @@ Figure~\ref{fig:baProduct_func}). Cela est réalisé par une instrumentation du
 code, afin de maintenir à jour la valeur des propositions atomiques et d'appeler
 la fonction de transition de l'automate.
 
-Afin de minimiser l'instrumentation, la valeur d'une propositions atomique est
-mise à jour uniquement lorsque un des paramètres dont elle dépend est modifiée
+Afin de minimiser l'instrumentation, la valeur d'une proposition atomique est
+mise à jour uniquement lorsqu’un des paramètres dont elle dépend est modifié
 (valeur d'une variable, entrée ou sortie de la zone de validité). La fonction de
 transition de l'automate est appelée uniquement à ces occasions. L'opérateur
 \ac{LTL} \emph{Next} a alors pour signification ``lors du prochain appel à la
@@ -411,9 +410,9 @@ l'instruction \texttt{atomic\_end()}) afin de ne pas générer
 d'entrelacements supplémentaires dans le code et créer des chemins
 d'exécutions pouvant mener à une conclusion erronée : toutes les
 instructions de l'instrumentation doivent être réalisées de manière
-atomiques (sans changement de contexte possible) pour garantir un état
+atomique (sans changement de contexte possible) pour garantir un état
 cohérent de l'automate. Si plusieurs entrées et sorties de zone ont
-lieux au même label, les instructions d'instrumentations sont toutes
+lieu au même label, les instructions d'instrumentations sont toutes
 réunies dans le même bloc atomique. La fonction de transition n'est
 appelée qu'une seule fois, après l'actualisation de toutes les
 propositions atomiques.
@@ -452,12 +451,12 @@ __atomic_end();
 \end{lstlisting}
 
 L'affectation de la variable à sa nouvelle valeur et l'instrumentation
-sont placés dans un même bloc atomique, afin de la modification de
-l'état soit répercutée sans changement de contexte possible.
+sont placées dans un même bloc atomique, afin de répercuter la modification de
+l'état sans changement de contexte possible.
 
 Contrairement à l'instrumentation à l'entrée et la sortie des zones de
 validité, ici, aucun nouveau chemin d'exécution n'est créé : une
-affectation est un statement, que nous considérons comme atomique. Il
+affectation est une instruction, que nous considérons comme atomique. Il
 est donc possible de l'inclure dans un bloc atomique pour le
 model-checker.
 
@@ -534,11 +533,11 @@ instructions :
   la proposition atomique ne doit pas être modifiée.
 \end{itemize}
 
-Il est donc nécessaire d'instrumenter aussi les affectation à des
+Il est donc nécessaire d'instrumenter aussi les affectations à des
 variables globales hors de la zone de validité d'une proposition.
 Cependant, une affectation en dehors d'une zone de validité ne doit pas
-non plus systématiquement donner lieux à une actualisation des
-proposition atomique : il ne faut actualiser la valeur de la proposition
+non plus systématiquement donner lieu à une actualisation des
+propositions atomique : il ne faut actualiser la valeur de la proposition
 atomique que lorsqu'un pointeur d'exécution est dans sa zone de
 validité. C'est donc une notion dynamique, qui dépend de l'exécution.
 
@@ -547,7 +546,7 @@ l'instrumentation prendra la forme d'une condition. Nous ajoutons une
 variable globale pour chaque proposition atomique, qui indique si le
 programme est dans sa zone de validité. On maintient la valeur de cette
 variable à l'entrée et à la sortie de chaque zone de validité. On peut
-alors tester la valeur de cette variable pour définir si il faut
+alors tester la valeur de cette variable pour définir s’il faut
 actualiser ou non la proposition atomique.
 
 La valeur de cette nouvelle variable globale doit être actualisée
@@ -617,7 +616,7 @@ __atomic_end();
 
 \subsection{Mélange de variables globales et locales}
 
-Enfin, plaçons nous dans le cas où une proposition atomique dépend à la
+Enfin, plaçons-nous dans le cas où une proposition atomique dépend à la
 fois de variables globales et de variables locales.
 
 Un nouveau problème apparaît : lorsqu'une variable globale est modifiée
@@ -631,7 +630,7 @@ accessibles.
 
 \paragraph{Exemple}
 Dans le code suivant, on veut vérifier que les variables \texttt{a} et
-\texttt{b} sont bien égale durant tout l'intervalle de validité de la
+\texttt{b} sont bien égales durant tout l'intervalle de validité de la
 proposition.
 
 \noindent\begin{minipage}{.45\textwidth}
@@ -684,7 +683,7 @@ compléter l'instrumentation pour maintenir des adresses de toutes les
 variables utilisées comme paramètre d'une proposition atomique.
 
 Pour chaque variable utilisée comme paramètre d'une proposition
-atomique, une variable globale supplémentaire est créée. A l'entrée dans
+atomique, une variable globale supplémentaire est créée. À l'entrée dans
 la zone de validité d'une proposition, cette variable globale est
 assignée avec l'adresse du paramètre auquel elle correspond. Il est
 alors possible d'accéder à la valeur de la variable en déréférençant ce
@@ -743,13 +742,13 @@ assertions.
 
 Un model-checker permet alors de vérifier ce code. Selon les assertions que le
 code va violer, il est possible de déterminer si le programme contient une
-erreur ou non. Le contre-exemple fournis par le model-checker permet de
+erreur ou non. Le contre-exemple fourni par le model-checker permet de
 retrouver l'erreur dans le programme instrumenté, et donc, en ignorant les
 lignes ajoutée par l'instrumentation, dans le système d'origine.
 
 Certains model-checkers arrêtent l'exploration du système dès qu'une assertion
 est violée. Un résultat plus faible que le résultat attendu peut alors
-être remontée, si une trace violant l'assertion correspondant au résultat plus
+être remonté, si une trace violant l'assertion correspondant au résultat plus
 faible est explorée avant une trace prouvant le résultat plus fort. Il peut donc
 être nécessaire de réaliser plusieurs passes de vérification en désactivant
 certaines assertions pour s'assurer d'obtenir le résultat le plus fort.
@@ -764,7 +763,7 @@ utilisant le logiciel LTL2BA\cite{ltl2ba}. LTL2BA implémente
 une méthode rapide afin de construire l'automate de Büchi associé à une
 formule LTL, en utilisant un co-automate de Büchi alternant très faible
 (\emph{very weak alternating co-Büchi automaton}) et un automate de
-Büchi généralisé (*generalised Büchi automaton) comme intermédiaires.
+Büchi généralisé (*generalized Büchi automaton) comme intermédiaires.
 
 L'instrumentation est réalisée à l'aide la bibliothèque
 CIL\cite{cil}, en OCaml\cite{ocamlrefman}. CIL permet de parser
@@ -786,7 +785,7 @@ Notre implémentation comprend :
   respectivement.
 \item
   L'utilitaire \texttt{baProduct}. Il s'agit du programme réalisant
-  l'instrumentation. Il prends en entré un fichier C préprocessé et un
+  l'instrumentation. Il prend en entrée un fichier C préprocessé et un
   fichier de spécification, et il produit un fichier instrumenté. Cet
   utilitaire a besoin de la version modifiée de LTL2BA pour fonctionner.
 \item
@@ -796,14 +795,14 @@ Notre implémentation comprend :
 \end{itemize}
 
 Une utilisation classique de notre implémentation ressemble donc à
-l'appel suivant (avec esbmc\cite{ESBMC} est utilisé en backend) :
+l'appel suivant (avec ESBMC\cite{ESBMC} utilisé en backend) :
 
 \begin{lstlisting}
 ~ ./baProduct.py -i test.c -s test.spec
 ~ esbmc --depth 100 test_instr.c
 \end{lstlisting}
 
-Le code de ces outils et une série de tests sont disponibles à sur Github, à
+Le code de ces outils et une série de tests sont disponibles sur Github, à
 l'adresse
 \href{https://github.com/xNephe/baProduct}{https://github.com/xNephe/baProduct}
 et
@@ -813,22 +812,22 @@ et
 Afin de tester notre approche, nous avons mis en place une suite de tests
 permettant d'évaluer les performances de vérification du code instrumenté avec
 plusieurs model-checkers. Les tests mettent en jeu des erreurs liées au
-non-determinisme de contrôle (i.e les différents entrelacements possibles dans
+non-déterminisme de contrôle (i.e. les différents entrelacements possibles dans
 le système). Ils modélisent des versions très simplifiées de systèmes usuels,
-parmi lesquels un feux tricolore, un système producteur-consomateur ou un
+parmi lesquels un feu tricolore, un système producteur-consommateur ou un
 système d'alimentation.
 
 Nous avons réalisé les tests sur un ordinateur muni de 6~Go de RAM, équipé d'un
-processeur Intel Core i7 (4 coeurs cadencé à 3,7GHz), sous Fedora~25 (64 bits).
+processeur Intel Core i7 (4 coeurs cadencés à 3,7GHz), sous Fedora~25 (64 bits).
 Nous avons utilisé CBMC\cite{CBMC} version~5.7 et ESBMC\cite{ESBMC} version~4.2.
-ESBMC nécessite une borne sur le nombre de changement de contextes, que nous
+ESBMC nécessite une borne sur le nombre de changements de contextes, que nous
 avons fixé à 3, sauf pour le test \emph{prod\_cons\_simple}, où elle est de 7
 (en raison d'un plus grand nombre de threads). En présence de boucles, nous
 avons limité l'exploration à trois itérations.
 
 CBMC et ESBMC étant des model-checkers bornés, ils se combinent très bien avec
-notre approche, qui exige une exécution finie. Nous avons tenté, d'utiliser
-d'autres types de model-checker pour effectuer les taches de vérification (en
+notre approche, qui exige une exécution finie. Nous avons tenté d'utiliser
+d'autres types de model-checkers pour effectuer les tâches de vérification (en
 particulier Threader, Divine et Lazy CSeq). Cependant, ces essais n'ont pas été
 fructueux. Nous avons rencontré des difficultés techniques lors de
 l'installation ou la compilation de ces outils, ainsi que des erreurs de parsing
@@ -889,16 +888,16 @@ race                       & 1.08      & 41           & 5.65      & 28          
 
 Comme on peut le constater dans le tableau~\ref{tbl:resultats}, CBMC et ESBMC
 permettent généralement de mener à bien la tâche de vérification et de trouver
-un résultat correct. On observe cependant quelques erreurs. CBMBC indique une
+un résultat correct. On observe cependant quelques erreurs. CBMC indique une
 erreur possible dans un test valide, alors que ESBMC ne détecte pas une erreur
 dans un test incorrect. ESBMC échoue aussi sur le test \emph{battery\_var} après
 avoir consommé l'ensemble de la mémoire disponible.
 
 Les résultats attendus et ceux fournis par les model-checkers sont généralement
-incertains (\texttt{MAYBE}). Cela est normal, puisque on considère des
+incertains (\texttt{MAYBE}). Cela est normal, puisqu’on considère des
 propriétés de sûreté ou d'accessibilité sur des programmes finis, pour
 lesquelles on ne peut pas conclure de manière certaine. Le fait de savoir que le
-programme a complètement terminé son exécution dans ces cas permet de rendre le
+programme a terminé son exécution dans ces cas permet de rendre le
 verdict définitif.
 
 Pour les mesures de performances, nous ne tenons compte que du temps utilisé par
@@ -909,7 +908,7 @@ une autre, nous considérons la somme des temps d'exécution. Le
 tableau~\ref{tbl:performances} permet de constater que CBMC est bien plus
 efficace sur ce benchmark que ESBMC. Nous interprétons cet écart de performances
 par la manière dont ces deux model-checkers prennent en charge la concurrence.
-CBMC construit une unique formule représentant tous les entrelacement, qu'il
+CBMC construit une unique formule représentant tous les entrelacements, qu'il
 délègue ensuite à un SAT solveur, alors que ESBMC explore les entrelacements de
 manière explicite. Les erreurs dans nos tests sont principalement basées sur un
 entrelacement particulier des threads, ce qui est plus compatible avec
@@ -922,22 +921,22 @@ permettant de conclure.
 
 La transformation de source à source et l'outil que nous présentons dans ce
 chapitre restent limités. Parmi ces limitations, nous pensons que certaines
-pourrait être surmontées relativement facilement par des travaux futurs qui
+pourraient être surmontées relativement facilement par des travaux futurs qui
 sortaient du cadre de cette maîtrise. D'autres limitations sont liées au choix
 de construire une instrumentation du code plutôt qu'étendre directement un
 model-checker. Elles pourraient donc être contournées en changeant d'approche.
-Enfin, certaines sont des problèmes plus complexes et difficile à surmonter.
+Enfin, certaines sont des problèmes plus complexes et difficiles à surmonter.
 
-La principale limitation de notre travail est qu'il sont limité à l'analyse de
+La principale limitation de notre travail est qu'il est limité à l'analyse de
 programmes dont toutes les traces terminent, afin que les appels à la fonction
 d'analyse des résultats soient examinés. Cette restriction est inhérente à une
-instrumentation, une extension d'un model-checker ne rencontrerai pas ce
-problème : l'état final de l'automate peut être examinée une fois l'exploration
-du système terminés, qu'il contienne ou non des traces infinies.
+instrumentation, une extension d'un model-checker ne rencontrerait pas ce
+problème : l'état final de l'automate peut être examiné une fois l'exploration
+du système terminée, qu'il contienne ou non des traces infinies.
 
 Nous n'avons pas abordé la question des accès indirects aux variables (à travers
 un pointeur ou un tableau par exemple). Ces derniers pourraient être pris en
-charge à l'aide d'une instrumentation plus lourde, se basant sur un analyse
+charge à l'aide d'une instrumentation plus lourde, se basant sur une analyse
 statique des cibles possibles des pointeurs et procédant ensuite par disjonction
 de cas.
 
@@ -945,25 +944,25 @@ Notre instrumentation provoque potentiellement des pertes de précision dans la
 vérification, en introduisant des chemins dans le programme instrumenté qui
 n'étaient pas présent dans le programme initial. Ce phénomène est présent à
 l'entrée des zones de validité, où l'instrumentation ne peut être regroupée dans
-un bloc atomique avec l'instruction la précédent immédiatement dans une
-exécution. Cette perte de précision ne nous à pas posé de problème au cours de
+un bloc atomique avec l'instruction la précédant immédiatement dans une
+exécution. Cette perte de précision ne nous a pas posé de problèmes au cours de
 nos tests. Une procédure de vérification de notre spécification directement
-intégrée dans un model-checker ne rencontrerai probablement pas cette perte de
+intégrée dans un model-checker ne rencontrerait probablement pas cette perte de
 précision.
 
-Nous n'avons pas recherché à optimiser les performances de notre outil ou à
+Nous n'avons pas cherché à optimiser les performances de notre outil ou à
 lutter contre l'explosion combinatoire. En particulier, nous n'utilisons pas de
 techniques de réduction ou d'ordre partiels dans notre instrumentation. Celles
 utilisées par les model-checkers en backend n'ont pas connaissance de la logique
 de l'instrumentation et de la spécification, ce qui peut limiter leur
 efficacité. Une extension à notre travail serait de mettre en place des
-technique de réduction tenant compte de la spécification et de l'instrumentation
+techniques de réduction tenant compte de la spécification et de l'instrumentation
 afin de limiter l'exploration de chemins d'exécution équivalents. Rendre
-atomiques les zones du programmes sans impact sur les valeur des propositions
+atomiques les zones du programme sans impact sur les valeurs des propositions
 atomiques pourrait être un premier pas. Une autre approche pourrait être de
 restreindre l'automate de Büchi composé avec le système afin d'éviter
 l'exploration de branches entières de l'arbre des exécutions. La vérification ne
-serait cependant plus complète, mais certaines erreurs pourrait être détectées
+serait cependant plus complète, mais certaines erreurs pourraient être détectées
 plus efficacement. Il est déjà possible de restreindre manuellement l'automate
 de Büchi dans le code instrumenté.
 
@@ -974,5 +973,5 @@ constituer une solution partielle.
 
 Enfin, notre formalisme de spécification reste très verbeux, ce qui nuit à sa
 clarté. Mettre en place une syntaxe plus concise afin de rassembler les
-constituants d'une proposition atomique permettrai une lecture plus simple d'une
+constituants d'une proposition atomique permettrait une lecture plus simple d'une
 spécification.

@@ -2,7 +2,7 @@
 
 \section{Présentation du problème}
 
-À travers la revue de littérature, nous avons dégagés deux principales
+À travers la revue de littérature, nous avons dégagé deux principales
 limitations concernant les méthodes de spécification utilisées pour
 model-checking de programmes concurrents.
 
@@ -10,10 +10,10 @@ La première limitation concerne les assertions. Les assertions sont le mécanis
 de spécification le plus utilisé dans le cadre du model-checking logiciel.
 Cependant, les propriétés que l'on peut spécifier par des assertions sont
 limitées à un sous-ensemble des propriétés de sûretés --- une assertion spécifie
-qu'une certaine condition doit être vrai à une certaine position du code. Dans
+qu'une certaine condition doit être vraie à une certaine position du code. Dans
 le cas de programmes concurrents, ce type de propriétés est souvent insuffisant.
 
-En effet, l'entrelacement entre les instruction d'un programme concurrent est
+En effet, l'entrelacement entre les instructions d'un programme concurrent est
 généralement complexe. Il est donc fréquent de vouloir vérifier des propriétés
 portant sur l'ordre d'apparition de certains évènements au cours d'une exécution
 du programme. Les assertions ne sont pas adaptées pour spécifier ce type de
@@ -23,7 +23,7 @@ propriétés.
 L'absence de data-races dans un programme est une propriété
 généralement désirable. Elle fait partie de l'ensemble plus vaste des propriétés
 d'exclusion mutuelle : il s'agit de vérifier que deux instructions accédant à
-une même variable partagée ne peuvent être exécutée simultanément. Les listings
+une même variable partagée ne peuvent être exécutées simultanément. Les listings
 \ref{lst:data-race_t1} et \ref{lst:data-race_t2} présentent un cas très simple
 de data-race.
 
@@ -50,17 +50,17 @@ void* thread2(void* d) {
 \end{lstlisting}
 \end{minipage}
 
-Si les instructions \texttt{p += 1} des deux threads ont lieux simultanément, la
+Si les instructions \texttt{p += 1} des deux threads ont lieu simultanément, la
 valeur finale de \texttt{p} est indéterminée.
 
-Spécifier l'absence de data-race dans ce programme à l'aide d'assertion n'est
+Spécifier l'absence de data-races dans ce programme à l'aide d'assertion n'est
 pas immédiat : les assertions ne permettent pas d'exprimer la notion de
 simultanéité. Il est nécessaire d'introduire des variables supplémentaires, et
 donc de modifier le système. La spécification la plus simple que nous avons pu
 produire est présentée dans les listings \ref{lst:data-race_assert1} et
 \ref{lst:data-race_assert2}\footnote{On remarque que cette spécification permet
-  d'atteindre une race condition sans violer les assertions. Ce n'est pas un
-problème ici car si il est possible d'atteindre une race-condition, alors au
+  d'atteindre une race-condition sans violer les assertions. Ce n'est pas un
+problème ici, car s’il est possible d'atteindre une race-condition, alors au
 moins un entrelacement viole les assertions, un model-checker signalera donc
 correctement l'erreur.}.
 
@@ -98,27 +98,27 @@ void* thread2(void* d) {
 Cet exemple souligne le fait que, dans un programme concurrent, on
 s'intéresse fréquemment au lien entre plusieurs \emph{assertions} plutôt qu'au
 déclenchement d'une assertion simple. On aimerait pouvoir formuler des
-propriétés telles que ``si deux assertions sont violée simultanément, une
+propriétés telles que ``si deux assertions sont violées simultanément, une
 erreur est présente'' ou ``si une assertion est violée, puis une seconde
 assertion est violée, une erreur est présente''.
 
-La seconde limitation concerne les spécification utilisant \ac{LTL}.
-Les model-checker logiciels supportant LTL restreignent en généralement les
-propositions atomiques à des fonctions booléenne portant sur la valeur des
+La seconde limitation concerne les spécifications utilisant \ac{LTL}.
+Les model-checkers logiciels supportant LTL restreignent en généralement les
+propositions atomiques à des fonctions booléennes portant sur la valeur des
 variables globales du programme. Il n'est donc pas possible de différencier des
 états selon leur position dans le code ou la valeur de variables locales, ce qui
 limite le type de propriétés qu'il est possible de spécifier.
 
 En particulier, ces restrictions rendent impossible d'exprimer une assertion par
 une formule \ac{LTL}. Alors que les logiques temporelles permettent d'exprimer
-facilement des relation d'ordre entre différents évènements, \ac{LTL} n'est donc
-pas une solution aux limitations rencontrés par les assertions.
+facilement des relations d'ordre entre différents évènements, \ac{LTL} n'est donc
+pas une solution aux limitations rencontrées par les assertions.
 
 \paragraph{Exemple}
 Reprenons l'exemple précédent. La propriété d'exclusion mutuelle que l'on veut
 spécifier peut s'écrire \(G \lnot (p_1 \land p_2)\) où \(p_1\) (respectivement
 \(p_2\)) est la proposition atomique indiquant si le thread 1 (respectivement le
-thread 2) est dans sa zone critique. Mais on ne exprimer \(p_1\) et \(p_2\)
+thread 2) est dans sa zone critique. Mais on ne peut pas exprimer \(p_1\) et \(p_2\)
 directement, sans mentionner des positions du programme. Encore une fois, il est
 nécessaire d'introduire des variables supplémentaires et de modifier le système.
 Les listings \ref{lst:data-race_ltl1} et \ref{lst:data-race_ltl2} présentent une
@@ -160,19 +160,19 @@ Les deux mécanismes de spécification les plus utilisés par le model-checking
 logiciel sont donc limités, sans être complémentaires. Certaines propriétés sont
 alors complexes à spécifier. En pratique, le cas des data-races présenté en
 exemple est suffisamment pour être implémenté en tant que propriété built-in,
-mais ce n'est pas le cas pour d'autres propriétés (d'exclusion mutuelles ou non).
+mais ce n'est pas le cas pour d'autres propriétés (d'exclusions mutuelles ou non).
 
 Dans ce chapitre, nous allons présenter un nouveau mécanisme de spécification
 permettant de remédier à ce problème. Il se base sur une restriction de \ac{LTL}
-plus souple que celle utilisée classiquement par les model-checker logiciel.
+plus souple que celle utilisée classiquement par les model-checkers logiciels.
 Nous introduisons le concept de \emph{zones de validités} afin de permettre
 l'utilisation de variables locales et de positions dans les propositions
 atomiques. Nous produisons ainsi un formalisme de spécification qui englobe les
-assertions et les proposition LTL (telles que classiquement utilisées par les
+assertions et les propositions LTL (telles que classiquement utilisées par les
 model-checkers logiciel), tout en permettant de surmonter les limitations que
-nous avons présenté.
+nous avons présentées.
 
-Nous allons tout d'abord présenter les différents obstacles a résoudre afin
+Nous allons tout d'abord présenter les différents obstacles à résoudre afin
 d'étendre \ac{LTL}. Nous présenterons ensuite les solutions (parfois partielles)
 que nous apportons à ces problèmes, ainsi que le formalisme de spécification que
 nous avons établi. Enfin, nous justifierons nos choix et nous les comparerons
@@ -201,7 +201,7 @@ locales portant le même nom peuvent cohabiter sans faire référence au
 même emplacement mémoire.
 
 Deux variables locales distinctes (ne faisant pas référence à la même
-adresse mémoire) mais ayant le même nom peuvent survenir diverses situations,
+adresse mémoire), mais ayant le même nom peuvent survenir dans diverses situations,
 parmi lesquelles :
 
 \begin{itemize}
@@ -236,10 +236,10 @@ On peut répartir ces cas en deux catégories :
   supplémentaires à son nom, pour identifier le contexte de la
   déclaration de manière unique (fichier, fonction, bloc\ldots{}).
 \item
-  les deux variables sont lexicalement identiques mais elles sont
+  les deux variables sont lexicalement identiques, mais elles sont
   redéfinies. Ce cas est plus complexe : les appels de fonctions et les
-  création de thread peuvent être dynamiques et dépendre de l'exécution.
-  Ils sont donc difficile à identifier de manière statique, et il en va
+  créations de threads peuvent être dynamiques et dépendre de l'exécution.
+  Ils sont donc difficiles à identifier de manière statique, et il en va
   de même pour les variables locales associées.
 \end{itemize}
 
@@ -292,7 +292,7 @@ instrumentation dans le code, ce que nous désirons minimiser.
 
 Une fois la manière de désigner une position établie, il faut déterminer comment
 l'utiliser dans la spécification. Nous dirons par la suite qu'un programme a
-atteint une position dans le code lorsque un des pointeurs d'instruction du
+atteint une position dans le code lorsqu’un des pointeurs d'instruction du
 programme pointe sur l'instruction désignée par la position.
 
 Il est cependant nécessaire de définir comment et dans quelle mesure une
@@ -307,7 +307,7 @@ considéré les options suivantes :
   positions et les valeurs des variables du programme à l'aide des opérateurs de
   la logique des prédicats. Si \texttt{pos1} et \texttt{pos2} désignent
   deux positions du programme, alors on spécifie que la variable \texttt{x}
-  est non-nulle entre \texttt{pos1} et \texttt{pos2} par \(G
+  est non nulle entre \texttt{pos1} et \texttt{pos2} par \(G
   (\{\text{pos1}\}\implies \{x \neq 0\} U \{\text{pos1}\})\).
 \item
   une proposition atomique est constituée d'une condition sur les variables du
@@ -319,7 +319,7 @@ considéré les options suivantes :
   les positions viennent contraindre les opérateurs temporels. On pourrait
   envisager une approche semblable à la logique MTL\cite{mtl_definition}, où les
   opérateurs temporels sont restreints à des intervalles de temps, mais en
-  appliquant la restriction à des positions du programme. On écrirait alors,
+  appliquant la restriction à des positions du programme. On écrirait alors
   \(G_{[pos1, pos2]} \lnot \{ x \neq 0 \}\).
 \end{enumerate}
 
@@ -334,7 +334,7 @@ limiter nos modifications aux propositions atomiques seulement.
 Nous allons tout d'abord présenter la grammaire de la spécification que
 nous avons finalement retenue, avant de justifier nos choix.
 
-Notre spécification est composés de deux parties. D'une part, une formule LTL
+Notre spécification est composée de deux parties. D'une part, une formule LTL
 classique. D'autre part, la définition des propositions atomiques utilisées
 par la formule LTL.
 
@@ -349,7 +349,7 @@ La définition d'une proposition atomique est composée des éléments suivants 
   labels (placés dans le code par l'ingénieur réalisant la spécification).
   L'entrée et la sortie d'une zone de validité doivent être dans le même
   contexte et tout pointeur d'exécution atteignant le label de début doit
-  atteindre le label de fin avant de sortir du contexte (i.e un branchement ne
+  atteindre le label de fin avant de sortir du contexte (i.e. un branchement ne
   doit pas permettre de sortir d'une zone de validité en évitant l'instruction
   portant le label de fin).
 \item
@@ -405,7 +405,7 @@ d'instruction du programme. On considère qu'un état \(p\) est dans la zone de
 validité d'une proposition atomique lorsque, dans l'état \(p\), un pointeur
 d'instruction du programme pointe sur une instruction comprise entre le label de
 début de la zone de validité de la proposition et le label de fin. Cela signifie
-que, quelque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
+que, quelleque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
 déjà atteint l'instruction désignée par le label de début, mais pas encore celle
 désignée par le label de fin (pour que la spécification soit valide, il est
 nécessaire que quelque soit l'exécution, si un pointeur d'instruction désigne
@@ -422,8 +422,8 @@ On évalue alors la proposition atomique en un état \(p\) par :
 \item
   si l'état \(p\) est dans la zone de validité de la proposition
   atomique, alors elle s'évalue à la valeur renvoyée par l'évaluation de
-  sa fonction d'évaluation, avec comme paramètres la liste de variable
-  de la proposition atomiques, dans l'ordre.
+  sa fonction d'évaluation, avec comme paramètres la liste de variables
+  de la proposition atomique, dans l'ordre.
 \end{itemize}
 
 \subsection{Exemple}
@@ -514,7 +514,7 @@ d'obtenir un état qui ne satisfait pas la propriété.
 \section{Motivation de nos choix}
 
 Nous allons maintenant expliquer comment et dans quelle mesure ce formalisme
-de spécification permet de surmonter les obstacles détaillées précédemment.
+de spécification permet de surmonter les obstacles détaillés précédemment.
 
 \subsection{Identification des variables}
 
@@ -525,7 +525,7 @@ de l'identification des variables.
 
 \paragraph{Cas de deux variables lexicalement distinctes}
 Notre solution permet de distinguer des variables lexicalement distinctes tant
-qu'elles ne sont pas définie dans une même fonction. Nous avons jugé que ce cas
+qu'elles ne sont pas définies dans une même fonction. Nous avons jugé que ce cas
 est suffisamment peu fréquent pour ne pas le traiter. Nous laissons donc le soin
 à l'utilisateur de renommer les variables concernées.
 
@@ -533,30 +533,30 @@ est suffisamment peu fréquent pour ne pas le traiter. Nous laissons donc le soi
 Nous ne proposons pas de solution dans ce cas de manière générale. Cependant,
 il existe des solutions pour quelques cas particuliers.
 
-L'un des cas où identifier une variable dépends d'une notion dynamique a lieu
-lorsque une même fonction est utilisée pour créer plusieurs thread. En effet,
+L'un des cas où identifier une variable dépend d'une notion dynamique a lieu
+lorsqu’une même fonction est utilisée pour créer plusieurs threads. En effet,
 les threads peuvent être créés de manière dynamique, leur nombre et leur ordre
-de création peut donc dépendre de l'exécution. Cependant, il est fréquent de
+de création peuvent donc dépendre de l'exécution. Cependant, il est fréquent de
 créer les threads d'un programme de manière statique, en créant toujours le même
 nombre de threads dans le même ordre (dans la fonction \texttt{main} par
 exemple). Dans ce cas, il est possible d'identifier un thread par un indice
 correspondant à l'ordre de création des threads. On pourra alors identifier de
 manière unique une variable dans un thread uniquement en rajoutant un préfixe à
-son nom, qui pendra alors la forme
-\texttt{{thread\_id}::{fonction}::{variable}}\footnote{\label{fn:notimplemented}
+son nom, qui prendra alors la forme
+\texttt{{thread\_id}::{fonction}::{variable}}\footnote{\label{fn:notimplemented}.
 Cette fonctionnalité n'est pas implémentée dans l'outil présenté dans le
 Chapitre~\ref{sec:Theme2}}.
 
 Un autre cas est lié à l'identification d'une variable locale à une fonction
 appelée plusieurs fois dans un programme. Une instance de la variable est créée
 à chaque appel. Si les appels à la fonction sont séquentiels (il
-existe donc plusieurs instance de la variable dans le programme, mais une seule
+existe donc plusieurs instances de la variable dans le programme, mais une seule
 existe à chaque instant), considérer que ces différentes instances correspondent
 à la même variable dans la spécification est généralement le comportement
 attendu.
 
 Cependant, lors d'appels récursifs ou concurrents, plusieurs instances de la
-variables existent simultanément : pour évaluer une proposition atomique, il
+variable existent simultanément : pour évaluer une proposition atomique, il
 faut alors décider quelle instance doit être utilisée. Dans ce cas, nous ne
 proposons pas de solution. Il est cependant possible de reprendre l'approche de
 Divine \cite{Divine_LTL}, en l'adaptant à notre système de valeurs par
@@ -568,30 +568,30 @@ plus en détail dans la section~\ref{sec:related_work}.
 Identifier une position dans le code sans y placer un marqueur n'est pas une
 solution viable : elle est trop sensible aux modifications du code, d'autant
 plus que lors de la vérification d'un programme, on s'attend à plusieurs
-itérations avec des modifications mineurs du code, afin de corriger les erreurs
+itérations avec des modifications mineures du code, afin de corriger les erreurs
 détectées.
 
-Nous avons donc utilisé des marqueurs. Nous avons choisis des labels, puisqu'ils
+Nous avons donc utilisé des marqueurs. Nous avons choisi des labels, puisqu'ils
 permettent de désigner une instruction du code. Des alternatives auraient été
-d'utiliser des commentaires ou des macros afin de marquer les instruction. Nous
+d'utiliser des commentaires ou des macros afin de marquer les instructions. Nous
 avons préféré les labels pour des raisons d'implémentation, les commentaires
-n'étant pas conservé par de nombreuses bibliothèques de transformation de code,
+n'étant pas conservés par de nombreuses bibliothèques de transformation de code,
 mais aussi en raison de leur signification : un label a pour rôle de désigner
 une instruction.
 
 Cependant, la précision d'une position à l'aide d'un marqueur reste de, au
 mieux, une ligne, et donc d'une instruction. On ne peut donc pas désigner une
 position plus précisément, au niveau d'une expression par exemple. Nous avons
-considéré que ce cas est suffisamment peut fréquent pour qu'il soit possible de
+considéré que ce cas est suffisamment peu fréquent pour qu'il soit possible de
 l'ignorer. Il reste de plus possible de décomposer une instruction afin d'en
 désigner ses parties.
 
-Nous avons choisi de former des intervalles de positions car ils représentent un
+Nous avons choisi de former des intervalles de positions, car ils représentent un
 bon compromis entre une énumération explicite et des constructions plus
 complexes (union ou intersections d'intervalles\ldots{}). Dans les cas où une
 zone de validité plus complexe est nécessaire, il est possible de la simuler en
-utilisant plusieurs propositions atomiques et les opérateurs de la logiques
-classiques pour les combiner.
+utilisant plusieurs propositions atomiques et les opérateurs de la logique
+classique pour les combiner.
 
 \subsection{Définition des propositions atomiques}
 
@@ -604,7 +604,7 @@ manuellement quand une proposition doit utiliser sa fonction d'évaluation. Cela
 permet en particulier d'attendre que les variables soient correctement
 initialisées. Les zones de validités permettent aussi d'utiliser des positions
 du code dans la spécification, et de lier directement ces positions à une
-propositions sur les valeurs des variables du programme. Il n'est donc pas
+proposition sur les valeurs des variables du programme. Il n'est donc pas
 nécessaire d'utiliser deux propositions atomiques \texttt{b} et \texttt{e} pour
 définir le début et la fin d'un intervalle de position, une troisième
 proposition atomique \texttt{p} pour spécifier une propriété sur les valeurs des
@@ -634,13 +634,13 @@ double négation.
 \section{Exprimer les propriétés LTL classiquement supportées}
 
 Notre spécification est une restriction de \ac{LTL} plus faible que celle utilisée
-par la plupart des model-checkers logiciel. Exprimer une formule \ac{LTL} ne
+par la plupart des model-checkers logiciels. Exprimer une formule \ac{LTL} ne
 portant que sur des variables globales est donc très simple. Il suffit de
 désigner le programme complet comme zone de validité pour toutes les
 propositions atomiques. Le reste de la spécification est inchangé.
 
 On vérifie ainsi que notre formalisme de spécification englobe bien les formules
-\ac{LTL} classiquement utilisée par les model-checkers.
+\ac{LTL} classiquement utilisées par les model-checkers.
 
 \section{Exprimer des assertions}
 
@@ -662,7 +662,7 @@ atomique telle que :
   elle s'évalue donc à la valeur de cette expression dans la zone de
   validité ;
 \item
-  sa valeur par défaut est \emph{vrai}, elle s'évalue donc à \emph{vrai}
+  sa valeur par défaut est \emph{vrai}e, elle s'évalue donc à \emph{vrai}
   hors de la zone de validité.
 \end{itemize}
 
@@ -671,12 +671,12 @@ d'assertions.
 
 \section{Travaux similaires}\label{sec:related_work}
 
-Des travaux autour de la prise en charge des variables locales ont été réalisé,
+Des travaux autour de la prise en charge des variables locales ont été réalisés,
 autour du model-checker Divine\cite{Divine_3_0}. Ils sont présentés dans
 \cite{Divine_LTL}.
 
 Divine met en place un ensemble de macros permettant de définir les propositions
-atomiques utilisée dans une formule LTL. Deux macros, \texttt{ap(proposition)}
+atomiques utilisées dans une formule LTL. Deux macros, \texttt{ap(proposition)}
 et \texttt{ap\_set(proposition, value)} permettent respectivement de modifier
 directement la valeur d'une proposition atomique passée en argument. \texttt{ap}
 met la proposition atomique à \emph{vrai} uniquement pour pendant l'exécution de
@@ -689,12 +689,12 @@ de deux autres macros, \texttt{ap\_global(proposition, fonction, N, arg1, \dots,
 \texttt{ap\_local(proposition, fonction, N, arg1, \dots, argN)}.
 
 La macro \texttt{ap\_global} doit être appelée dans l'espace global. Elle permet
-de lier une proposition atomique à une fonction booléenne dont tout les
+de lier une proposition atomique à une fonction booléenne dont tous les
 paramètres sont des variables globales.
 
 La macro \texttt{ap\_local} lie une proposition atomique à une fonction dont
 certains des paramètres peuvent être locaux. Les paramètres sont identifiés
-dans le contexte d'appel selon la norme du C, et peuvent ensuite être masqué.
+dans le contexte d'appel selon la norme du C, et peuvent ensuite être masqués.
 Le lien entre la fonction et la proposition atomique dure jusqu'à la sortie du
 contexte (où les paramètres locaux sont détruits). Ensuite, la proposition
 atomique prend la valeur par défaut \emph{faux}.
@@ -782,8 +782,8 @@ Divine est aussi confronté au problème posé par de multiples instances d'une
 variable lexicalement identique. Divine choisi d'évaluer une proposition
 atomique à vrai dès qu'il existe un contexte dans lequel elle s'évalue à vrai.
 On considère donc la disjonction des valeurs prise par la proposition dans
-l'ensemble des contextes actifs. Cette solution est justifée par le fait qu'on
-est généralement intéressé par l'instant où une proposition atomique ne prends
+l'ensemble des contextes actifs. Cette solution est justifiée par le fait qu'on
+est généralement intéressé par l'instant où une proposition atomique ne prend
 pas sa valeur par défaut (imposée à \emph{faux} par Divine).
 
 \paragraph{Exemple}
@@ -809,4 +809,4 @@ Limiter la vérification d'une propriété à un intervalle de ligne dans le cod
 demande donc de définir des propositions atomiques supplémentaires, dont la
 valeur est gérée par \texttt{ap} et \texttt{ap\_set}, et d'utiliser les
 opérateurs \ac{LTL}. Cette approche produit des formules plus complexes, et donc
-plus difficile à vérifier.
+plus difficiles à vérifier.
