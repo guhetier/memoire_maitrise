@@ -1512,6 +1512,18 @@ par induction\cite{ESBMC_k_induction}. Les boucles sont déroulées sur un nombr
 tenter d'établir un invariant en montrant qu'il est maintenu tout au long de la
 boucle par une preuve par induction.
 
+SMACK\cite{SMACK} permet de traduire un programme en C vers le langage de
+modélisation Boogie. Il utilise pour cela la représentation
+intermédiaire LLVM-IR et implémente des simplifications du code source pour
+réduire le modèle. Le modèle en Boogie est ensuite vérifié à l'aide d'un
+model-checker utilisé en backend. Par défaut, Coral est utilisé. C'est un
+model-checker borné se basant sur des solveurs SMT pour les programmes en
+Boogie, supportant la concurrence. Ceci permet à SMACK de tirer parti de
+backends éprouvé et des performances des solveurs. SMACK reste cependant
+modulaire, ce qui permet d'utiliser d'autres algorithmes que du BMC pour le
+backend. SMACK est capable de vérifier des spécifications sous forme d'assertion
+uniquement.
+
 \subsection{Séquentialisation}
 
 Les techniques de model-checking logiciel pour des programmes séquentiels ont
