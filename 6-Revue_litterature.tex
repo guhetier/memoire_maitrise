@@ -1303,6 +1303,16 @@ Threader\cite{Threader}\cite{Threader_theory} se base aussi sur la méthode
 Threader gagne ainsi en performance lorsqu'une preuve modulaire existe, mais
 il peut être plus lent qu'une méthode classique dans les autres cas.
 
+SKINK\cite{SKINK} permet vérifier des propriétés exprimées par des assertions à
+partir de la représentation intermédiaire de LLVM. SKINK se base sur une
+approche de type CEGAR, mais il raffine itérativement une abstraction de
+l'ensemble des traces d'exécution au lieu de travailler sur une abstraction des
+états. Les interpolants renvoyés par les solveurs SAT sont utilisés pour
+construire un automate qui vient restreindre le modèle. SKINK prends en charge
+la concurrence en construisant le produit entre les automates représentant
+chaque threads. Des méthodes d'ordre partiel sont utilisées pour limiter
+l'explosion combinatoire.
+
 CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
 BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
 (\emph{Configurable program analysis}). Un CPA définit un domaine abstrait
