@@ -27,3 +27,16 @@ doit faire ressortir l'originalité de la recherche, son aspect
 créatif et sa contribution au développement de la technologie ou à
 l'avancement des connaissances en génie et en sciences appliquées.
 Un résumé ne doit jamais comporter de références ou de figures.
+
+- état de l'art des méthodes de model-checking logiciel pour le cas du C concurrent
+    - fait ressortir de nombreuses techniques, mais une limitation sur les
+    possiblité de spécification, inaptée au cas logiciel + concurrent
+- proposition d'une nouvelle spécification
+    - recouvre LTL et les assertions
+    - basée sur LTL
+    - concept de zone de validités
+- instrumentation permettant de vérifier un programme spécifié par notre
+spécification à l'aide de tout model-checker supportant les assertions
+    - repose sur la crétation d'un automate de büchi, son implémentation en C et
+    la construiction du produit avec le programme
+    - permet l'utilisation de différents backends

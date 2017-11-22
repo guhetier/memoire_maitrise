@@ -11,21 +11,23 @@ ces techniques uniquement.
 
 De nombreux algorithmes de model-checking ont été développés en fonction
 des propriétés à vérifier sur le système, du formalisme dans lequel est
-exprimé le modèle et de la complexité de celui-ci.
+décrit le système et de la complexité de celui-ci.
 
 Dans cette partie, nous présentons les principales techniques de
 model-checking logiciel et nous identifions leurs avantages et
 inconvénients respectifs.
 
-Pour chacune de ces techniques, nous identifions les outils les plus performants
-les implémentant à l'heure actuelle. Nous restreignons cependant cette étude au
-cadre qui nous intéressera pour la suite de ce rapport. Nous ne considérerons
-donc que des outils capables de vérifier des programmes concurrents en C,
-suivant le modèle d'exécution défini par la norme POSIX (pThread).
+Nous identifions les outils les plus performants implémentant chacune de ces
+techniques, à l'heure actuelle. Nous restreignons cependant cette étude au
+outils qui nous intéresserons pour la suite de ce rapport. Ces outils sont donc
+susceptibles d'être utilisés en backend (arrière-plan) pour la vérification des
+codes sources considérés dans ce mémoire. Nous ne considérerons donc que
+des outils capables de vérifier des programmes concurrents en C, suivant le
+modèle d'exécution défini par la norme POSIX (pThread).
 
 \textbf{Structure :} Dans la section~\ref{sec:model-checking-logiciel}, nous
-définissons le model-checking logiciel et une représentation formelle des modèles
-qui lui sont associés. Dans la section~\ref{sec:specification}, nous présentons
+définissons le model-checking logiciel ainsi que les formalismes associés.
+Dans la section~\ref{sec:specification}, nous présentons
 les types de propriétés des programmes vérifiables grâce au model-checking et
 les formalismes utilisés pour les exprimer et les représenter formellement.
 Enfin, dans la section~\ref{sec:techniques-et-outils-de-model-checking}, nous
@@ -66,7 +68,7 @@ pourtant bien présente dans le système.
 
 La phase de modélisation est donc une phase délicate et propice aux erreurs. Il
 est nécessaire de bâtir un équilibre entre l'abstraction du système et le
-respect de son fonctionnement, cet équilibre dépendant des propriétés que l'on
+respect de son fonctionnement. Cet équilibre dépend des propriétés que l'on
 souhaite vérifier. La modélisation demande donc à la fois une bonne connaissance
 du système et des outils de model-checking utilisés. Les tendances actuelles
 visent à réduire l'intervention humaine dans la phase de modélisation en
@@ -77,12 +79,14 @@ automatisant celle-ci.
 Un modèle prend souvent la forme d'un système de transitions.
 
 \paragraph{Système de transitions}
-Formellement, un système de transitions est une paire \((S, \rightarrow)\),
+Formellement, un système de transitions est un triplet \((S, s_0, \rightarrow)\),
 avec :
 
 \begin{itemize}
 \item
   \(S\) l'ensemble des états du système ;
+\item
+  \(s_0 \in S\) l'état initial du système ;
 \item
   \(\rightarrow \subset S \times S\) la relation de transitions du
   système ;
@@ -93,12 +97,12 @@ statut possible du système, tandis que les transitions représentent les
 actions qui peuvent le faire évoluer.
 
 \paragraph{Trace d'exécution}
-Une trace d'exécution est un chemin dans le système de transition
-représentant le modèle, possiblement infini, dont le premier état est
-l'état initial du modèle. Une trace d'exécution est donc formée d'une
-suite \(s_0, s_1, .. \in S\) d'états, avec \(s_0\) un état initial, et
-d'une suite \(t_0, t_1, ... \in \rightarrow\) de transitions telles que
-\(\forall i, t_i = (s_i, s_{i+1})\).
+Une trace d'exécution est un chemin dans le système de transition représentant
+le modèle, possiblement infini, dont le premier état est l'état initial du
+système de transition. Une trace d'exécution est donc formée d'une suite \(s_0,
+s_1, .. \in S\) d'états, avec \(s_0\) l'état initial, et d'une suite \(t_0, t_1,
+... \in \rightarrow\) de transitions telles que \(\forall i, t_i = (s_i,
+s_{i+1})\).
 
 Le model-checking consiste à examiner l'ensemble des traces
 d'exécution du modèle afin de vérifier si elles respectent la spécification.
@@ -152,18 +156,18 @@ ce qui constitue une encore une certaine distance entre le modèle et le
 système. Afin de réduire cette distance, certains
 model-checkers logiciels se basent sur des représentations intermédiaires
 plus proches de l'assembleur, comme la représentation intermédiaire de
-LLVM\footnote.{L'utilisation de cette représentation est aussi expliquée
+LLVM\footnote{L'utilisation de cette représentation est aussi expliquée
   par des raisons de compatibilité. De nombreux langages, dont C, C++ et
   C\# peuvent en effet être compilés vers la représentation
   intermédiaire de LLVM, un model-checker utilisant cette dernière est
   alors compatible avec tous ces langages.}.
 
-La programmation impérative consiste à faire évoluer l'état du programme,
-défini par la valeur de ses variables, à l'aide d'instruction. L'état d'un
-programme est défini par l'état de la mémoire à laquelle il a accès. On peut
-donc modéliser un programme par un système de transitions, dont les états sont
-une partition de l'ensemble des états du programme.
-Un état du modèle est donc principalement défini par :
+La programmation impérative consiste considérer un programme comme un état que
+l'on fait évoluer à l'aide d'instructions. L'état du programme est
+principalement par l'état de la mémoire du programme.
+On peut alors modéliser un programme par un système de transition. L'ensemble
+des états du système de transition est une partition de l'ensemble des états du
+programme. Les états du système de transition sont donc caractérisés par :
 
 \begin{itemize}
 \item
@@ -175,7 +179,7 @@ Un état du modèle est donc principalement défini par :
 \end{itemize}
 
 Les instructions permettant de faire évoluer l'état du programme sont
-représentées par des transitions entre les états du modèle. Une transition
+représentées par des transitions entre les états de son modèle. Une transition
 représente plus précisément l'action d'une instruction atomique du programme sur
 les trois zones mémoires citées précédemment. Les transitions peuvent aussi
 dépendre de facteurs externes, comme les entrées du programme.
@@ -218,7 +222,7 @@ d <- a + c
 \end{lstlisting}
 \end{minipage}
 
-Ce programme contient trois variables, \texttt{a}, \texttt{c} et
+Ce programme contient trois variables globales, \texttt{a}, \texttt{c} et
 \texttt{d}, et deux threads. Les états du système sont donc définis par les
 valeurs de ces variables et la position des pointeurs d'instruction de chaque
 thread. On peut modéliser ce programme par le système de transitions en Figure
@@ -285,17 +289,17 @@ comporter. Il est alors nécessaire de traduire cette connaissance d'une manièr
 non ambiguë et compréhensible par des outils. On réalise pour cela une
 spécification du système.
 
-Une spécification est constituée d'un ensemble de propriétés que le système doit
-respecter. Les propriétés représentent des invariants logiques que le système
-doit respecter. Si l'invariant est brisé, une erreur est présente : le système ne
-se comporte pas de la manière attendue. Un outil de vérification peut alors inspecter
-un système afin de vérifier si l'ensemble de la spécification est respecté.
+Une spécification est constituée d'un ensemble de propriétés, qui représentent
+des invariants logiques que le système doit respecter. Si l'un de ces invariants
+est brisé, une erreur est présente : le système ne se comporte pas de la manière
+attendue. Un outil de vérification peut alors inspecter un système afin de
+vérifier si l'ensemble de la spécification est respecté.
 
 Une spécification peut prendre de nombreux aspects : il existe des langages de
-spécification (UML par exemple), elle peut être constituée de formules logiques portant
-sur les variables du système ou prendre la forme d'un système de
-transitions\dots Un langage de programmation constitue en lui même une
-spécification bas niveau du comportement d'un programme.
+spécification (UML par exemple), elle peut être constituée de formules logiques
+portant sur les variables du système ou prendre la forme d'un système de
+transitions. Un langage de programmation constitue en lui même une spécification
+bas niveau du comportement d'un programme.
 
 Les propriétés d'une spécification se répartissent en plusieurs catégories. Une
 propriété peut être un comportement généralement attendu pour le type de système
@@ -361,19 +365,19 @@ le programme. Les assertions sont présentes dans la plupart des langages de
 programmation. Elles ont été naturellement reprises par les méthodes de
 vérification formelle, dont le model-checking logiciel.
 
-Les assertions permettent de vérifier des propriétés d'accessibilités. Ces
+Les assertions permettent de vérifier des propriétés d'accessibilité. Ces
 propriétés consistent à vérifier s’il est possible d'atteindre un état donné du
 modèle. Cet état est appelé un état d'erreur. On peut aussi considérer
 l'accessibilité d'un ensemble d'états d'erreurs.
 
-Les propriétés d'accessibilités sont des propriétés relativement simples :
+Les propriétés d'accessibilité sont des propriétés relativement simples :
 déterminer si un état est un état d'erreur ne dépend que de cet état. Un
 programme contient donc une erreur dès qu'il est possible d'atteindre un état
 d'erreur, indépendamment des états et des transitions empruntées au cours de
 l'exécution. Une propriété d'accessibilité peut ainsi être déterminée par une
 exploration (en largeur par exemple) du système.
 
-Dans un programme, une assertion prend la forme d'une instruction telle que :
+Dans un programme, une assertion prend la forme d'une instruction telle que :\\
 \texttt{assert(condition);}.
 Si elle est exécutée et que la condition est évaluée à vrai, alors l'exécution
 du programme continue normalement.
@@ -405,11 +409,11 @@ int int_div(int a, int b) {
 Les assertions sont très utilisées en raison de leur simplicité.
 Elles peuvent de plus être placées en tant que spécification pour un outil de
 vérification, ou permettre de signaler une erreur dans une version exécutable
-du programme (bien qu'il ne faille pas les confondre avec un mécanisme de
+du programme (il ne faut cependant pas les confondre avec un mécanisme de
 gestion d'erreurs).
 
 Cependant, le pouvoir d'expression des assertions est limité. Toutes les
-propriétés d'accessibilités ne peuvent pas être exprimées par une assertion : il
+propriétés d'accessibilité ne peuvent pas être exprimées par une assertion : il
 n'est par exemple pas possible d'utiliser dans la condition d'une assertion des
 variables hors du contexte courant. Il n'est pas non plus possible d'exprimer un
 problème d'exclusion mutuelle : il faudrait pour cela référer à la position des
@@ -420,7 +424,7 @@ assertion.
 
 Pour exprimer des propriétés plus complexes et en particulier des propriétés qui
 portent sur l'ensemble d'une trace d'exécution et l'ordre d'apparition de
-certains évènements, il est nécessaire d'utiliser une logique temporelle.
+certains évènements, plus approprié d'utiliser une logique temporelle.
 
 Supposons que notre système soit le code d'un distributeur automatique.
 On voudrait s'assurer que le distributeur ne délivre jamais le produit
@@ -438,7 +442,7 @@ peut ainsi spécifier, pour un programme, des propriétés sur la
 succession des états d'une trace d'exécution.
 
 Ci-dessous sont listés quelques-un des schémas de propriétés les plus
-courantes. Davantage sont présenté par \citep{LTL_scheme}. \(p\) est une
+courantes. Davantage sont présenté par \citep{LTL_scheme}. Soit \(p\) une
 propriété portant sur les états du système.
 
 \begin{itemize}
@@ -449,8 +453,8 @@ propriété portant sur les états du système.
   propriété d'accessibilité : en un temps fini, un état vérifiant la
   propriété \(p\) est atteint.
 \item
-  propriété d'équité : à partir de tous les états de la trace, on
-  atteindra en temps fini un état vérifiant la propriété \(p\).
+  propriété d'équité : on atteindra infiniment souvent un état vérifiant la
+  propriété \(p\).
 \end{itemize}
 
 Les logiques temporelles les plus utilisées sont : \acl{LTL} (\ac{LTL})
@@ -514,7 +518,7 @@ la sémantique suivante :
 s \models p & \equiv s_0 \models p \\
 s \models X \phi & \equiv (s_1, s_2, \dots) \models \phi \\
 s \models \phi U \psi & \equiv \exists k, (s_k, s_{k+1}, \dots) \models \psi
-                        \land \forall i <= k, (s_i, s_{i+1}) \models \phi \\
+                        \land \forall i <= k, (s_i, s_{i+1}, \dots) \models \phi \\
 \end{aligned}
 \]
 
@@ -524,9 +528,9 @@ usuelle.
 Une trace d'exécution est un modèle d'une proposition atomique si son premier
 état est un modèle de la proposition atomique.
 L'opérateur \(next\) signifie donc que la propriété \ac{LTL} passée en
-paramètre doit être valide sur l'état suivant de la trace, tandis que
-l'opérateur \(until\) signifie que la première propriété passée en
-paramètre doit être valide sur les états rencontrés jusqu'à ce qu’un
+paramètre doit être valide sur la trace privée de son premier état.
+L'opérateur \(until\) signifie que la première propriété passée en
+paramètre doit être vérifiée par tout les états de la trace jusqu'à ce qu'un
 état vérifie la seconde formule.
 
 À partir de ces opérateurs base, on définit les opérateurs \(\lor\),
@@ -673,7 +677,7 @@ de l'état initial, d'atteindre un cycle contenant au moins un état final, alor
 \(L\) n'est pas vide : il contient au moins le mot composé par l'étiquette du
 chemin allant jusqu'au cycle et d'une infinité de répétitions de l'étiquette du
 cycle. Ce mot correspond à une exécution du système qui viole la propriété \(\phi\),
-et pourra être servir de contre-exemple à l'utilisateur.
+et pourra servir de contre-exemple à l'utilisateur.
 
 L'encodage des propriétés \ac{LTL} à l'aide des automates de Büchi permet ainsi de
 vérifier des propriétés complexes sur les modèles. Cependant, la taille d'un
@@ -760,7 +764,8 @@ Le state hashing rend donc les model-checkers incomplets.
 
 \paragraph{Runtime model-checking}
 Certains outils explorent l'espace d'états en se basant sur des
-exécutions réelles du programme. Le modèle est alors le programme lui-même. Son exécution est contrôlée par le model-checker, qui fixe le
+exécutions réelles du programme. Le modèle est alors le programme lui-même.
+Son exécution est contrôlée par le model-checker. Ce dernier contrôle le
 non-déterminisme de chaque exécution. Cette approche permet de
 bénéficier des performances réelles du programme lors de l'exploration,
 cependant le backtracking est plus compliqué : les outils de runtime
@@ -816,8 +821,8 @@ multi thread en se basant sur un algorithme de runtime model-checking
 avec une exploration \emph{stateless}. \texttt{inspect} instrumente
 le programme à vérifier par des instructions lui permettant de
 communiquer avec un ordonnanceur, selon une architecture client/serveur.
-Le programme est ensuite exécuté à plusieurs reprises afin d'explorer les
-différents entrelacements.
+Le programme est ensuite exécuté pour chaque combinaison d'entrelacements,
+afin d'explorer l'ensemble des traces possibles.
 
 Divine\cite{Divine_3_0} est un model-checker capable de vérifier des
 propriétés \ac{LTL} et des propriétés d'accessibilités. Il se base sur un
@@ -831,16 +836,16 @@ chemins, réduction par ordre partiel).
 On retrouve à travers ces outils le besoin de performance des outils de
 model-checking explicite. Divine est implémenté dans une architecture
 concurrente pour améliorer ses performances, alors que \texttt{inspect} et
-Pancam se basent sur du runtime model-checking. SPIN, \texttt{inspect},
-Pancam et Divine sont tous vérifier des violations d'assertions et des
+Pancam se basent sur du runtime model-checking. SPIN, \texttt{inspect}, Pancam
+et Divine sont tous capables de vérifier des violations d'assertions et des
 propriétés built-in, comme les deadlocks et les data-races, cependant, seul
-Divine et SPIN sont capable de vérifier des propriétés \ac{LTL}. \texttt{inspect}
-nécessite un système fermé, et n'est pas capable de gérer le non-déterminisme.
-Il est donc dépendant d'une suite de tests pour fixer les paramètres du
-programme à vérifier. Divine est arrivé sixième de la catégorie portant sur les
-programmes concurrents lors de l'édition de 2016 de la compétition de
-vérification logicielle SV-COMP\citep{svcomp_2016_result} (les autres outils présentés
-ci-dessus n'ont pas participé à ces compétitions).
+Divine et SPIN sont capable de vérifier des propriétés \ac{LTL}.
+\texttt{inspect} nécessite un système fermé, et n'est pas capable de gérer le
+non-déterminisme. Il est donc dépendant d'une suite de tests pour fixer les
+paramètres du programme à vérifier. Divine est arrivé sixième de la catégorie
+portant sur les programmes concurrents lors de l'édition de 2016 de la
+compétition de vérification logicielle SV-COMP\citep{svcomp_2016_result} (les
+autres outils présentés ci-dessus n'ont pas participé à ces compétitions).
 
 \subsection{Model-checking symbolique}
 
