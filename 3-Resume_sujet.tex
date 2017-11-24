@@ -34,7 +34,7 @@ logiciel permet de prouver formellement l'absence d'erreurs dans un programme.
 Il reste cependant limité par deux facteurs : l'explosion combinatoire et la
 capacité à spécifier le comportement correct d'un programme. Ces deux problèmes
 sont amplifiés dans le cas de programmes concurrents, à cause des différents
-entrelacements possibles entres les fils d'exécutions. Les assertions et les
+entrelacements possibles entre les fils d'exécutions. Les assertions et les
 formules logiques LTL sont les deux formalisme de spécification les plus
 utilisés dans le cadre du model-checking logiciel, cependant, ils sont limité
 dans un contexte concurrent : les assertions ne permettent pas d'exprimer des
@@ -83,14 +83,13 @@ Nous appliquons ensuite \texttt{baProduct} sur un ensemble de tests simples.
 Nous comparons les performances obtenues à l'aide de deux model-checkers
 utilisés en arrière plan, CBMC et ESBMC. Nous obtenons généralement des
 meilleures performances avec CBMC en raison d'une différence de la gestions des
-entrelacements par ces outils.
-
-Ces tests nous permettent de confirmer qu'il est possible de spécifier des
-propriétés difficiles à exprimer par des assertions ou une version plus
-classique de LTL, de manière efficace et sans qu'une instrumentation manuelle
-soit nécessaire. Nous vérifions aussi que notre transformation de source à
-source permet de ramener le problème de la vérification de propriétés LTL à la
-vérifications d'assertions dans le cadre de traces finies. Cependant, nous
-mettons aussi en évidence un certain nombre de limitations. En particulier,
-notre transformation est limitée à des traces finies. De plus, notre outil
-n'implémente pas de méthode de réduction, ce qui nuit à ses performances.
+entrelacements par ces outils. Ces tests nous permettent de confirmer qu'il est
+possible de spécifier des propriétés difficiles à exprimer par des assertions ou
+une version plus classique de LTL (comme des propriétés d'exclusion mutuelle),
+de manière efficace et sans qu'une instrumentation manuelle soit nécessaire.
+Nous vérifions aussi que notre transformation de source à source permet de
+ramener le problème de la vérification de propriétés LTL à la vérifications
+d'assertions dans le cadre de traces finies. Cependant, nous mettons aussi en
+évidence un certain nombre de limitations. En particulier, notre transformation
+est limitée à des traces finies. De plus, notre outil n'implémente pas de
+méthode de réduction, ce qui nuit à ses performances.
