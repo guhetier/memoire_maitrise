@@ -15,28 +15,82 @@
 \chapter*{RÉSUMÉ}\thispagestyle{headings}
 \addcontentsline{toc}{compteur}{RÉSUMÉ}
 
-Le résumé est un bref exposé du sujet traité, des objectifs visés,
-des hypothèses émises, des méthodes expérimentales utilisées et de
-l'analyse des résultats obtenus. On y présente également les
-principales conclusions de la recherche ainsi que ses applications
-éventuelles. En général, un résumé ne dépasse pas quatre pages.
+% Le résumé est un bref exposé du sujet traité, des objectifs visés,
+% des hypothèses émises, des méthodes expérimentales utilisées et de
+% l'analyse des résultats obtenus. On y présente également les
+% principales conclusions de la recherche ainsi que ses applications
+% éventuelles. En général, un résumé ne dépasse pas quatre pages.
 
-Le résumé doit donner une idée exacte du contenu du mémoire ou de la thèse. Ce ne
-peut pas être une simple énumération des parties du document, car il
-doit faire ressortir l'originalité de la recherche, son aspect
-créatif et sa contribution au développement de la technologie ou à
-l'avancement des connaissances en génie et en sciences appliquées.
-Un résumé ne doit jamais comporter de références ou de figures.
+% Le résumé doit donner une idée exacte du contenu du mémoire ou de la thèse. Ce ne
+% peut pas être une simple énumération des parties du document, car il
+% doit faire ressortir l'originalité de la recherche, son aspect
+% créatif et sa contribution au développement de la technologie ou à
+% l'avancement des connaissances en génie et en sciences appliquées.
+% Un résumé ne doit jamais comporter de références ou de figures.
 
-- état de l'art des méthodes de model-checking logiciel pour le cas du C concurrent
-    - fait ressortir de nombreuses techniques, mais une limitation sur les
-    possiblité de spécification, inaptée au cas logiciel + concurrent
-- proposition d'une nouvelle spécification
-    - recouvre LTL et les assertions
-    - basée sur LTL
-    - concept de zone de validités
-- instrumentation permettant de vérifier un programme spécifié par notre
-spécification à l'aide de tout model-checker supportant les assertions
-    - repose sur la crétation d'un automate de büchi, son implémentation en C et
-    la construiction du produit avec le programme
-    - permet l'utilisation de différents backends
+L'utilisation croissante de systèmes informatiques critiques et l'augmentation
+de leur complexité rendent leur bon fonctionnement essentiel. Le model-checking
+logiciel permet de prouver formellement l'absence d'erreurs dans un programme.
+Il reste cependant limité par deux facteurs : l'explosion combinatoire et la
+capacité à spécifier le comportement correct d'un programme. Ces deux problèmes
+sont amplifiés dans le cas de programmes concurrents, à cause des différents
+entrelacements possibles entres les fils d'exécutions. Les assertions et les
+formules logiques LTL sont les deux formalisme de spécification les plus
+utilisés dans le cadre du model-checking logiciel, cependant, ils sont limité
+dans un contexte concurrent : les assertions ne permettent pas d'exprimer des
+relations temporelles entres différents fils d'exécutions alors que les formules
+LTL utilisées par les outils actuels ne permettent pas d'exprimer des propriétés
+sur les variables locales et les positions dans le code du programme. Ces
+notions sont pourtant importante dans le cas de programme concurrents.
+
+Dans ce mémoire, nous établissons un formalisme de spécification visant à
+corriger ces limitations. Ce formalisme englobe LTL et les assertions, en
+permettant d'exprimer des relations temporelles sur des propositions faisant
+intervenir les variables locales et globales d'un programme ainsi que les
+positions dans le code source. Nous présentons aussi un outil permettant de
+vérifier une spécification exprimée dans ce formalisme dans le cas d'un
+programme concurrent codé en C.
+
+Notre formalisme se base sur la logique LTL. Il permet de surmonter deux des
+principales limitation rencontrée par les variantes de LTL utilisées par les
+outils de model-checking logiciel : manipuler des positions dans le code et des
+variables locales dans les propositions atomiques. La principale difficulté est
+de définir correctement dans l'ensemble du programme une proposition atomique
+lorsqu'elle dépend d'une variable locale. En effet, cette variable locale n'a de
+sens que dans une partie limitée du programme. Nous résolvons ce problème en
+utilisant le concept de \emph{zones de validité}. Une zone de validité est un
+intervalle de positions dans le code source du programme dans laquelle la valeur
+d'une proposition atomique est définie à l'aide de sa fonction d'évaluation.
+Une valeur par défaut est utilisée hors de la zone de validité. Ceci permet de
+limiter l'utilisation de la fonction d'évaluation aux contextes où tous ses
+paramètres locaux sont définis.
+
+Nous avons développé un outil, \texttt{baProduct}, afin de vérifier un programme
+concurrent en C spécifié selon notre formalisme. Cet outil prend la forme d'une
+transformation de source à source, et délègue les tâches de vérifications à un
+model-checker utilisé en arrière plan. Ce choix permet de simplifier grandement
+le développement de l'outil, mais aussi de profiter des performances de
+model-checkers reconnus et de les comparer. À partir du code source d'un
+programme et d'une spécification, \texttt{baProduct} produit un programme
+spécifié par des assertions dont la validité correspond au respect de la
+spécification initiale. Plusieurs model-checkers peuvent être utilisés en
+arrière plan, la principale condition étant qu'ils supportent les spécifications
+sous forme d'assertions. La transformation de source à source se base sur
+l'implémentation en C de l'automate de Büchi associé à la spécification et la
+construction de son produit avec le code source du système.
+
+Nous appliquons ensuite \texttt{baProduct} sur un ensemble de tests simples.
+Nous comparons les performances obtenues à l'aide de deux model-checkers
+utilisés en arrière plan, CBMC et ESBMC. Nous obtenons généralement des
+meilleures performances avec CBMC en raison d'une différence de la gestions des
+entrelacements par ces outils.
+
+Ces tests nous permettent de confirmer qu'il est possible de spécifier des
+propriétés difficiles à exprimer par des assertions ou une version plus
+classique de LTL, de manière efficace et sans qu'une instrumentation manuelle
+soit nécessaire. Nous vérifions aussi que notre transformation de source à
+source permet de ramener le problème de la vérification de propriétés LTL à la
+vérifications d'assertions dans le cadre de traces finies. Cependant, nous
+mettons aussi en évidence un certain nombre de limitations. En particulier,
+notre transformation est limitée à des traces finies. De plus, notre outil
+n'implémente pas de méthode de réduction, ce qui nuit à ses performances.
