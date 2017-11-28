@@ -28,7 +28,7 @@ sujet de préoccupation. Une erreur peut avoir des conséquences de grande
 ampleur, un coût important et porter atteinte à la sécurité des informations et
 des personnes. Il est cependant difficile de concevoir un système correct. On
 peut s'en convaincre en consultant la liste des bugs et des failles
-informatiques apparus ces dernières années. \cite{horror_story} présente
+informatiques apparus ces dernières années. Le site \cite{horror_story} présente
 certains des dysfonctionnements ayant eu les conséquences les plus importantes.
 Les exemples les plus connus restent sans doute l'explosion d'Ariane 5, due à
 une taille de variable sous-dimensionnée, et la faille HearthBleed dans la
@@ -310,7 +310,7 @@ langage privilégié par les méthodes de vérification formelle, supporté
 par de nombreux outils de model-checking.
 
 Quand il sera question de concurrence, nous nous intéresserons en
-particulier aux programmes multi threads suivant la norme POSIX, et
+particulier aux programmes multithreads suivant la norme POSIX, et
 utilisant la bibliothèque \emph{pthread}. Elle implémente une gestion
 bas niveau de la concurrence, souvent utilisée dans les programmes
 embarqués ou les codes systèmes.
@@ -352,15 +352,14 @@ Ma question de recherche sera donc composée des deux parties suivantes :
   compatibles avec une spécification plus expressive ?
 \end{itemize}
 
-Pour améliorer l'expressivité de la spécification des programmes
-concurrents, nous allons nous intéresser aux logiques temporelles, et en
-particulier aux formules \ac{LTL}. Ces dernières ont déjà été utilisées dans
-le cadre de model-checking logiciel, dans un cadre restreint. Nous
-proposons une extension de ce cadre, permettant en particulier de faire
-référence à des positions du code et à des variables locales dans les
-formules. En particulier, notre extension permet d'englober les
-assertions classiques et de créer des relations temporelles entre ces
-dernières.
+Pour améliorer l'expressivité de la spécification des programmes concurrents,
+nous allons nous intéresser aux logiques temporelles, et en particulier aux
+formules LTL (Linear Temporal Logic). Ces dernières ont déjà été utilisées dans
+le cadre de model-checking logiciel, dans un cadre restreint. Nous proposons une
+extension de ce cadre, permettant en particulier de faire référence à des
+positions du code et à des variables locales dans les formules. En particulier,
+notre extension permet d'englober les assertions classiques et de créer des
+relations temporelles entre ces dernières.
 
 Les outils de model-checking sont généralement complexes et optimisés
 pour le type de propriétés qu'ils prennent en charge. Afin de rendre

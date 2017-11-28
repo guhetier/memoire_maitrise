@@ -23,7 +23,8 @@ programme initial par rapport à sa spécification.
 Construire une transformation de source à source présente de plus un certain
 nombre d'avantages. Elle est en grande partie indépendante du model-checker
 utilisé pour effectuer la vérification, ce qui permet d'obtenir un outil
-compatible avec plusieurs backend. On peut ainsi les comparer et sélectionner le
+compatible avec plusieurs model-checker en arrière plan. On peut ainsi les
+comparer et sélectionner le
 plus adapté pour un problème spécifique. Utiliser une instrumentation du code
 simplifie aussi les tâches d'implémentation, en nous évitant de composer avec le
 code d'un système préexistant et la représentation interne d'un model-checker.
@@ -68,7 +69,7 @@ apparaissent :
 \end{figure}
 
 Dans la suite de ce chapitre, nous allons détailler ces trois étapes. Nous
-présenterons ensuite notre implémentation, puis une analyse de ses performances
+présentons ensuite notre implémentation, puis une analyse de performances
 sur une série d'exemples avec différents model-checkers utilisés pour les tâches
 de vérification.
 
@@ -147,7 +148,7 @@ réel du système.
 \paragraph{Exemple}
 La trace \(t = pqpqpqp\) de l'exemple précédent est peut-être le préfixe d'une
 trace \(t'' = pqpqpq\dots pq\dots\), qui aurait été interrompue. Cette trace ne
-vérifie pas la propriété \(F (G p)\), contrairement à \(t\).
+vérifie pas la propriété \(F (G p)\), contrairement à \(t'\), l'extension infinie de \(t\).
 
 Pour tenir compte de ce comportement, il est possible de raffiner davantage les
 résultats en faisant la distinction entre deux types de traces finies :
@@ -155,7 +156,7 @@ résultats en faisant la distinction entre deux types de traces finies :
 \begin{itemize}
 \item
   le préfixe fini est suffisant pour déterminer si la trace est un
-  modèle de la formule ou non, quelleque soit l'extension
+  modèle de la formule ou non, quelque soit l'extension
   (\emph{stuttering} ou autre)
 \item
   le préfixe fini n'est pas suffisant, le résultat dépend de l'extension
@@ -200,10 +201,9 @@ permettent d'indiquer que le résultat est relatif à la sémantique d'extension
 infinie.
 
 Dans les cas d'une conclusion \emph{Maybe true} ou \emph{Maybe false},
-la connaissance supplémentaire du fait que le programme ait terminé ou
-non son exécution (i.e. on a vérifié l'exécution complète ou la
-profondeur d'exploration a été bornée) peut permettre de préciser le
-résultat.
+savoir si le programme a terminé ou non son exécution (i.e on a vérifié
+l'exécution complète ou la vérification a été interrompue parce qu'une borne sur
+la profondeur d'exploration a été atteinte) peut permettre de préciser le résultat.
 
 \subsection{Implémentation de l'automate}
 
@@ -253,7 +253,7 @@ Nous utilisons les variables et fonctions suivantes pour construire l'automate :
   transition à emprunter est désignée à l'aide de cette valeur. Le
   model-checker va alors explorer l'ensemble des évolutions possibles de
   l'automate. Les évolutions invalides sont immédiatement interrompues à
-  l'aide d'assomptions.
+  l'aide d'hypothèses (commande \texttt{assume}).
 \item
   une fonction \texttt{\_ltl2ba\_result} permet de déterminer le
   résultat d'une exploration. Elle est appelée après la dernière
@@ -283,15 +283,23 @@ le code du listing~\ref{lst:C_automaton}.
 
 \begin{lstlisting}[language=C, frame=single, label=lst:C_automaton,
     caption=Code de l'automate représentant \(G p \implies F q\)]
+/* Status of atomic propositions */
 _Bool _ltl2ba_atomic_p = 0;
 _Bool _ltl2ba_atomic_q = 0;
+/* Current state in the automaton */
 int _ltl2ba_state_var = 0;
+/* Transition function of the automaton */
 void _ltl2ba_transition() {
+  /* Non determinist choice of a transition */
   int choice = nondet_uint();
+  /* Perform an action according to the current state */
   switch (_ltl2ba_state_var) {
   case 0:
+    /* For each transition from this state... */
     if (choice == 0) {
+      /* if atomic proposition verify the guard... */
       assume(!_ltl2ba_atomic_p);
+      /* take the transition and update the current state */
       _ltl2ba_state_var = 0;
     } else if (choice == 1) {
       assume(1);
@@ -316,8 +324,14 @@ void _ltl2ba_transition() {
     break;
   }
 }
+/* States of the automaton from which every suffix is
+   accepted by the automaton */
 _Bool _ltl2ba_surely_accept[2] = {0, 0};
+/* States of the automaton from which every suffix is
+   rejected by the automaton */
 _Bool _ltl2ba_surely_reject[2] = {0, 0};
+/* For each combinations of automaton state and atomic
+   proposition value, give the sttuter acceptance result. */
 _Bool _ltl2ba_stutter_accept[8] = {1,0, 0,0, 1,1, 1,1,};
 unsigned int _ltl2ba_sym_to_id() {
   unsigned int id = 0;
@@ -325,11 +339,16 @@ unsigned int _ltl2ba_sym_to_id() {
   id |= (_ltl2ba_atomic_q << 1);
   return id;
 };
+/* Report results to the model-checker using assertions */
 void _ltl2ba_result() {
+  /* The automaton reject the execution: there is no error */
   _Bool reject_sure = _ltl2ba_surely_reject[_ltl2ba_state_var];
+  /* The automaton accept the execution: there is an error */
   assume(!reject_sure);
   _Bool accept_sure = _ltl2ba_surely_accept[_ltl2ba_state_var];
   assert(!accept_sure, "ERROR SURE");
+  /* The automaton stutter accept the execution:
+     there may be an error */
   unsigned int id = _ltl2ba_sym_to_id();
   _Bool accept_stutter =
     _ltl2ba_stutter_accept[id * 2 + _ltl2ba_state_var];
@@ -381,9 +400,9 @@ l'instrumentation correspondant à l'entrée et à la sortie des zones de
 validités. Ici, la proposition atomique \texttt{p} débute au label
 \texttt{lbegin} et se termine au label \texttt{lend}.
 
-\noindent\begin{minipage}{.45\textwidth}
-  \begin{lstlisting}[language=C, frame=single, caption=Entrée de zone de
-    validité (1),
+\noindent\begin{minipage}{.47\textwidth}
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Entrée d'une zone de validité (1),
     label=lst:instr_in1]
 __atomic_begin();
 ltl2ba_atomic_p = fp(..);
@@ -392,9 +411,9 @@ __atomic_end();
 lbegin: ....;
 \end{lstlisting}
 \end{minipage}\hfill
-\begin{minipage}{.45\textwidth}
-  \begin{lstlisting}[language=C, frame=single, caption=Sortie de zone de
-    validité (1),
+\begin{minipage}{.47\textwidth}
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Sortie d'une zone de validité (1),
     label=lst:instr_out1]
 __atomic_begin();
 ltl2ba_atomic_p = {v_default};
@@ -411,7 +430,7 @@ d'entrelacements supplémentaires dans le code et créer des chemins
 d'exécutions pouvant mener à une conclusion erronée : toutes les
 instructions de l'instrumentation doivent être réalisées de manière
 atomique (sans changement de contexte possible) pour garantir un état
-cohérent de l'automate. Si plusieurs entrées et sorties de zone ont
+cohérent de l'automate. Si plusieurs entrées et sorties d'une zone de validité ont
 lieu au même label, les instructions d'instrumentations sont toutes
 réunies dans le même bloc atomique. La fonction de transition n'est
 appelée qu'une seule fois, après l'actualisation de toutes les
@@ -441,8 +460,8 @@ la modification de la variable, les propositions atomiques qui en
 dépendent sont évaluées à nouveau. On tente ensuite d'effectuer une
 transition dans l'automate de Büchi.
 
-\begin{lstlisting}[language=C, frame=single, caption=Instrumentation pour une
-  variable locale]
+\begin{lstlisting}[language=C, frame=single, numbers=left,
+  caption=Instrumentation pour une variable locale]
 __atomic_begin();
 v = ....;
 ltl2ba_atomic_p = fp(v, ...);
@@ -482,21 +501,21 @@ illustrent ce problème.
 
 \begin{figure}
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 1,
-  label=lst:instr_glob_issue1]
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Thread 1, label=lst:instr_glob_issue1]
 int a = 1;
+/* Atomic proposition */
 int pred(int a) {
     return a != 0;
 }
-
 void* thread1(void* d) {
     a = 0;
 }
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 2,
-  label=lst:instr_glob_issue2]
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Thread 2, label=lst:instr_glob_issue2]
 void* thread2(void* d) {
     int b = *(int *)d;
     int r;
@@ -537,7 +556,7 @@ Il est donc nécessaire d'instrumenter aussi les affectations à des
 variables globales hors de la zone de validité d'une proposition.
 Cependant, une affectation en dehors d'une zone de validité ne doit pas
 non plus systématiquement donner lieu à une actualisation des
-propositions atomique : il ne faut actualiser la valeur de la proposition
+propositions atomiques : il ne faut actualiser la valeur de la proposition
 atomique que lorsqu'un pointeur d'exécution est dans sa zone de
 validité. C'est donc une notion dynamique, qui dépend de l'exécution.
 
@@ -549,13 +568,13 @@ variable à l'entrée et à la sortie de chaque zone de validité. On peut
 alors tester la valeur de cette variable pour définir s’il faut
 actualiser ou non la proposition atomique.
 
-La valeur de cette nouvelle variable globale doit être actualisée
+La valeur de cette nouvelle variable globale doit être actualisée à
 l'entrée et à la sortie des zones de validités. L'instrumentation de ces
 zones devient donc :
 
-\noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Entrée de zone de validité (2),
-  label=lst:instr_in2]
+\noindent\begin{minipage}{.47\textwidth}
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Entrée d'une zone de validité (2), label=lst:instr_in2]
 __atomic_begin();
 _ltl2ba_active_p = 1;
 ltl2ba_atomic_p = fp(..);
@@ -564,9 +583,9 @@ __atomic_end();
 lbegin: ....;
 \end{lstlisting}
 \end{minipage}\hfill
-\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Sortie de zone de validité (2),
-  label=lst:instr_out2]
+\begin{minipage}{.47\textwidth}
+  \begin{lstlisting}[language=C, frame=single, numbers=left,
+    caption=Sortie d'une zone de validité (2), label=lst:instr_out2]
 __atomic_begin();
 _ltl2ba_active_p = false;
 ltl2ba_atomic_p = {v_default};
@@ -576,8 +595,12 @@ lend: ....;
 \end{lstlisting}
 \end{minipage}
 
-L'instrumentation lors de la modification d'une variable globale prend
-alors la forme suivante :
+On remarque, à la seconde ligne des listings \ref{lst:instr_out1} et
+\ref{lst:instr_out2}, que la variable \texttt{\_ltl2ba\_active_p} est mise
+à jour.
+
+On utilise alors cette information dans l'instrumentation lors de la
+modification d'une variable globale, qui prend alors la forme suivante :
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi})}
@@ -586,8 +609,8 @@ alors la forme suivante :
   proposition :
 \end{enumerate}
 
-\begin{lstlisting}[language=C, frame=single, caption=Instrumentation pour une
-  variable globale dans la zone de validité]
+\begin{lstlisting}[language=C, frame=single, numbers=left,
+  caption=Instrumentation pour une variable globale dans la zone de validité]
 __atomic_begin();
 g = ....;
 ltl2ba_atomic_p = fp(g, ...);
@@ -603,16 +626,21 @@ __atomic_end();
   proposition :
 \end{enumerate}
 
-\begin{lstlisting}[language=C, frame=single, caption=Instrumentation pour une
-  variable globale hors de la zone de validité]
-__atomic_begin();
-g = ....;
-if (_ltl2ba_active_p) {
+\begin{lstlisting}[language=C, frame=single, numbers=left, label=lst:instr_global_out,
+  caption=Instrumentation pour une variable globale hors de la zone de validité]
+  __atomic_begin();
+  g = ....;
+  if (_ltl2ba_active_p) {
     ltl2ba_atomic_p = fp(g, ...);
     _ltl2ba_transition();
-}
-__atomic_end();
+  }
+  __atomic_end();
 \end{lstlisting}
+
+On retrouve la même instrumentation que dans le cas des variables locales,
+mais la troisième ligne du listing \ref{lst:instr_global_out} utilise la
+variable \texttt{\_ltl2ba\_active_p} pour déterminer comment évaluer la
+proposition atomique.
 
 \subsection{Mélange de variables globales et locales}
 
@@ -634,7 +662,7 @@ Dans le code suivant, on veut vérifier que les variables \texttt{a} et
 proposition.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 1]
+\begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 1]
 int a = 1;
 int pred(int a, int b) {
   return a == b;
@@ -645,7 +673,7 @@ void* thread1(void* d) {
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, caption=Thread 2]
+\begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 2]
 void* thread2(void* d) {
   int b = *(int *)d;
   int r;
@@ -658,7 +686,8 @@ void* thread2(void* d) {
 
 Le premier thread serait instrumenté de la manière suivante :
 
-\begin{lstlisting}[language=C, frame=single, caption=Thread 2 instrumenté]
+\begin{lstlisting}[language=C, frame=single, numbers=left,
+  caption=Thread 2 instrumenté]
 void* thread2(void* d) {
   __atomic_begin();
   a = 0;
@@ -693,8 +722,8 @@ pointeur global.
 On obtient enfin la version finale de l'instrumentation pour l'exemple
 précédent.
 
-\begin{lstlisting}[language=C, frame=single, caption=Instrumentation finale pour
-  des variables locales et globales]
+\begin{lstlisting}[language=C, frame=single, numbers=left,
+  caption=Instrumentation finale pour des variables locales et globales]
 int a = 1;
 int _ltl2ba_active_p = 0;
 int *_ltl2ba_ptr_b;
@@ -744,7 +773,7 @@ Un model-checker permet alors de vérifier ce code. Selon les assertions que le
 code va violer, il est possible de déterminer si le programme contient une
 erreur ou non. Le contre-exemple fourni par le model-checker permet de
 retrouver l'erreur dans le programme instrumenté, et donc, en ignorant les
-lignes ajoutée par l'instrumentation, dans le système d'origine.
+lignes ajoutées par l'instrumentation, dans le système d'origine.
 
 Certains model-checkers arrêtent l'exploration du système dès qu'une assertion
 est violée. Un résultat plus faible que le résultat attendu peut alors
@@ -798,7 +827,7 @@ Une utilisation classique de notre implémentation ressemble donc à
 l'appel suivant (avec ESBMC\cite{ESBMC} utilisé en backend) :
 
 \begin{lstlisting}
-~ ./baProduct.py -i test.c -s test.spec
+~ ./baProduct.py -i test.c -s test.spec -o test_instr.c
 ~ esbmc --depth 100 test_instr.c
 \end{lstlisting}
 
@@ -836,7 +865,7 @@ choisie : Threader ne considère pas de fonction \texttt{main} dans un programme
 et vérifie uniquement les threads alors que notre transformation nécessite qu'un
 programme commence et se termine dans la fonction \texttt{main}.
 
-Les tableaux\ref{tbl:resultats} et~\ref{tbl:performances} présentent les
+Les tableaux~\ref{tbl:resultats} et~\ref{tbl:performances} présentent les
 résultats que nous avons obtenus.
 
 \begin{table}[tbp]
@@ -891,7 +920,11 @@ permettent généralement de mener à bien la tâche de vérification et de trou
 un résultat correct. On observe cependant quelques erreurs. CBMC indique une
 erreur possible dans un test valide, alors que ESBMC ne détecte pas une erreur
 dans un test incorrect. ESBMC échoue aussi sur le test \emph{battery\_var} après
-avoir consommé l'ensemble de la mémoire disponible.
+avoir consommé l'ensemble de la mémoire disponible. Ces résultats sont dus à des
+erreurs internes aux model-checkers, pour lesquelles nous n'avons pas d'explication.
+Le test \emph{battery_var} est l'un de ceux nécessitant la plus grande
+profondeur d'exploration et générant le plus d'entrelacement, ce qui explique
+le temps nécessaire à CBMC pour conclure, et l'erreur d'exécution de ESBMC.
 
 Les résultats attendus et ceux fournis par les model-checkers sont généralement
 incertains (\texttt{MAYBE}). Cela est normal, puisqu’on considère des

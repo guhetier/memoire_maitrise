@@ -20,7 +20,7 @@ inconvénients respectifs.
 Nous identifions les outils les plus performants implémentant chacune de ces
 techniques, à l'heure actuelle. Nous restreignons cependant cette étude au
 outils qui nous intéresserons pour la suite de ce rapport. Ces outils sont donc
-susceptibles d'être utilisés en backend (arrière-plan) pour la vérification des
+susceptibles d'être utilisés en arrière-plan (backend) pour la vérification des
 codes sources considérés dans ce mémoire. Nous ne considérerons donc que
 des outils capables de vérifier des programmes concurrents en C, suivant le
 modèle d'exécution défini par la norme POSIX (pThread).
@@ -69,7 +69,7 @@ pourtant bien présente dans le système.
 La phase de modélisation est donc une phase délicate et propice aux erreurs. Il
 est nécessaire de bâtir un équilibre entre l'abstraction du système et le
 respect de son fonctionnement. Cet équilibre dépend des propriétés que l'on
-souhaite vérifier. La modélisation demande donc à la fois une bonne connaissance
+souhaite vérifier. La modélisation demande donc une bonne connaissance
 du système et des outils de model-checking utilisés. Les tendances actuelles
 visent à réduire l'intervention humaine dans la phase de modélisation en
 automatisant celle-ci.
@@ -262,7 +262,7 @@ paramètres (nombre de variables du programme, taille des types de données, deg
 de concurrence\dots). Il peut éventuellement être infini si des appels de
 fonctions ou de l'allocation dynamique de mémoire entrent en jeu. Cependant, afin
 de vérifier un système, un model-checker doit explorer l'ensemble de ces états.
-Cette tache devient donc extrêmement coûteuse en temps et en mémoire quand le
+Cette tâche devient donc extrêmement coûteuse en temps et en mémoire quand le
 nombre d'états devient trop important.
 Ce problème, nommé l'explosion combinatoire, est la principale limite du
 model-checking.
@@ -616,7 +616,7 @@ leurs étiquettes étant remplacées par une garde sous la forme d'une expressio
 \includegraphics[height=.3\textheight]{buchi_2.png}
 \end{center}
 \caption{Automates de Büchi pour les formules LTL $G p$, $F(p \lor q)$ et
-$G(F p)$.}
+$GF p$.}
 \label{fig:buchi_example}
 \end{figure}
 
@@ -1072,9 +1072,7 @@ abstraction du programme exacte par rapport à la propriété à vérifier. Cett
 abstraction est réalisée en choisissant un certain nombre de prédicats portant
 sur les états du programme. Le choix des prédicats est une étape cruciale,
 puisque la précision de l'abstraction en dépend. Si l'abstraction n'est pas
-suffisamment précise, des faux positifs (une erreur est détectée alors qu'elle
-n'est pas réellement présente dans le système) ou des faux négatifs (une erreur
-présente dans le système n'est pas détectée) peuvent avoir lieu.
+suffisamment précise, des faux positifs ou des faux négatifs peuvent avoir lieu.
 
 Une fois les prédicats choisis, les états de l'abstraction sont définis comme
 les classes d'équivalence obtenues en partitionnant l'ensemble des états du
@@ -1148,10 +1146,12 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi})}
 \item
-  \textbf{Abstraction :} Dans un premier temps, on considère un ensemble vide de
-  prédicats. Il n'y a donc qu'une seule classe d'équivalence, contenant tous les
-  états du programme. On ne conserve que les structures de contrôle du
-  programme. Toutes les variables sont rendues abstraites, et leurs valeurs dans
+  \textbf{Abstraction :} Dans un premier temps, on considère une abstraction
+  basée sur un ensemble de prédicats vide. Il n'y a donc qu'une seule classe
+  d'équivalence, contenant tous les états du programme. On ne conserve que les
+  structures de contrôle du programme. Une analyse statique du programme peut
+  aussi être utilisée pour définir ce premier ensemble de prédicats.
+  Toutes les variables sont rendues abstraites, et leurs valeurs dans
   les structures de contrôles sont non déterministes. On obtient alors
   l'abstraction présentée dans le listing \ref{lst:CEGAR_1}.
 \item
@@ -1219,7 +1219,7 @@ if ({x = 0})
 \end{minipage}
 
 La phase de raffinement est critique pour les performances de la méthode
-\ac{CEGAR}, puisque un améliorer le choix des nouveaux prédicats peut éviter des
+\ac{CEGAR}, puisque améliorer le choix des nouveaux prédicats peut éviter des
 itérations supplémentaires de l'algorithme. Des techniques d'analyse statique
 sont souvent utilisées pour trouver les prédicats les plus forts éliminant un
 chemin impossible du modèle. On peut en particulier calculer les plus faibles
@@ -1230,7 +1230,7 @@ qui implique que ce chemin va être emprunté.
 
 Les méthodes d'abstraction par prédicat, dont l'algorithme \ac{CEGAR}, se basent sur
 le calcul d'une ou plusieurs abstractions du modèle. Calculer cette abstraction,
-et en particulier les successeurs de chaque état abstrait est une tache
+et en particulier les successeurs de chaque état abstrait est une tâche
 coûteuse.
 
 L'algorithme IMPACT\cite{IMPACT} permet d'éviter le calcul des successeurs des
@@ -1424,7 +1424,7 @@ instructions, en particulier les utilisations dynamiques de la mémoire.
 Dans notre exemple, la relation de transition se déplierait en :
 
 \[
-  \underbrace{a_0 = 0 \land b_1 = 1}_\text{État initial} \land
+  \underbrace{a_0 = 0 \land b_0 = 1}_\text{État initial} \land
   \underbrace{a_1 = a_0 + b_0}_\text{Instruction 1} \land
   \underbrace{c_0 = 2 \land c_1 = 3}_\text{Branches du tests} \land
   \underbrace{(a_1 > 0 \implies c_2 = c_0)
@@ -1470,7 +1470,7 @@ Plusieurs approches ont été développées pour prendre étendre le \ac{BMC} à
 logiciels multi thread\cite{ESBMC_multithread}.
 
 Deux techniques sont principalement utilisées.
-La première consiste encoder tout les entrelacements possibles entre les threads
+La première consiste à encoder tout les entrelacements possibles entre les threads
 du programme dans la relation de transition, et donc dans la formule de la
 logique propositionnelle fournie à un SAT-solveur ou un SMT-solveur. Cette
 technique permet au solveur d'optimiser sa preuve en utilisant les similarités
@@ -1571,7 +1571,7 @@ référer pour plus de détails) :
 
 \begin{lstlisting}[language=C]
 int y = 0;
-void* T1(void *d) {
+void* T0(void *d) {
   int x;
   x = y;
   y = x + 1;
@@ -1598,7 +1598,7 @@ Les idées clefs de la séquentialisation sont les suivantes :
 \item
   Ajouter un ordonnanceur non-déterministe. Il dirige l'exécution et
   permet de générer tous les entrelacements (généralement de type
-  round-robin) du programme.
+  circulaire) du programme.
 \item
   Recourir à un model-checker pour explorer le résultat.
 \end{enumerate}
@@ -1649,17 +1649,22 @@ _6:J(6,7) pthread_create(&t1,NULL,T1,0,2);
 _7: ;
 }
 int main() {
+  int K = 10; // Check over 10 rounds
+  int r;
   for(r=1; r<=K; r++) {
     cs=pc[0] + nondet_uint();
     assume(cs<=size[0]);
     main_thread();
     pc[0]=cs;
-    .........
+    cs=pc[1] + nondet_uint();
+    assume(cs<=size[1]);
+    T1();
+    pc[1]=cs;
     cs=pc[2] + nondet_uint();
     assume(cs<=size[2]);
     T1();
     pc[2]=cs;
-    }
+  }
 }
 \end{lstlisting}
 

@@ -20,7 +20,7 @@ du programme. Les assertions ne sont pas adaptées pour spécifier ce type de
 propriétés.
 
 \paragraph{Exemple}
-L'absence de data-races dans un programme est une propriété
+L'absence de conditions de concurrence dans un programme est une propriété
 généralement désirable. Elle fait partie de l'ensemble plus vaste des propriétés
 d'exclusion mutuelle : il s'agit de vérifier que deux instructions accédant à
 une même variable partagée ne peuvent être exécutées simultanément. Les listings
@@ -53,7 +53,7 @@ void* thread2(void* d) {
 Si les instructions \texttt{p += 1} des deux threads ont lieu simultanément, la
 valeur finale de \texttt{p} est indéterminée.
 
-Spécifier l'absence de data-races dans ce programme à l'aide d'assertion n'est
+Spécifier l'absence de data-races dans ce programme à l'aide d'assertions n'est
 pas immédiat : les assertions ne permettent pas d'exprimer la notion de
 simultanéité. Il est nécessaire d'introduire des variables supplémentaires, et
 donc de modifier le système. La spécification la plus simple que nous avons pu
@@ -103,11 +103,14 @@ erreur est présente'' ou ``si une assertion est violée, puis une seconde
 assertion est violée, une erreur est présente''.
 
 La seconde limitation concerne les spécifications utilisant \ac{LTL}.
-Les model-checkers logiciels supportant LTL restreignent en généralement les
+Les model-checkers logiciels supportant \ac{LTL} restreignent généralement les
 propositions atomiques à des fonctions booléennes portant sur la valeur des
-variables globales du programme. Il n'est donc pas possible de différencier des
-états selon leur position dans le code ou la valeur de variables locales, ce qui
-limite le type de propriétés qu'il est possible de spécifier.
+variables globales du programme.
+Si toutes les variables globale ont la même valeur dans deux états distinct du
+programmes (qui diffèrent par leur position dans le code et leurs variables
+locales), alors toutes les formules \ac{LTL} vont s'évaluer de la même manière
+dans ces deux états : il n'est pas possible de les distinguer dans la
+spécification, ce qui limite le type de propriétés qu'il est possible de spécifier.
 
 En particulier, ces restrictions rendent impossible d'exprimer une assertion par
 une formule \ac{LTL}. Alors que les logiques temporelles permettent d'exprimer
@@ -160,23 +163,24 @@ Les deux mécanismes de spécification les plus utilisés par le model-checking
 logiciel sont donc limités, sans être complémentaires. Certaines propriétés sont
 alors complexes à spécifier. En pratique, le cas des data-races présenté en
 exemple est suffisamment pour être implémenté en tant que propriété built-in,
-mais ce n'est pas le cas pour d'autres propriétés (d'exclusions mutuelles ou non).
+mais ce n'est pas le cas pour d'autres propriétés (d'exclusion mutuelle ou non).
 
-Dans ce chapitre, nous allons présenter un nouveau mécanisme de spécification
+Dans ce chapitre, nous allons présenter un nouveau formalisme de spécification
 permettant de remédier à ce problème. Il se base sur une restriction de \ac{LTL}
 plus souple que celle utilisée classiquement par les model-checkers logiciels.
 Nous introduisons le concept de \emph{zones de validités} afin de permettre
 l'utilisation de variables locales et de positions dans les propositions
 atomiques. Nous produisons ainsi un formalisme de spécification qui englobe les
 assertions et les propositions LTL (telles que classiquement utilisées par les
-model-checkers logiciel), tout en permettant de surmonter les limitations que
-nous avons présentées.
+model-checkers logiciel), tout en permettant de surmonter les limitations
+rencontrées par les utilisations classiques de LTL : l'utilisation des variables
+locales et des positions du code sources dans la spécification.
 
 Nous allons tout d'abord présenter les différents obstacles à résoudre afin
-d'étendre \ac{LTL}. Nous présenterons ensuite les solutions (parfois partielles)
+d'atteindre cet objectif. Nous présenterons ensuite les solutions (parfois partielles)
 que nous apportons à ces problèmes, ainsi que le formalisme de spécification que
 nous avons établi. Enfin, nous justifierons nos choix et nous les comparerons
-aux autres travaux sur le sujet.
+aux autres travaux connexes.
 
 \section{Difficultés du problème}
 
@@ -405,12 +409,12 @@ d'instruction du programme. On considère qu'un état \(p\) est dans la zone de
 validité d'une proposition atomique lorsque, dans l'état \(p\), un pointeur
 d'instruction du programme pointe sur une instruction comprise entre le label de
 début de la zone de validité de la proposition et le label de fin. Cela signifie
-que, quelleque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
+que, quelque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
 déjà atteint l'instruction désignée par le label de début, mais pas encore celle
-désignée par le label de fin (pour que la spécification soit valide, il est
+désignée par le label de fin. Pour que la spécification soit valide, il est
 nécessaire que quelque soit l'exécution, si un pointeur d'instruction désigne
 l'instruction marquée par un label de début, alors il atteigne celle marquée par
-le label de fin avant de sortir du contexte courant).
+le label de fin avant de sortir du contexte courant.
 
 On évalue alors la proposition atomique en un état \(p\) par :
 
@@ -614,9 +618,9 @@ pour spécifier que \texttt{p} doit être valide entre \texttt{b} et \texttt{e}.
 atomique \texttt{p}. On obtient ainsi une formule LTL plus simple.
 
 Nous avons choisi d'utiliser une valeur par défaut que l'utilisateur peut fixer,
-plutôt qu'imposer une valeur par défaut. Ce n'est pourtant strictement
-nécessaire : si une valeur par défaut est imposée (\emph{faux} par exemple), on
-peut reproduire les propositions atomiques ayant \emph{vrai} comme valeur par
+plutôt qu'imposer une valeur par défaut. Il serait aussi possible d'imposer la
+valeur par défaut (à \emph{faux} par exemple), on pourrait alors
+reproduire les propositions atomiques ayant \emph{vrai} comme valeur par
 défaut en utilisant une double négation. Par exemple, pour une proposition
 atomique \(p\) ayant \(vrai\) comme valeur par défaut et \(f\) comme fonction
 d'évaluation, et pour la formule \(G p\), on pourrait utiliser de manière
@@ -626,7 +630,7 @@ et \(\lnot f\) comme fonction d'évaluation. La formule LTL serait alors \(G
 
 Cependant, il nous a semblé plus pratique et confortable de permettre à
 l'utilisateur de fixer cette valeur de manière cohérente avec
-l'utilisation qui est faite de la proposition atomique. Ainsi, dans le
+l'utilisation de la proposition atomique. Ainsi, dans le
 cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
 valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
 double négation.
@@ -678,8 +682,8 @@ autour du model-checker Divine\cite{Divine_3_0}. Ils sont présentés dans
 Divine met en place un ensemble de macros permettant de définir les propositions
 atomiques utilisées dans une formule LTL. Deux macros, \texttt{ap(proposition)}
 et \texttt{ap\_set(proposition, value)} permettent respectivement de modifier
-directement la valeur d'une proposition atomique passée en argument. \texttt{ap}
-met la proposition atomique à \emph{vrai} uniquement pour pendant l'exécution de
+directement la valeur d'une proposition atomique passée en argument. La macro \texttt{ap}
+met la proposition atomique à \emph{vrai} uniquement pendant l'exécution de
 la macro, tandis que \texttt{ap\_set} change la valeur d'une proposition
 atomique de manière durable, jusqu'à une prochaine modification.
 
