@@ -278,11 +278,20 @@ une commande interne pour synchroniser l'automate avec le code et ainsi, de
 supporter plus facilement différents model-checkers en backend.
 
 \paragraph{Exemple}
-L'automate pour la propriété LTL \(G p \implies F q\) est implémenté par
+L'automate pour la propriété LTL \(G (p \implies F q)\) (représenté en
+Figure~\ref{fig:buchi_auto}) est implémenté par
 le code du listing~\ref{lst:C_automaton}.
 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics[height=0.4\textheight]{buchi_auto.png}
+\end{center}
+\caption{Automate de Büchi pour la propriété \(G (p \implies F q)\)}
+\label{fig:buchi_auto}
+\end{figure}
+
 \begin{lstlisting}[language=C, frame=single, label=lst:C_automaton,
-    caption=Code de l'automate représentant \(G p \implies F q\)]
+    caption=Code de l'automate représentant \(G (p \implies F q)\)]
 /* Status of atomic propositions */
 _Bool _ltl2ba_atomic_p = 0;
 _Bool _ltl2ba_atomic_q = 0;
@@ -294,24 +303,25 @@ void _ltl2ba_transition() {
   int choice = nondet_uint();
   /* Perform an action according to the current state */
   switch (_ltl2ba_state_var) {
-  case 0:
-    /* For each transition from this state... */
-    if (choice == 0) {
-      /* if atomic proposition verify the guard... */
+  case 0: // From state 0
+    if (choice == 0) { // Take the first transition
+      /* Check if the guard is verified */
       assume(!_ltl2ba_atomic_p);
-      /* take the transition and update the current state */
+      /* Take the transition and update the current state */
       _ltl2ba_state_var = 0;
-    } else if (choice == 1) {
+    } else if (choice == 1) { // Take the second transition
+      /* Check if the guard is verified */
       assume(1);
+      /* Take the transition and update the current state */
       _ltl2ba_state_var = 1;
-    } else if (choice == 2) {
+    } else if (choice == 2) { // Take the third transition
       assume(_ltl2ba_atomic_q);
       _ltl2ba_state_var = 0;
     } else {
       assume(0);
     }
     break;
-  case 1:
+  case 1: // From state 1
     if (choice == 0) {
       assume(1);
       _ltl2ba_state_var = 1;
@@ -424,8 +434,8 @@ lend: ....;
 \end{minipage}
 
 Toutes les instructions sont regroupées dans un bloc atomique (ouvert
-par l'instruction \texttt{\_\_atomic\_begin()} et fermé par
-l'instruction \texttt{atomic\_end()}) afin de ne pas générer
+par l'instruction \texttt{\_\_atomic\_begin()}, ligne 1) et fermé par
+l'instruction \texttt{atomic\_end()}, ligne 4) afin de ne pas générer
 d'entrelacements supplémentaires dans le code et créer des chemins
 d'exécutions pouvant mener à une conclusion erronée : toutes les
 instructions de l'instrumentation doivent être réalisées de manière
@@ -433,8 +443,8 @@ atomique (sans changement de contexte possible) pour garantir un état
 cohérent de l'automate. Si plusieurs entrées et sorties d'une zone de validité ont
 lieu au même label, les instructions d'instrumentations sont toutes
 réunies dans le même bloc atomique. La fonction de transition n'est
-appelée qu'une seule fois, après l'actualisation de toutes les
-propositions atomiques.
+appelée qu'une seule fois (à la ligne 3), après l'actualisation de toutes les
+propositions atomiques (à la ligne 2).
 
 \subsection{Variables locales}
 
@@ -596,7 +606,7 @@ lend: ....;
 \end{minipage}
 
 On remarque, à la seconde ligne des listings \ref{lst:instr_out1} et
-\ref{lst:instr_out2}, que la variable \texttt{\_ltl2ba\_active_p} est mise
+\ref{lst:instr_out2}, que la variable \texttt{\_ltl2ba\_active\_p} est mise
 à jour.
 
 On utilise alors cette information dans l'instrumentation lors de la
@@ -639,7 +649,7 @@ __atomic_end();
 
 On retrouve la même instrumentation que dans le cas des variables locales,
 mais la troisième ligne du listing \ref{lst:instr_global_out} utilise la
-variable \texttt{\_ltl2ba\_active_p} pour déterminer comment évaluer la
+variable \texttt{\_ltl2ba\_active\_p} pour déterminer comment évaluer la
 proposition atomique.
 
 \subsection{Mélange de variables globales et locales}
@@ -684,7 +694,7 @@ void* thread2(void* d) {
 \end{lstlisting}
 \end{minipage}
 
-Le premier thread serait instrumenté de la manière suivante :
+Le second thread serait instrumenté de la manière suivante :
 
 \begin{lstlisting}[language=C, frame=single, numbers=left,
   caption=Thread 2 instrumenté]
@@ -701,7 +711,7 @@ void* thread2(void* d) {
 \end{lstlisting}
 
 On remarque que la variable \texttt{b} n'est pas accessible lorsqu'il
-est nécessaire d'appeler la fonction d'évaluation.
+est nécessaire d'appeler la fonction d'évaluation, à la ligne 6.
 
 Cependant, on sait que lorsque cet appel a lieu, un pointeur d'exécution
 du programme est dans la zone de validité de la proposition : toutes les
@@ -725,15 +735,23 @@ précédent.
 \begin{lstlisting}[language=C, frame=single, numbers=left,
   caption=Instrumentation finale pour des variables locales et globales]
 int a = 1;
+// Are we in p validity area ?
 int _ltl2ba_active_p = 0;
+// Pointer to local variable b
 int *_ltl2ba_ptr_b;
+// Atomic proposition p current value
 int _ltl2ba_atomic_p = {v_default};
+// Evaluation function
 int pred(int a, int b) { return a == b; }
 
 void* thread1(void* d) {
+  // Open atomic bloc
   __atomic_begin();
   a = 0;
+  // a is global: check if p is in its validity area
   if (_ltl2ba_active_p) {
+    // Update p value and take a transition.
+    // We get the local variable b through a pointer
     ltl2ba_atomic_p = pred(a, *_ltl2ba_ptr_b);
     _ltl2ba_transition();
   }
@@ -742,15 +760,22 @@ void* thread1(void* d) {
 void* thread2(void* d) {
   int b = *(int *)d;
   int r;
+  // Begining of a validity area
   begin: __atomic_begin();
-  _ltl2ba_active_p = 1;
+  // Set the address of b in the global pointer
   _ltl2ba_ptr_b = &b;
+  // Mark the proposition as active, compute its value
+  // and take a transition
+  _ltl2ba_active_p = 1;
   ltl2ba_atomic_p = pred(a, *_ltl2ba_prt_b);
   _ltl2ba_transition();
   __atomic_end();
   a = b;
   r = 10 / a;
+  // End of the validity area
   __atomic_begin();
+  // Mark the proposition as inactive, set its value to
+  // the default value and take a transition
   _ltl2ba_active_p = 0;
   ltl2ba_atomic_p = {default_val};
   _ltl2ba_transition();
@@ -920,9 +945,10 @@ permettent généralement de mener à bien la tâche de vérification et de trou
 un résultat correct. On observe cependant quelques erreurs. CBMC indique une
 erreur possible dans un test valide, alors que ESBMC ne détecte pas une erreur
 dans un test incorrect. ESBMC échoue aussi sur le test \emph{battery\_var} après
-avoir consommé l'ensemble de la mémoire disponible. Ces résultats sont dus à des
-erreurs internes aux model-checkers, pour lesquelles nous n'avons pas d'explication.
-Le test \emph{battery_var} est l'un de ceux nécessitant la plus grande
+avoir consommé l'ensemble de la mémoire disponible. Ces résultats ne sont pas
+liés à notre instrumentation mais aux fonctionnement interne des model-checkers,
+et sont probablement due à une perte de précision dans les abstractions du système.
+Le test \emph{battery\_var} est l'un de ceux nécessitant la plus grande
 profondeur d'exploration et générant le plus d'entrelacement, ce qui explique
 le temps nécessaire à CBMC pour conclure, et l'erreur d'exécution de ESBMC.
 

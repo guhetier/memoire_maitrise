@@ -1,24 +1,28 @@
 \Chapter{REVUE DE LITTÉRATURE}\label{sec:RevLitt}
 
 Le \emph{model-checking} rassemble des techniques permettant de vérifier
-et valider des systèmes. Ces techniques se basent sur l'exploration
-exhaustive d'un modèle du système, c'est à dire d'une représentation
-abstraite et simplifiée de celui-ci. Historiquement, le model-checking a
+et valider des systèmes. Historiquement, le model-checking a
 tout d'abord été utilisé pour la vérification de composants
 électroniques. Les techniques ont ensuite été adaptées afin de permettre
-la validation de programmes. Nous allons par la suite nous intéresser à
-ces techniques uniquement.
+la validation de programmes. On parle alors de model-checking logiciel.
+Nous allons par la suite nous intéresser à celui-ci uniquement.
+
+Le principe du model-checking est de mener une recherche
+exhaustive à travers une modélisation du système plutôt que de
+construire une preuve formelle de validité. Alors qu'une telle preuve
+peut demander une certaine part d'intuition, le model-checking permet
+une approche plus systématique, qui peut être plus facilement
+automatisée.
 
 De nombreux algorithmes de model-checking ont été développés en fonction
 des propriétés à vérifier sur le système, du formalisme dans lequel est
 décrit le système et de la complexité de celui-ci.
-
-Dans cette partie, nous présentons les principales techniques de
+Dans ce chapitre, nous présentons les principales techniques de
 model-checking logiciel et nous identifions leurs avantages et
 inconvénients respectifs.
 
 Nous identifions les outils les plus performants implémentant chacune de ces
-techniques, à l'heure actuelle. Nous restreignons cependant cette étude au
+techniques, à l'heure actuelle. Nous restreignons cependant cette étude aux
 outils qui nous intéresserons pour la suite de ce rapport. Ces outils sont donc
 susceptibles d'être utilisés en arrière-plan (backend) pour la vérification des
 codes sources considérés dans ce mémoire. Nous ne considérerons donc que
@@ -36,13 +40,11 @@ multi thread ainsi que les outils qui les implémentent.
 
 \section{Model-checking logiciel}\label{sec:model-checking-logiciel}
 
-Le model-checking permet de vérifier qu'un système respecte une
-spécification donnée. Le principe sous-jacent est de mener une recherche
-exhaustive à travers une modélisation du système plutôt que de
-construire une preuve formelle de validité. Alors qu'une telle preuve
-peut demander une certaine part d'intuition, le model-checking permet
-une approche plus systématique, qui peut être plus facilement
-automatisée.
+Le model-checking permet de prouver qu'un modèle d'un système vérifie une
+spécification. Avant de s'intéresser davantage aux différentes techniques de
+model-checking, nous allons présenter les notions de modèle et de spécification.
+Nous définissions aussi un certain nombre de notions et termes techniques liés à
+cette problématique.
 
 \subsection{Modèle}
 
@@ -126,15 +128,16 @@ ne jamais faire de faux négatif : si une erreur existe dans un système, elle
 sera toujours signalée.
 
 Un outil ou une technique de vérification est correct s’il est conçu de sorte à
-ne jamais faire de faux positif : si un système est valide, une erreur ne sera
-jamais signalée.
+ne jamais faire de faux positif : si une erreur est signalée dans un système,
+elle est réellement présente dans ce système.
 
-Concevoir un outil à la fois complet et correct est extrêmement difficile, voire
-impossible, dans la plupart des cas en raison du théorème de Rice. Une technique
-de vérification ne vérifie donc généralement qu'une seule de ces
-caractéristiques, au mieux.
+Concevoir un outil de model-checking logiciel à la fois complet et correct est
+extrêmement difficile, voire impossible, dans la plupart des cas. En effet, le
+théorème de Rice indique que toute propriété sémantique non triviale d'un
+programme est indécidable. Une technique de vérification ne respecte donc généralement
+qu'une seule de ces caractéristiques, ou aucune des deux.
 
-\subsection{Model-checking logiciel}
+\subsection{Le cas du model-checking logiciel}
 
 Le model-checking logiciel, ou \emph{software model-checking} est un cas
 particulier de model-checking. Le système à vérifier est un programme, et le
@@ -164,7 +167,7 @@ LLVM\footnote{L'utilisation de cette représentation est aussi expliquée
 
 La programmation impérative consiste considérer un programme comme un état que
 l'on fait évoluer à l'aide d'instructions. L'état du programme est
-principalement par l'état de la mémoire du programme.
+principalement défini par l'état de la mémoire du programme.
 On peut alors modéliser un programme par un système de transition. L'ensemble
 des états du système de transition est une partition de l'ensemble des états du
 programme. Les états du système de transition sont donc caractérisés par :
@@ -172,6 +175,8 @@ programme. Les états du système de transition sont donc caractérisés par :
 \begin{itemize}
 \item
   la configuration du tas du programme ;
+\item
+  la valeur des variables globales du programme ;
 \item
   la configuration de la pile de chaque thread ;
 \item
@@ -210,7 +215,7 @@ faites sur le système :
 Considérons le programme suivant, formé de deux threads.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[caption=Thread 1, frame=tlrb]
+\begin{lstlisting}[caption=Thread 1, frame=single]
 a <- 1
 a <- 2
 \end{lstlisting}
@@ -399,7 +404,7 @@ Dans le code suivant, une assertion permet de spécifier que la variable
 \texttt{b} doit être non nulle. Dans le cas contraire, une erreur
 arithmétique (division par zéro) pourrait avoir lieu à la ligne suivante.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C, frame=single]
 int int_div(int a, int b) {
     assert(b != 0);
     return a / b;
@@ -807,7 +812,9 @@ les modèles concurrents et implémente de nombreuses méthodes de réduction
 (ordre partiel, bit state hashing\dots). SPIN ne supporte pas le langage
 C nativement, cependant des travaux ont été menés afin de traduire C
 vers \bsc{Promela}\cite{jiang_C_to_Promela}, ce qui permet à SPIN de
-vérifier un programme en C de manière indirecte.
+vérifier un programme en C de manière indirecte. Cependant, cette traduction
+ne supporte que partiellement les manipulations de la mémoire (pointeurs,
+allocation dynamique\dots).
 
 Pancam\cite{Pancam} se base sur SPIN pour vérifier du bytecode
 LLVM\footnote{le bytecode LLVM peut être produit à partir d'un code C à
@@ -1003,12 +1010,12 @@ alors ce point fixe de manière itérative, en utilisant les opérations défini
 sur les \ac{BDD}. Si l'état initial du système fait partie des états vérifiant la
 propriété, le système est valide.
 
-Par exemple, dans le cas d'une assertion, l'ensemble des états valides
-est l'ensemble des états à partir desquels il n'est pas possible de déclencher
-l'assertion. On peut le définir comme étant le point fixe de la fonction
-\(X \mapsto E \cup X \cup Pre(X)\), avec \(E\) l'ensemble des états
-d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses prédécesseurs
-dans le modèle de système.
+Par exemple, dans le cas d'une assertion, l'ensemble des états valides est
+l'ensemble des états à partir desquels il n'est pas possible de déclencher
+l'assertion. On peut le définir comme étant le point fixe de la fonction \(X
+\mapsto E \cup X \cup Pre(X)\), avec \(X\) un ensemble d'états, \(E\) l'ensemble
+des états d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses
+prédécesseurs dans le modèle de système.
 
 Tout comme les \ac{BDD}, les autres représentations symboliques sont fortement
 dépendantes d'un ordre des variables afin de conserver une taille
