@@ -38,8 +38,8 @@ Vérifier les systèmes informatiques a ainsi gagné une importance qui n'est
 plus discutable. Cependant, l'inspection manuelle des logiciels est une
 tâche longue, coûteuse et souvent source d'erreurs. Sur les systèmes les
 plus complexes, elle devient irréalisable. Il est donc nécessaire de se
-reposer sur des techniques et des outils permettant d'automatiser,
-partiellement ou totalement, le processus de vérification.
+reposer sur des techniques et des outils permettant de faciliter
+le processus de vérification.
 
 On peut séparer les techniques et les outils utilisés pour vérifier un
 logiciel selon plusieurs critères. L'un de ces critères est le degré
@@ -122,7 +122,7 @@ de détecter plus efficacement les erreurs liées à la concurrence, des
 techniques comme le stress-testing ont été mises en place. Elles
 consistent à ajouter du bruit à l'exécution des tests ou à lancer
 plusieurs instances du test en parallèle afin d'augmenter la probabilité
-des entrelacements d'instructions les moins fréquents.
+d'occurrence des entrelacements d'instructions les moins fréquents.
 
 Malgré ces limitations, le test reste généralement la méthode de
 vérification la plus simple à mettre en place. Les autres techniques de
@@ -136,19 +136,19 @@ Les méthodes de test permettent de trouver des erreurs dans un programme
 et d'augmenter la confiance des développeurs dans le fait que le
 programme est correct, mais elles ne permettent pas de prouver l'absence
 d'erreurs.
-Les méthodes de vérification formelles sont une réponse à cette limitation :
+Les méthodes de vérification formelle sont une réponse à cette limitation :
 elles permettent de prouver l'absence d'erreurs dans un programme,
 quels que soient les entrées et les chemins d'exécution.
 
 Les erreurs que l'on va rechercher dans un programme peuvent être séparées en
 trois catégories. Les erreurs de syntaxes correspondent à l'écriture d'un
-programme invalide, et sont détectées lors de la compilation, nous n'allons donc
+programme invalide et sont détectées lors de la compilation, nous n'allons donc
 pas nous y intéresser. Les erreurs d'exécution sont des erreurs qui ont lieu
 lorsque le programme s'exécute et qui sont liées à son environnement. Elles
-peuvent provoquer l'arrêt du programme ou un résultat faux. Elles sont souvent
-liées aux entrées du programme ou aux comportements indéterminés d'un langage de
+peuvent provoquer l'arrêt du programme ou un résultat faux. Elles dépendent souvent
+des entrées du programme ou des comportements indéterminés d'un langage de
 programmation (division par zéro, déréférencement d'un pointeur invalide\dots).
-Les erreurs de logique ont lieu lorsqu'un programme ne fournis pas le résultat
+Les erreurs de logique ont lieu lorsqu'un programme ne fourni pas le résultat
 attendu sans qu'une erreur d'exécution soit présente : il s'agit donc d'un
 programme correct, mais ce n'est pas celui que l'on voulait concevoir).
 
@@ -180,7 +180,7 @@ l'interprétation abstraite est d'être suffisamment précise afin de ne
 pas indiquer un trop grand nombre de fausses (\emph{spurious}) erreurs.
 
 Plutôt que d'essayer de suivre l'ensemble des valeurs possibles pour chaque
-variable, à chaque point du programme, l'interprétation abstraite utilise un
+variables, à chaque point du programme, l'interprétation abstraite utilise un
 domaine abstrait qui permet d'approximer l'ensemble des valeurs qu'une variable
 peut prendre. Par exemple, on peut approximer l'ensemble des valeurs d'une
 variable par le plus petit intervalle contenant l'ensemble de ces valeurs. On va
@@ -200,7 +200,7 @@ de conclure : une erreur est possible, mais elle n'est pas certaine.
 En pratique, l'interprétation abstraite est souvent utilisée pour
 vérifier des propriétés génériques, intégrées dans les outils
 (\emph{built-in}). C'est une technique qui
-passe bien à l'échelle et qui peut analyser de larges bases de code. Des
+passe bien à l'échelle et qui permet analyser de larges bases de code. Des
 propriétés typiquement vérifiées sont l'absence d'erreurs arithmétiques,
 l'absence de variables utilisées avant d'être initialisées, ou le
 respect des bornes des tableaux.
@@ -256,18 +256,22 @@ complexité du système et des propriétés à vérifier.
 
 Les lois de Moore sont des conjectures empiriques qui prédisent que la
 puissance de calcul des processeurs double chaque année. Cependant, la
-miniaturisation des transistors approche ces limites physiques,
+miniaturisation des transistors approche ses limites physiques,
 annonçant la fin des lois de Moore dans leur interprétation
 traditionnelle. Cependant, afin continuer à gagner en puissance de
 calcul, les processeurs ont commencé à évoluer dans une autre direction
 : plutôt que d'augmenter la puissance, c'est le nombre de cœurs qui va
-croître. Pour tirer partit de ces processeurs multicœurs, il est
+croître. Pour tirer parti de ces processeurs multicœurs, il est
 cependant nécessaire de réaliser des programmes parallèles.
 
 Plusieurs modèles de programmation concurrente existent. Par exemple, ils
 peuvent être basés sur des évènements (SystemC), ou sur des algorithmes
 de type map / reduce (MPI). Dans ce mémoire, nous allons nous concentrer
 sur les fils d'exécution suivant la norme POSIX (\emph{pthread}).
+Dans ce modèle, le programme est constitué de plusieurs fil d'exécutions, ou
+\emph{threads}, qui s'exécutent simultanément. Ils partagent un même espace
+mémoire, qu'ils peuvent utiliser pour communiquer, et ils sont coordonné à
+l'aide de primitive de synchronisation comme les mutex et les sémaphores.
 
 La concurrence introduit tout un nouveau panel de difficultés dans la conception
 d'un programme. Les accès à la mémoire partagée par plusieurs fils d'exécutions
@@ -303,7 +307,7 @@ outils de model-checking pour des programmes écrits en C.
 Le langage C est un langage bas niveau parmi les plus utilisés et les
 plus présents dans les bases de code actuelles. Il est en particulier
 utilisé dans les applications embarquées, les applications systèmes et
-les applications temps réel, qui nécessitent un contrôle bas niveaux et
+les applications temps réel, qui nécessitent un contrôle bas niveau et
 des performances élevées. Ces types d'applications sont souvent
 critiques et ne peuvent tolérer un dysfonctionnement. Le C est donc un
 langage privilégié par les méthodes de vérification formelle, supporté

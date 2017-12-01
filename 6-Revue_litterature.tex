@@ -126,7 +126,6 @@ de \emph{faux négatif}.
 Un outil ou une technique de vérification est complet s’il est conçu de sorte à
 ne jamais faire de faux négatif : si une erreur existe dans un système, elle
 sera toujours signalée.
-
 Un outil ou une technique de vérification est correct s’il est conçu de sorte à
 ne jamais faire de faux positif : si une erreur est signalée dans un système,
 elle est réellement présente dans ce système.
@@ -147,7 +146,7 @@ suivants :
 
 \begin{itemize}
 \item
-  on réduit le risque d'une erreur lors de la modélisation du système,
+  on réduit le risque d'erreur lors de la modélisation du système,
   en supprimant l'intervention humaine ;
 \item
   on automatise davantage le procédé de vérification, ce qui le rend
@@ -231,7 +230,10 @@ Ce programme contient trois variables globales, \texttt{a}, \texttt{c} et
 \texttt{d}, et deux threads. Les états du système sont donc définis par les
 valeurs de ces variables et la position des pointeurs d'instruction de chaque
 thread. On peut modéliser ce programme par le système de transitions en Figure
-\ref{fig:model_example}.
+\ref{fig:model_example}. L'étiquette de chaque état représente la valeur des
+variables. Les transitions représentent l'exécution d'une instruction. On
+remarque l'existence de nombreuses traces d'exécution, pouvant mener à trois
+résultats différents.
 
 \begin{figure}
 \begin{center}
@@ -244,7 +246,7 @@ thread. On peut modéliser ce programme par le système de transitions en Figure
 \subsection{Non-déterminisme}
 
 Un système est rarement complètement déterministe. De nombreux facteurs (les
-données en entrée du système, l'instant où un évènement à lieu, la réussite des
+données en entrée du système, l'instant où un évènement a lieu, la réussite des
 allocations mémoires, la concurrence) tendent généralement à rendre l'évolution
 d'un système non déterministe.
 
@@ -323,7 +325,7 @@ de propriétés \emph{built-in}.
 
 Dans le cas du model-checking logiciel, des propriétés built-in
 classiques sont la vérification de la validité des pointeurs et des
-opérations arithmétiques, l'initialisation des variables, et, de manière
+opérations arithmétiques, l'initialisation des variables et, de manière
 plus générale, l'absence de tout comportement ne respectant pas la norme
 du langage.
 Dans le cas de programmes concurrents, on cherche généralement à s'assurer de
@@ -342,8 +344,9 @@ lui-même la spécification.
 
 \subsection{Assertions}
 
-Dans un article de son blog, John Regehr aborde le sujet des assertions
-\cite{assertion_regehr}. Il reprend en particulier la définition suivante :
+Dans un article de son blog, John Regehr aborde le sujet des
+assertions\cite{assertion_regehr}.
+Il reprend en particulier la définition suivante :
 
 \begin{quotation}
 \selectlanguage{english}
@@ -429,7 +432,7 @@ assertion.
 
 Pour exprimer des propriétés plus complexes et en particulier des propriétés qui
 portent sur l'ensemble d'une trace d'exécution et l'ordre d'apparition de
-certains évènements, plus approprié d'utiliser une logique temporelle.
+certains évènements, il est plus approprié d'utiliser une logique temporelle.
 
 Supposons que notre système soit le code d'un distributeur automatique.
 On voudrait s'assurer que le distributeur ne délivre jamais le produit

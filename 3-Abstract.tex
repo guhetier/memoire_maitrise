@@ -8,17 +8,17 @@
 %
 \begin{otherlanguage}{english}
 
-Critical programs and IT systems are more and more broadly used. At the same
-time, their complexity increase. More than ever, it is crucial to ensure their
+Critical programs and IT systems are more and more broadly used. Simultaneously,
+their complexity increase. More than ever, it is crucial to ensure their
 correctness. Software model-checking is a verification technique that allows to
 formally prove the absence of errors in a program. However, it faces two main
-issues : combinatorial explosion and the ability to specify the correct behavior
+issues: combinatorial explosion and the ability to specify the correct behavior
 of a program. These issues are amplified for concurrent programs because of the
 interleavings between threads. Assertions and LTL formulas are the most used
 specification formalisms for software model-checking, however they are
-restricted in a concurrent context. In the one hand, it is not possible to
+restricted in a concurrent context. On the one hand, it is not possible to
 express temporal relations between threads or events of the program using only
-assertions. In the other hand, LTL formulas that are supported by the main
+assertions. On the other hand, LTL formulas that are supported by the main
 software model-checkers does not allows to use local variables and program
 locations, whereas program locations are often a convenient way to check the
 synchronization between threads.
@@ -28,7 +28,7 @@ issues. This formalism is a superset of both LTL and assertions. It allows to
 express propositions that use global and local variables and proposition, and to
 build temporal relations on these propositions. Then, we introduce a tool
 allowing to check for the correctness of concurrent C programs specified with
-our formalism.
+the formalism we introduce.
 
 Our formalism is based on the LTL logic. It tackles the problems of the
 manipulation of code locations in specification and the use of local variable
@@ -42,9 +42,9 @@ is possible to limit the use of the evaluation function to the lexical contexts
 where all local parameters are defined.
 
 We developed a tool named \texttt{baProduct} to verify concurrent C programs
-specified using our formalism. This tool implement a source to source
-transformation and call backend model-checkers to perform verification tasks.
-This architecture greatly simplify the tool development and support a
+specified using our formalism. This tool implements a source to source
+transformation and calls backend model-checkers to perform verification tasks.
+This architecture greatly simplifies the development of the tool and supports a
 variety of model-checkers in backend. It allows us to take advantage of the
 optimization of state of the art model-checkers and to compare their
 performances when used in combination with our tool.
@@ -58,9 +58,9 @@ performances with CBMC due to difference in the way these tools handle
 concurrency. The tests confirm it is possible to conveniently specify properties
 (such as mutual exclusion properties) that are difficult to express using only
 assertion or a more classical version of LTL, without manual modifications of
-the source code. We also demonstrate that our transformation successfully reduce
+the source code. We also demonstrate that our transformation successfully reduces
 the problem of the verification of LTL properties to the verification of
-assertions for finite traces. However, our tool face some limitation. It is
+assertions for finite traces. However, our tool faces some limitations. It is
 currently restricted to finite traces. Moreover, this version does not
 implement any reduction method, which reduces its performances.
 

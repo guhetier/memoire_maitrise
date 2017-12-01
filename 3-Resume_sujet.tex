@@ -52,7 +52,7 @@ vérifier une spécification exprimée dans ce formalisme dans le cas d'un
 programme concurrent codé en C.
 
 Notre formalisme se base sur la logique LTL. Il permet de surmonter deux des
-principales limitation rencontrée par les variantes de LTL utilisées par les
+principales limitations rencontrées par les variantes de LTL utilisées par les
 outils de model-checking logiciel : manipuler des positions dans le code et des
 variables locales dans les propositions atomiques. La principale difficulté est
 de définir correctement dans l'ensemble du programme une proposition atomique
@@ -66,11 +66,12 @@ limiter l'utilisation de la fonction d'évaluation aux contextes où tous ses
 paramètres locaux sont définis.
 
 Nous avons développé un outil, \texttt{baProduct}, afin de vérifier un programme
-concurrent en C spécifié selon notre formalisme. Cet outil prend la forme d'une
+concurrent en C spécifié dans le formalisme proposé. Cet outil prend la forme d'une
 transformation de source à source, et délègue les tâches de vérifications à un
 model-checker utilisé en arrière plan. Ce choix permet de simplifier grandement
 le développement de l'outil, mais aussi de profiter des performances de
-model-checkers reconnus et de les comparer. À partir du code source d'un
+model-checkers reconnus et de comparer leurs efficacités sur le code transformé.
+À partir du code source d'un
 programme et d'une spécification, \texttt{baProduct} produit un programme
 spécifié par des assertions dont la validité correspond au respect de la
 spécification initiale. Plusieurs model-checkers peuvent être utilisés en
