@@ -742,7 +742,8 @@ profondeur\dots).
 Les algorithmes de model-checking explicite modélisent le programme par un
 système de transitions. Ils construisent et explorent ce système de transitions
 à la volée : partant de l'état de départ, les successeurs sont déterminés à
-partir des instructions du programme. Ils sont alors explorés et ainsi de suite.
+partir des instructions du programme. Ils sont alors visités à leur tour, leurs
+successeurs sont calculés et ainsi de suite.
 Pour ne pas explorer plusieurs fois un même état (l'exploration entrerait alors
 dans un cycle infini), il est nécessaire de stocker les états du chemin
 emprunté.
@@ -849,7 +850,7 @@ concurrente pour améliorer ses performances, alors que \texttt{inspect} et
 Pancam se basent sur du runtime model-checking. SPIN, \texttt{inspect}, Pancam
 et Divine sont tous capables de vérifier des violations d'assertions et des
 propriétés built-in, comme les deadlocks et les data-races, cependant, seul
-Divine et SPIN sont capable de vérifier des propriétés \ac{LTL}.
+Divine et SPIN sont capables de vérifier des propriétés \ac{LTL}.
 \texttt{inspect} nécessite un système fermé, et n'est pas capable de gérer le
 non-déterminisme. Il est donc dépendant d'une suite de tests pour fixer les
 paramètres du programme à vérifier. Divine est arrivé sixième de la catégorie
@@ -874,9 +875,9 @@ utilisées :
 
 \begin{itemize}
 \item
-  \ac{BDD} (Diagrammes de Décision Booléens) ;
+  les BDD (\emph{Binary Decision Diagrams}, Diagrammes de Décision Booléens) ;
 \item
-  formules de la logique propositionnelle ;
+  les formules de la logique propositionnelle ;
 \item
   automates finis.
 \end{itemize}
@@ -892,12 +893,12 @@ une représentation canonique de taille raisonnable.
 
 \subsubsection{Représentation symbolique par des BDD}
 
-Nous allons utiliser l'exemple des \ac{BDD} pour illustrer les forces et les
+Nous allons utiliser l'exemple des BDD pour illustrer les forces et les
 défis rencontrés par les représentations symboliques.
 
-Un \ac{BDD} permet de représenter une fonction booléenne.
+Un BDD permet de représenter une fonction booléenne.
 On va donc représenter un ensemble d'états par une fonction prenant
-en paramètre un état (encodé par des variables booléennes) et indiquant s’il est dans l'ensemble représenté par la fonction où non.
+en paramètre un état (encodé par des variables booléennes) et indiquant s’il est dans l'ensemble représenté par la fonction ou non.
 
 \paragraph{Encoder les états}
 La première étape est d'encoder les états du système par des variables
@@ -924,9 +925,9 @@ vrai pour les éléments de l'ensemble et à faux sinon.
   \end{cases*}
 \end{align}
 
-Nous allons ensuite construire un \ac{BDD} pour représenter cette fonction.
+Nous allons ensuite construire un BDD pour représenter cette fonction.
 
-La construction d'un \ac{BDD} repose sur la propriété suivante :
+La construction d'un BDD repose sur la propriété suivante :
 
 \paragraph{Décomposition des fonctions booléennes}
 Soit \(k > 0\) et \(f: \mathbf{B}^k \to \mathbf{B}\) une
@@ -977,9 +978,9 @@ Pour notre exemple, nous obtenons l'arbre de la Figure \ref{fig:BDD_tree}.
 La représentation par un arbre de décision contient \(2^{n+1} - 1\) nœuds pour
 une fonction booléenne à \(n\) variables, on ne peut donc pas encore parler de
 représentation efficace. Cependant, cet arbre de décision contient aussi
-beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un \ac{BDD} en
+beaucoup de sous-arbres redondants. On va donc réduire cet arbre en un BDD en
 fusionnant tous les sous-arbres identiques et en supprimant les états n'ayant
-qu'un unique successeur. Dans notre exemple, on obtient alors le \ac{BDD} de la
+qu'un unique successeur. Dans notre exemple, on obtient alors le BDD de la
 Figure \ref{fig:BDD_graph}.
 
 \begin{figure}[h]
@@ -990,27 +991,27 @@ Figure \ref{fig:BDD_graph}.
 \label{fig:BDD_graph}
 \end{figure}
 
-Cependant, la taille du \ac{BDD} est très dépendante de l'ordre choisi pour
+Cependant, la taille du BDD est très dépendante de l'ordre choisi pour
 les variables\cite{OBDD}. Dans cet exemple, l'ordre n'a pas une grande importance
 mais lorsque le nombre de variables et la complexité de la fonction
-augmentent, la taille du \ac{BDD} peut exploser\footnote{Pour s'en
-  convaincre, on peut calculer les \ac{BDD} de la fonction
+augmentent, la taille du BDD peut exploser\footnote{Pour s'en
+  convaincre, on peut calculer les BDD de la fonction
   \(x, y, z, t \mapsto x.z + y.t\), avec les ordres \(x<z<y<t\), puis
   \(x<y<z<t\).}.
 
-À partir de la représentation sous forme de \ac{BDD}, on peut évaluer la
+À partir de la représentation sous forme de BDD, on peut évaluer la
 fonction \(f\) efficacement, mais aussi réaliser des opérations logiques
-de manière efficace, en construisant le \ac{BDD} résultant à partir des
+performantes, en construisant le BDD résultant à partir des
 feuilles et en réduisant au fur et à mesure. \cite{OBDD} explique cet
 algorithme plus en détail . Dans le cas (simple) de la
-négation, il suffit par exemple d'échanger les deux feuilles du \ac{BDD}.
+négation, il suffit par exemple d'échanger les deux feuilles du BDD.
 
 \paragraph{Vérification à l'aide des BDD}
 
 On peut définir l'ensemble des états vérifiant une propriété \(\Phi\)
 comme le point fixe d'une fonction (dépendant de \(\Phi\)). On calcule
 alors ce point fixe de manière itérative, en utilisant les opérations définies
-sur les \ac{BDD}. Si l'état initial du système fait partie des états vérifiant la
+sur les BDD. Si l'état initial du système fait partie des états vérifiant la
 propriété, le système est valide.
 
 Par exemple, dans le cas d'une assertion, l'ensemble des états valides est
@@ -1020,7 +1021,7 @@ l'assertion. On peut le définir comme étant le point fixe de la fonction \(X
 des états d'erreurs et \(Pre\) la fonction qui associe à un ensemble d'états ses
 prédécesseurs dans le modèle de système.
 
-Tout comme les \ac{BDD}, les autres représentations symboliques sont fortement
+Tout comme les BDD, les autres représentations symboliques sont fortement
 dépendantes d'un ordre des variables afin de conserver une taille
 raisonnable. Les formules de la logique propositionnelle sont très
 utilisées actuellement en raison des progrès des solveurs SAT.
@@ -1043,8 +1044,8 @@ Les états sont représentés à travers des formules SMT, manipulées à l'aide
 bibliothèque SARL\cite{SARL}. CIVL a pour ambition de constituer un point de
 jonction commun entre plusieurs frontends et backends, afin de découpler les
 problèmes de modélisation d'un langage et les problèmes de vérification. CIVL
-adopte une approche conservatrice : il peut signaler des faux positifs,
-c'est-à-dire indiquer une erreur dans un modèle correct.
+adopte une approche conservatrice : il se veut correct mais il n'est pas
+complet, il peut donc signaler des faux positifs.
 
 SymDivine\cite{SymDivine} permet la vérification de propriétés \ac{LTL} sur du
 bytecode LLVM concurrent (et donc, par extension, pour des programmes en C).
@@ -1052,13 +1053,13 @@ Tout comme CIVL, SymDivine utilise une combinaison de model-checking explicite
 et symbolique. Le non-déterminisme au niveau des données est géré de manière
 symbolique tandis que celui au niveau du contrôle est traité explicitement : tous
 les entrelacements sont explorés individuellement. SymDivine peut utiliser les
-formules SMT ou des \ac{BDD} pour représenter les ensembles abstraits, les premières
+formules SMT ou des BDD pour représenter les ensembles abstraits, les premières
 étant plus efficaces dans la plupart de leurs expérimentations.
 
 SymDivine et CIVL utilisent des méthodes de vérification semblables, mais
 diffèrent par leurs langages de modélisation. CIVL utilise CIVL-C, un langage
-relativement haut niveau pour faciliter la conception de modèle et la prise en
-charge de plusieurs langages et paradigmes de concurrence, alors que SymDivine
+relativement haut niveau pour faciliter la conception de modèles et la prise en
+charge de plusieurs langages et paradigmes de concurrence. SymDivine
 privilégie le bytecode LLVM, plus proche du programme compilé final afin de
 réduire la distance entre le modèle et le système. CIVL a terminé troisième
 (respectivement quatrième) lors des éditions 2016 (respectivement 2017) de
@@ -1071,11 +1072,11 @@ L'abstraction par prédicat (\emph{predicate abstraction}) est une technique
 proche de l'interprétation abstraite, dont nous avons parlé dans l'introduction
 de ce mémoire. Elle consiste à construire un modèle du programme dans un
 domaine abstrait, déterminé en partitionnant l'ensemble des états du système
-selon un ensemble de prédicats. Cependant, le domaine abstrait utilisé par
+selon un ensemble de prédicats. Le domaine abstrait utilisé par
 l'interprétation abstraite est en général fixé par l'outil et
-indépendant du programme analysé, tandis que l'abstraction par prédicat
-construit un modèle sur mesure pour le système considéré et la propriété
-à vérifier\cite{abstract_state_graph, dsilva_survey_2008}.
+indépendant du programme analysé. Les techniques d'abstraction par prédicat
+diffèrent sur ce point : elles construisent un modèle sur mesure pour le système
+considéré et la propriété à vérifier\cite{abstract_state_graph, dsilva_survey_2008}.
 
 L'objectif des techniques d'abstraction par prédicat est de construire une
 abstraction du programme exacte par rapport à la propriété à vérifier. Cette
@@ -1096,7 +1097,7 @@ uniquement des variables booléennes. Les variables de ce programme représenten
 chacune un prédicat, et leur valeur dans un état du programme représente si
 le prédicat est vérifié dans cet état ou non. On peut alors vérifier le système
 abstrait à l'aide d'un model-checker pour programmes booléens (ceux-ci utilisent
-généralement des méthodes de model-checking symbolique).
+fréquemment des méthodes de model-checking symbolique).
 
 \paragraph{Exemple}
 
@@ -1105,7 +1106,7 @@ lorsque \texttt{x = 0} pourrait ici correspondre à une division par
 zéro. Considérons les prédicats \(p_1 = (y == 1)\) et \(p_2 = (x == 0)\).
 
 On détermine quatre états abstraits pour chaque position du programme,
-correspondant aux différentes valeurs de \(p_1\) et \(p_2\). On peut ensuite
+correspondant aux différentes valeurs de \((p_1, p_2)\). On peut ensuite
 déduire le programme booléen associé en supprimant les variables du programme
 initial et en rajoutant des instructions pour actualiser les prédicats. On
 obtient le programme booléen présenté dans le listing \ref{lst:bool_prog_bool}.
@@ -1147,7 +1148,8 @@ La méthode \ac{CEGAR} permet de construire une abstraction en itérant quatre p
 Abstraction, Vérification, Simulation et Raffinement. Une première abstraction
 (peu précise) du programme est réalisée. Si la vérification fournit un
 contre-exemple, celui-ci est simulé dans le système initial afin de vérifier
-qu'il y existe. Si ce n'est pas le cas, on utilise cette information pour
+qu'il y existe (afin d'éviter un faux-positif). Si ce n'est pas le cas, on
+utilise cette information pour
 construire une abstraction plus précise qui permet de rejeter cette trace et on
 itère le processus.
 
@@ -1162,7 +1164,7 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
   structures de contrôle du programme. Une analyse statique du programme peut
   aussi être utilisée pour définir ce premier ensemble de prédicats.
   Toutes les variables sont rendues abstraites, et leurs valeurs dans
-  les structures de contrôles sont non déterministes. On obtient alors
+  les structures de contrôle sont non déterministes. On obtient alors
   l'abstraction présentée dans le listing \ref{lst:CEGAR_1}.
 \item
   \textbf{Vérification :} Un model-checker pour programmes booléens permet de
@@ -1253,7 +1255,8 @@ prouvant que le chemin est impossible dans le programme d'origine (si de tels
 invariants n'existent pas, une erreur est reportée). Le cœur de l'algorithme
 IMPACT consiste à utiliser ces invariants pour éviter d'explorer des branches
 entières de l'arbre. Si deux nœuds \(A\) et \(B\) partagent la même location et
-que l'invariant de \(B\) est plus fort (implique) que celui de \(A\), alors il
+que l'invariant de \(B\) est plus fort que celui de \(A\) (l'invariant de \(B\)
+implique l'invariant de \(A\)), alors il
 est inutile d'explorer les fils de \(B\) : une erreur accessible à partir de
 \(B\) est accessible à partir de \(A\) aussi.
 
@@ -1331,7 +1334,7 @@ l'explosion combinatoire.
 CPAchecker\cite{CPAChecker} est un framework qui a pris la suite de l'outil
 BLAST \cite{BLAST}. Il permet une analyse configurable travers des CPAs
 (\emph{Configurable program analysis}). Un CPA définit un domaine abstrait
-(\ac{BDD}, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
+(BDD, analyse de valeurs, analyse d'intervalles\dots). CPAchecker est capable
 de mener une analyse d'accessibilité sur une combinaison arbitraire de CPAs. La
 concurrence est prise en charge à l'aide d'un CPA qui définit une exploration
 explicite des entrelacements\cite{CPAChecker_multithread}. De manière similaire
@@ -1366,7 +1369,7 @@ bornés explorent uniquement des préfixes finis des exécutions possibles du
 modèle. Une profondeur maximale d'exploration \texttt{k} est fixée.
 Les \texttt{k} premiers pas de chaque exécution du système sont alors
 encodée dans une formule de la logique propositionnelle.
-On construit alors la conjonction entre cette formule et la négation d'une
+On construit ensuite la conjonction entre cette formule et la négation d'une
 formule représentant la spécification du programme, et on transmet le résultat
 à un solveur SAT ou SMT. Si la formule est satisfiable, il existe une
 exécution valide ne respectant pas la spécification (puisqu’elle satisfait la
@@ -1385,10 +1388,11 @@ fois que les différents branchements se rejoignent. Les fonctions sont inlinée
 boucles sont déroulées un nombre de fois limité par la profondeur d'exploration,
 en une cascade de blocs \texttt{if}.
 
-Le passage en forme \ac{SSA} est illustré par l'exemple ci-dessous.
+Le passage en forme \ac{SSA} est illustré par l'exemple présenté dans les
+listings \ref{lst::ssa_init} et \ref{lst::ssa_end}.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, caption=Code initial, frame=tlrb]
+\begin{lstlisting}[language=C, caption=Code initial, frame=tlrb, label=lst::ssa_init]
 int a = 0, b = 1, c;
 a = a + b;
 if (a > 0)
@@ -1398,7 +1402,7 @@ else
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, caption=Forme SSA,frame=tlrb]
+\begin{lstlisting}[language=C, caption=Forme SSA,frame=tlrb, label=lst::ssa_end]
 int a_0 = 0;
 int b_0 = 1;
 int a_1 = a_0 + b_0;
@@ -1541,12 +1545,12 @@ SMACK\cite{SMACK} permet de traduire un programme en C vers le langage de
 modélisation Boogie. Il utilise pour cela la représentation
 intermédiaire LLVM-IR et implémente des simplifications du code source pour
 réduire le modèle. Le modèle en Boogie est ensuite vérifié à l'aide d'un
-model-checker utilisé en backend. Par défaut, Coral est utilisé. C'est un
+model-checker utilisé en backend. Par défaut, Coral est utilisé. Il s'agit d'un
 model-checker borné se basant sur des solveurs SMT pour les programmes en
 Boogie, supportant la concurrence. Ceci permet à SMACK de tirer parti de
 backends éprouvé et des performances des solveurs. SMACK reste cependant
-modulaire, ce qui permet d'utiliser d'autres algorithmes que du BMC pour le
-backend. SMACK est capable de vérifier des spécifications sous forme d'assertion
+modulaire, il peut ainsi utiliser d'autres algorithmes que du BMC pour le
+backend. SMACK est capable de vérifier des spécifications sous forme d'assertions
 uniquement.
 
 \subsection{Séquentialisation}
@@ -1579,7 +1583,7 @@ Partons d'un programme concurrent très simple (nous nous inspirons ici
 de l'exemple présenté dans \cite{LazyCSeq}, auquel on peut se
 référer pour plus de détails) :
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[language=C, frame=single]
 int y = 0;
 void* T0(void *d) {
   int x;
