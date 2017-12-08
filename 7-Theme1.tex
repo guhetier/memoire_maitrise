@@ -106,7 +106,7 @@ La seconde limitation concerne les spécifications utilisant \ac{LTL}.
 Les model-checkers logiciels supportant \ac{LTL} restreignent généralement les
 propositions atomiques à des fonctions booléennes portant sur la valeur des
 variables globales du programme.
-Si toutes les variables globale ont la même valeur dans deux états distinct du
+Si toutes les variables globale ont la même valeur dans deux états distincts du
 programmes (qui diffèrent par leur position dans le code et leurs variables
 locales), alors toutes les formules \ac{LTL} vont s'évaluer de la même manière
 dans ces deux états : il n'est pas possible de les distinguer dans la
@@ -237,7 +237,7 @@ On peut répartir ces cas en deux catégories :
   les deux variables sont lexicalement distinctes, elles sont issues de
   deux définitions distinctes dans le code source. Dans ce cas, on peut
   différencier les variables en ajoutant des informations
-  supplémentaires à son nom, pour identifier le contexte de la
+  supplémentaires à leurs noms, pour identifier les contextes de
   déclaration de manière unique (fichier, fonction, bloc\ldots{}).
 \item
   les deux variables sont lexicalement identiques, mais elles sont
@@ -270,15 +270,14 @@ Tout comme pour les variables, il est nécessaire de désigner de manière uniqu
 une position du code pour l'utiliser dans une spécification.
 
 Il faut donc concevoir un moyen de désigner une position dans le code qui soit
-à la fois pratique pour l'utilisateur, robuste par rapport aux modifications du
-code et suffisamment précis.
-
+à la fois pratique pour l'utilisateur et robuste par rapport aux modifications du
+code.
 Il est aussi nécessaire de tenir compte de la précision recherchée. Sur ce
 point, nous nous limiterons à désigner une instruction. En effet, si l'on veut
 désigner une expression au sein d'une instruction, il est toujours possible de
 la transformer en une instruction indépendante.
 
-Plusieurs options viennent rapidement à l'esprit :
+Plusieurs options peuvent être envisagées pour résoudre ce problème :
 
 \begin{itemize}
 \item
@@ -433,7 +432,7 @@ On évalue alors la proposition atomique en un état \(p\) par :
 \subsection{Exemple}
 
 Nous avons choisi par la suite de représenter cette spécification en
-\ac{JSON}\cite{json}. Ce format est
+JSON (JavaScript Object Notation)\cite{json}. Ce format est
 relativement verbeux, mais présente l'avantage d'être facile à parser
 tout en étant lisible pour l'être humain. Établir une syntaxe plus
 concise pourrait représenter un développement futur.
@@ -547,9 +546,9 @@ exemple). Dans ce cas, il est possible d'identifier un thread par un indice
 correspondant à l'ordre de création des threads. On pourra alors identifier de
 manière unique une variable dans un thread uniquement en rajoutant un préfixe à
 son nom, qui prendra alors la forme
-\texttt{{thread\_id}::{fonction}::{variable}}\footnote{\label{fn:notimplemented}.
+\texttt{{thread\_id}::{fonction}::{variable}}\footnote{\label{fn:notimplemented}
 Cette fonctionnalité n'est pas implémentée dans l'outil présenté dans le
-Chapitre~\ref{sec:Theme2}}.
+Chapitre~\ref{sec:Theme2}.}.
 
 Un autre cas est lié à l'identification d'une variable locale à une fonction
 appelée plusieurs fois dans un programme. Une instance de la variable est créée
@@ -563,7 +562,7 @@ Cependant, lors d'appels récursifs ou concurrents, plusieurs instances de la
 variable existent simultanément : pour évaluer une proposition atomique, il
 faut alors décider quelle instance doit être utilisée. Dans ce cas, nous ne
 proposons pas de solution. Il est cependant possible de reprendre l'approche de
-Divine \cite{Divine_LTL}, en l'adaptant à notre système de valeurs par
+Divine\cite{Divine_LTL}, en l'adaptant à notre système de valeurs par
 défaut\textsuperscript{\ref{fn:notimplemented}}. Nous présentons cette approche
 plus en détail dans la section~\ref{sec:related_work}.
 
@@ -584,7 +583,7 @@ mais aussi en raison de leur signification : un label a pour rôle de désigner
 une instruction.
 
 Cependant, la précision d'une position à l'aide d'un marqueur reste de, au
-mieux, une ligne, et donc d'une instruction. On ne peut donc pas désigner une
+mieux une instruction. On ne peut donc pas désigner une
 position plus précisément, au niveau d'une expression par exemple. Nous avons
 considéré que ce cas est suffisamment peu fréquent pour qu'il soit possible de
 l'ignorer. Il reste de plus possible de décomposer une instruction afin d'en
@@ -606,7 +605,7 @@ combinées à des zones de validité.
 L'intérêt des zones de validité est double. L'utilisateur peut spécifier
 manuellement quand une proposition doit utiliser sa fonction d'évaluation. Cela
 permet en particulier d'attendre que les variables soient correctement
-initialisées. Les zones de validités permettent aussi d'utiliser des positions
+initialisées. Les zones de validité permettent aussi d'utiliser des positions
 du code dans la spécification, et de lier directement ces positions à une
 proposition sur les valeurs des variables du programme. Il n'est donc pas
 nécessaire d'utiliser deux propositions atomiques \texttt{b} et \texttt{e} pour
@@ -675,7 +674,7 @@ d'assertions.
 
 \section{Travaux similaires}\label{sec:related_work}
 
-Des travaux autour de la prise en charge des variables locales ont été réalisés,
+Des travaux portant sur la prise en charge des variables locales ont été réalisés,
 autour du model-checker Divine\cite{Divine_3_0}. Ils sont présentés dans
 \cite{Divine_LTL}.
 

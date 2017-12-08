@@ -10,13 +10,13 @@ Construire un outil de model-checking performant et adapté à notre spécificat
 dépasse de loin le cadre de cette maîtrise. Nous allons donc nous baser sur les
 outils existants. Cependant, la plupart des outils de model-checking pour des
 programmes concurrents en C ne supportent pas \ac{LTL}, alors que notre
-spécification est basée sur cette logique temporelle. Adapter un model-checker
-sera donc une tâche complexe.
+spécification est basée sur cette logique temporelle. Adapter la logique interne
+d'un model-checker représente une tâche complexe.
 
 Cependant, presque tous les model-checkers logiciels supportent les assertions.
 Nous avons par conséquent mis en place une transformation source à source du
 système. À partir des sources d'un système et de sa spécification, elle produit
-un programme instrumenté, contenant des assertions, tel que la validité de ce
+un programme instrumenté, contenant des assertions, de telle sorte que la validité de ce
 programme instrumenté par rapport aux assertions corresponde à celle du
 programme initial par rapport à sa spécification.
 
@@ -115,15 +115,15 @@ Les propriétés \ac{LTL} ne sont pas définies sur les traces finies. Plusieurs
 variantes de \ac{LTL} existent pour répondre à ce problème (LTL3, FLTL, RV-LTL,
 infinite extension\ldots{}), aucune ne faisant consensus.
 
-Nous avons choisi l'approche du \emph{stuttering} : l'état final de la
+Nous avons choisi l'approche de l'extension infinie (\emph{stuttering}) : l'état final de la
 trace finie est répété à l'infini afin d'étendre la trace de manière
 infinie. Cette approche correspond bien avec un programme qui, lorsqu'il
-se termine, n'a pas de raison de voir son état évoluer. Elle a de plus
+se termine, cesse de voir son état évoluer. Elle a de plus
 l'avantage de ne pas modifier les opérateurs \ac{LTL}, ce qui nous permet
 d'utiliser les techniques de vérification pour \ac{LTL} sans modifications.
 Une trace finie est un modèle d'une propriété \ac{LTL} dans la sémantique
 avec \emph{stuttering} si et seulement si son extension infinie est un
-modèle.
+modèle de la propriété.
 
 \paragraph{Exemple}
 Soient \(p\) et \(q\) deux états d'un système. Soit la trace finie \(t =
@@ -231,7 +231,7 @@ Nous utilisons les variables et fonctions suivantes pour construire l'automate :
   des variables globales, \texttt{ltl2ba\_atomic\_{name}} (où name est
   l'identifiant d'une proposition atomique), contiennent la valeur
   courante de chaque proposition atomique. Ces valeurs sont maintenues à
-  jour pendant le déroulement du programme. Elles sont mises à jour par
+  jour pendant le déroulement du programme. Elles sont actualisées par
   des instructions ajoutées dans le code du programme que nous
   détaillerons dans la partie sur l'instrumentation.
 \item
@@ -348,7 +348,7 @@ unsigned int _ltl2ba_sym_to_id() {
   id |= (_ltl2ba_atomic_p << 0);
   id |= (_ltl2ba_atomic_q << 1);
   return id;
-};
+}
 /* Report results to the model-checker using assertions */
 void _ltl2ba_result() {
   /* The automaton reject the execution: there is no error */
@@ -379,7 +379,7 @@ dans une trace future.
 \section{Instrumentation du code}
 
 Une fois l'automate implémenté, la seconde étape du processus est de construire
-le produit entre le système et l'automate(étape~2 dans la
+le produit entre le système et l'automate (étape~2 dans la
 Figure~\ref{fig:baProduct_func}). Cela est réalisé par une instrumentation du
 code, afin de maintenir à jour la valeur des propositions atomiques et d'appeler
 la fonction de transition de l'automate.
@@ -721,7 +721,7 @@ globaux contenant les adresses de ces variables. Nous allons donc
 compléter l'instrumentation pour maintenir des adresses de toutes les
 variables utilisées comme paramètre d'une proposition atomique.
 
-Pour chaque variable utilisée comme paramètre d'une proposition
+Pour chaque variable locale utilisée comme paramètre d'une proposition
 atomique, une variable globale supplémentaire est créée. À l'entrée dans
 la zone de validité d'une proposition, cette variable globale est
 assignée avec l'adresse du paramètre auquel elle correspond. Il est
@@ -810,14 +810,14 @@ certaines assertions pour s'assurer d'obtenir le résultat le plus fort.
 \section{Implémentation}
 
 Nous avons implémenté cette transformation de source à source dans un outil,
-baProduct.
+\texttt{baProduct}.
 
 Nous générons les automates de Büchi correspondant aux formules LTL en
 utilisant le logiciel LTL2BA\cite{ltl2ba}. LTL2BA implémente
 une méthode rapide afin de construire l'automate de Büchi associé à une
 formule LTL, en utilisant un co-automate de Büchi alternant très faible
 (\emph{very weak alternating co-Büchi automaton}) et un automate de
-Büchi généralisé (*generalized Büchi automaton) comme intermédiaires.
+Büchi généralisé (\emph{generalized Büchi automaton}) comme intermédiaires.
 
 L'instrumentation est réalisée à l'aide la bibliothèque
 CIL\cite{cil}, en OCaml\cite{ocamlrefman}. CIL permet de parser

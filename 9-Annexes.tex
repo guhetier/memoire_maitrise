@@ -57,7 +57,7 @@ Un tel système peut être modélisé par le code ci-dessous. Deux threads,
 batteries se vident. Le pourcentage d'énergie dans la batterie est représenté
 par la variable \texttt{energy}. Celle-ci est décrémentée dans une
 boucle, ce qui représente la consommation de l'énergie, avant d'être remise à
-une valeur de 100, ce qui simule le remplacement. Dans ce système simpliste,
+une valeur de 10, ce qui simule le remplacement. Dans ce système simpliste,
 aucune synchronisation n'existe entre les threads.
 On peut aussi noter que la boucle principale des threads ne s'exécute que trois
 fois, afin que la trace soit finie. Dans un cas d'utilisation réel, on
@@ -102,8 +102,9 @@ void* battery2(void* d) {
 \end{lstlisting}
 \end{minipage}
 
-Pour s'assurer que le système fonctionne correctement, on souhaite s'assurer qu’une des deux batteries a toujours un niveau d'énergie supérieur à 10\%, une fois
-le système initialisé.
+Pour s'assurer que le système fonctionne correctement, on souhaite s'assurer
+qu’une des deux batteries a toujours un niveau d'énergie supérieur à 20\%, une
+fois le système initialisé.
 
 Nous allons tout d'abord spécifier cette propriété sur le système. Pour cela, on
 délimite tout d'abord les zones de validités. L'initialisation des batteries ne
@@ -151,7 +152,7 @@ puisque les deux propositions atomiques s'évaluent selon la même formule.
 
 \begin{lstlisting}[language=C, frame=single, caption=Fonction d'évaluation]
 int low_power(int energy) {
-  return energy < 3;
+  return energy <= 2;
 }
 \end{lstlisting}
 
