@@ -174,7 +174,7 @@ atomiques. Nous produisons ainsi un formalisme de spécification qui englobe les
 assertions et les propositions LTL (telles que classiquement utilisées par les
 model-checkers logiciel), tout en permettant de surmonter les limitations
 rencontrées par les utilisations classiques de LTL : l'utilisation des variables
-locales et des positions du code sources dans la spécification.
+locales et des positions du code source dans la spécification.
 
 Nous allons tout d'abord présenter les différents obstacles à résoudre afin
 d'atteindre cet objectif. Nous présenterons ensuite les solutions (parfois partielles)
@@ -411,7 +411,7 @@ début de la zone de validité de la proposition et le label de fin. Cela signif
 que, quelque soit l'exécution menant à l'état \(p\), le pointeur d'exécution a
 déjà atteint l'instruction désignée par le label de début, mais pas encore celle
 désignée par le label de fin. Pour que la spécification soit valide, il est
-nécessaire que quelque soit l'exécution, si un pointeur d'instruction désigne
+nécessaire que, quelque soit l'exécution, si un pointeur d'instruction désigne
 l'instruction marquée par un label de début, alors il atteigne celle marquée par
 le label de fin avant de sortir du contexte courant.
 

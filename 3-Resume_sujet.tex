@@ -35,13 +35,13 @@ Il reste cependant limité par deux facteurs : l'explosion combinatoire et la
 capacité à spécifier le comportement correct d'un programme. Ces deux problèmes
 sont amplifiés dans le cas de programmes concurrents, à cause des différents
 entrelacements possibles entre les fils d'exécutions. Les assertions et les
-formules logiques LTL sont les deux formalisme de spécification les plus
-utilisés dans le cadre du model-checking logiciel, cependant, ils sont limité
+formules logiques LTL sont les deux formalismes de spécification les plus
+utilisés dans le cadre du model-checking logiciel. Cependant, ils sont limités
 dans un contexte concurrent : les assertions ne permettent pas d'exprimer des
-relations temporelles entres différents fils d'exécutions alors que les formules
+relations temporelles entre différents fils d'exécutions alors que les formules
 LTL utilisées par les outils actuels ne permettent pas d'exprimer des propriétés
 sur les variables locales et les positions dans le code du programme. Ces
-notions sont pourtant importante dans le cas de programme concurrents.
+notions sont pourtant importantes dans le cas de programmes concurrents.
 
 Dans ce mémoire, nous établissons un formalisme de spécification visant à
 corriger ces limitations. Ce formalisme englobe LTL et les assertions, en
@@ -68,28 +68,28 @@ paramètres locaux sont définis.
 Nous avons développé un outil, \texttt{baProduct}, afin de vérifier un programme
 concurrent en C spécifié dans le formalisme proposé. Cet outil prend la forme d'une
 transformation de source à source, et délègue les tâches de vérifications à un
-model-checker utilisé en arrière plan. Ce choix permet de simplifier grandement
+model-checker utilisé en arrière-plan. Ce choix permet de simplifier grandement
 le développement de l'outil, mais aussi de profiter des performances de
 model-checkers reconnus et de comparer leurs efficacités sur le code transformé.
 À partir du code source d'un
 programme et d'une spécification, \texttt{baProduct} produit un programme
 spécifié par des assertions dont la validité correspond au respect de la
 spécification initiale. Plusieurs model-checkers peuvent être utilisés en
-arrière plan, la principale condition étant qu'ils supportent les spécifications
+arrière-plan, la principale condition étant qu'ils supportent les spécifications
 sous forme d'assertions. La transformation de source à source se base sur
 l'implémentation en C de l'automate de Büchi associé à la spécification et la
 construction de son produit avec le code source du système.
 
 Nous appliquons ensuite \texttt{baProduct} sur un ensemble de tests simples.
 Nous comparons les performances obtenues à l'aide de deux model-checkers
-utilisés en arrière plan, CBMC et ESBMC. Nous obtenons généralement des
-meilleures performances avec CBMC en raison d'une différence de la gestions des
+utilisés en arrière-plan, CBMC et ESBMC. Nous obtenons généralement de
+meilleures performances avec CBMC en raison d'une différence de la gestion des
 entrelacements par ces outils. Ces tests nous permettent de confirmer qu'il est
 possible de spécifier des propriétés difficiles à exprimer par des assertions ou
-une version plus classique de LTL (comme des propriétés d'exclusion mutuelle),
+une version plus classique de LTL (comme des propriétés d'exclusion mutuelle)
 de manière efficace et sans qu'une instrumentation manuelle soit nécessaire.
 Nous vérifions aussi que notre transformation de source à source permet de
-ramener le problème de la vérification de propriétés LTL à la vérifications
+ramener le problème de la vérification de propriétés LTL à la vérification
 d'assertions dans le cadre de traces finies. Cependant, nous mettons aussi en
 évidence un certain nombre de limitations. En particulier, notre transformation
 est limitée à des traces finies. De plus, notre outil n'implémente pas de

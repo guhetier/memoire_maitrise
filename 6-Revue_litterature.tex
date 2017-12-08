@@ -23,7 +23,7 @@ inconvénients respectifs.
 
 Nous identifions les outils les plus performants implémentant chacune de ces
 techniques, à l'heure actuelle. Nous restreignons cependant cette étude aux
-outils qui nous intéresserons pour la suite de ce rapport. Ces outils sont donc
+outils qui nous intéresseront pour la suite de ce rapport. Ces outils sont donc
 susceptibles d'être utilisés en arrière-plan (backend) pour la vérification des
 codes sources considérés dans ce mémoire. Nous ne considérerons donc que
 des outils capables de vérifier des programmes concurrents en C, suivant le
@@ -41,7 +41,7 @@ multi thread ainsi que les outils qui les implémentent.
 \section{Model-checking logiciel}\label{sec:model-checking-logiciel}
 
 Le model-checking permet de prouver qu'un modèle d'un système vérifie une
-spécification. Avant de s'intéresser davantage aux différentes techniques de
+spécification. Avant de nous intéresser davantage aux différentes techniques de
 model-checking, nous allons présenter les notions de modèle et de spécification.
 Nous définissions aussi un certain nombre de notions et termes techniques liés à
 cette problématique.
@@ -138,7 +138,7 @@ qu'une seule de ces caractéristiques, ou aucune des deux.
 
 \subsection{Le cas du model-checking logiciel}
 
-Le model-checking logiciel, ou \emph{software model-checking} est un cas
+Le model-checking logiciel, ou \emph{software model-checking}, est un cas
 particulier de model-checking. Le système à vérifier est un programme, et le
 modèle va être extrait automatiquement à partir de son code source.
 On automatise ainsi la conception du modèle, ce qui présente les avantages
@@ -164,7 +164,7 @@ LLVM\footnote{L'utilisation de cette représentation est aussi expliquée
   intermédiaire de LLVM, un model-checker utilisant cette dernière est
   alors compatible avec tous ces langages.}.
 
-La programmation impérative consiste considérer un programme comme un état que
+La programmation impérative consiste à considérer un programme comme un état que
 l'on fait évoluer à l'aide d'instructions. L'état du programme est
 principalement défini par l'état de la mémoire du programme.
 On peut alors modéliser un programme par un système de transition. L'ensemble
@@ -822,7 +822,7 @@ allocation dynamique\dots).
 
 Pancam\cite{Pancam} se base sur SPIN pour vérifier du bytecode
 LLVM\footnote{le bytecode LLVM peut être produit à partir d'un code C à
-  l'aide d'un compilateur tel que CLANG ou GCC}. Pancam exécute le
+l'aide d'un compilateur tel que CLANG ou GCC}. Pancam exécute le
 bytecode LLVM dans une machine virtuelle et utilise SPIN comme un
 moniteur d'exécution afin de générer les différents entrelacements à
 explorer.

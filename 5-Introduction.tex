@@ -148,9 +148,9 @@ lorsque le programme s'exécute et qui sont liées à son environnement. Elles
 peuvent provoquer l'arrêt du programme ou un résultat faux. Elles dépendent souvent
 des entrées du programme ou des comportements indéterminés d'un langage de
 programmation (division par zéro, déréférencement d'un pointeur invalide\dots).
-Les erreurs de logique ont lieu lorsqu'un programme ne fourni pas le résultat
+Les erreurs de logique ont lieu lorsqu'un programme ne fournit pas le résultat
 attendu sans qu'une erreur d'exécution soit présente : il s'agit donc d'un
-programme correct, mais ce n'est pas celui que l'on voulait concevoir).
+programme correct, mais ce n'est pas celui que l'on voulait concevoir.
 
 En pratique, vérifier qu'un système est complètement correct (c.-à-d il ne
 contient pas d'erreurs d'exécution ou de logique) est généralement trop
@@ -180,7 +180,7 @@ l'interprétation abstraite est d'être suffisamment précise afin de ne
 pas indiquer un trop grand nombre de fausses (\emph{spurious}) erreurs.
 
 Plutôt que d'essayer de suivre l'ensemble des valeurs possibles pour chaque
-variables, à chaque point du programme, l'interprétation abstraite utilise un
+variable, à chaque point du programme, l'interprétation abstraite utilise un
 domaine abstrait qui permet d'approximer l'ensemble des valeurs qu'une variable
 peut prendre. Par exemple, on peut approximer l'ensemble des valeurs d'une
 variable par le plus petit intervalle contenant l'ensemble de ces valeurs. On va
@@ -268,20 +268,20 @@ Plusieurs modèles de programmation concurrente existent. Par exemple, ils
 peuvent être basés sur des évènements (SystemC), ou sur des algorithmes
 de type map / reduce (MPI). Dans ce mémoire, nous allons nous concentrer
 sur les fils d'exécution suivant la norme POSIX (\emph{pthread}).
-Dans ce modèle, le programme est constitué de plusieurs fil d'exécutions, ou
+Dans ce modèle, le programme est constitué de plusieurs fils d'exécutions, ou
 \emph{threads}, qui s'exécutent simultanément. Ils partagent un même espace
-mémoire, qu'ils peuvent utiliser pour communiquer, et ils sont coordonné à
+mémoire, qu'ils peuvent utiliser pour communiquer, et ils sont coordonnés à
 l'aide de primitive de synchronisation comme les mutex et les sémaphores.
 
 La concurrence introduit tout un nouveau panel de difficultés dans la conception
 d'un programme. Les accès à la mémoire partagée par plusieurs fils d'exécutions
-doivent être protégés pour éviter les \emph{race conditions}, qui peuvent
+doivent être protégés pour éviter les \emph{ race conditions}, qui peuvent
 fausser le résultat d'une opération. Il est aussi nécessaire de synchroniser les
 fils d'exécution et de tenir compte des différents entrelacements possibles
 entre les instructions. Ces difficultés provoquent souvent l'apparition
 d'erreurs subtiles. En particulier, les erreurs dépendant de l'entrelacement des
-instructions sont souvent complexes à détecter et à diagnostiquer car elles sont
-difficiles à reproduire : en effet, l'entrelacement des instruction lors d'une
+instructions sont souvent complexes à détecter et à diagnostiquer, car elles sont
+difficiles à reproduire : en effet, l'entrelacement des instructions lors d'une
 exécution est non déterministe.
 
 Les programmes concurrents représentent un défi pour les méthodes de
@@ -385,7 +385,7 @@ introduisons ensuite les principaux algorithmes de model-checking
 logiciels, ainsi que les outils les implémentant et leurs spécificités.
 
 Dans la partie \ref{sec:Theme1}, nous détaillons un nouveau formalisme de
-spécification. Il constitue une extension de la logique LTL a des proposition
+spécification. Il constitue une extension de la logique LTL a des propositions
 portant sur les variables globales et locales et sur les positions dans le code
 du programme. Nous le comparons aux autres tentatives allant dans le même sens
 et nous mettons en lumière les principaux problèmes résolus ainsi qu'encore ouverts.

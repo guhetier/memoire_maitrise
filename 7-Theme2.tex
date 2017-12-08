@@ -23,7 +23,7 @@ programme initial par rapport à sa spécification.
 Construire une transformation de source à source présente de plus un certain
 nombre d'avantages. Elle est en grande partie indépendante du model-checker
 utilisé pour effectuer la vérification, ce qui permet d'obtenir un outil
-compatible avec plusieurs model-checker en arrière plan. On peut ainsi les
+compatible avec plusieurs model-checker en arrière-plan. On peut ainsi les
 comparer et sélectionner le
 plus adapté pour un problème spécifique. Utiliser une instrumentation du code
 simplifie aussi les tâches d'implémentation, en nous évitant de composer avec le
@@ -340,8 +340,8 @@ _Bool _ltl2ba_surely_accept[2] = {0, 0};
 /* States of the automaton from which every suffix is
    rejected by the automaton */
 _Bool _ltl2ba_surely_reject[2] = {0, 0};
-/* For each combinations of automaton state and atomic
-   proposition value, give the sttuter acceptance result. */
+/* For each combination of automaton state and atomic
+   proposition value give the sttuter acceptance result. */
 _Bool _ltl2ba_stutter_accept[8] = {1,0, 0,0, 1,1, 1,1,};
 unsigned int _ltl2ba_sym_to_id() {
   unsigned int id = 0;
@@ -946,8 +946,8 @@ un résultat correct. On observe cependant quelques erreurs. CBMC indique une
 erreur possible dans un test valide, alors que ESBMC ne détecte pas une erreur
 dans un test incorrect. ESBMC échoue aussi sur le test \emph{battery\_var} après
 avoir consommé l'ensemble de la mémoire disponible. Ces résultats ne sont pas
-liés à notre instrumentation mais aux fonctionnement interne des model-checkers,
-et sont probablement due à une perte de précision dans les abstractions du système.
+liés à notre instrumentation mais au fonctionnement interne des model-checkers,
+et sont probablement dus à une perte de précision dans les abstractions du système.
 Le test \emph{battery\_var} est l'un de ceux nécessitant la plus grande
 profondeur d'exploration et générant le plus d'entrelacement, ce qui explique
 le temps nécessaire à CBMC pour conclure, et l'erreur d'exécution de ESBMC.
