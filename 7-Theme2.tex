@@ -1,5 +1,4 @@
-\chapter{Exprimer la spécification par des assertions à l'aide d'une
-instrumentation}\label{sec:Theme2}
+\chapter{Intégration de la spéficication proposée dans le programme}\label{sec:Theme2}
 
 Nous avons présenté un formalisme de spécification basé sur \ac{LTL} dans le
 Chapitre~\ref{sec:Theme1}. Notre objectif est maintenant d'établir un outil
@@ -205,7 +204,7 @@ savoir si le programme a terminé ou non son exécution (i.e on a vérifié
 l'exécution complète ou la vérification a été interrompue parce qu'une borne sur
 la profondeur d'exploration a été atteinte) peut permettre de préciser le résultat.
 
-\subsection{Implémentation de l'automate}
+\subsection{Génération de l'automate de Büchi}
 
 La génération d'un automate de Büchi en C est la première étape réalisée par
 notre outil (étape 1 dans la Figure~\ref{fig:baProduct_func}). Cet automate doit
@@ -652,7 +651,7 @@ mais la troisième ligne du listing \ref{lst:instr_global_out} utilise la
 variable \texttt{\_ltl2ba\_active\_p} pour déterminer comment évaluer la
 proposition atomique.
 
-\subsection{Mélange de variables globales et locales}
+\subsection{Combinaison de variables globales et locales}
 
 Enfin, plaçons-nous dans le cas où une proposition atomique dépend à la
 fois de variables globales et de variables locales.

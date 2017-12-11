@@ -1,6 +1,6 @@
 \chapter{LTL avec support des positions et des variables locales}\label{sec:Theme1}
 
-\section{Présentation du problème}
+\section{Limitations des méthodes de spécification actuelles}
 
 À travers la revue de littérature, nous avons dégagé deux principales
 limitations concernant les méthodes de spécification utilisées pour
@@ -182,7 +182,7 @@ que nous apportons à ces problèmes, ainsi que le formalisme de spécification 
 nous avons établi. Enfin, nous justifierons nos choix et nous les comparerons
 aux autres travaux connexes.
 
-\section{Difficultés du problème}
+\section{Comment spécifier les propriétés d'un code ?}
 
 Différents problèmes doivent être surmontés afin de permettre l'utilisation de
 variables locales et de positions dans une spécification.
@@ -190,7 +190,7 @@ Limiter \ac{LTL} à des propositions atomiques portant sur les variables globale
 a permis d'éviter ces problèmes, qui sont spécifiquement liés aux variables
 locales et aux positions.
 
-\subsection{Désigner les variables}
+\subsection{Désignation des variables d'un programme}
 
 Pour utiliser une variable dans la spécification d'un programme, il est
 nécessaire de la désigner de manière unique.
@@ -247,7 +247,7 @@ On peut répartir ces cas en deux catégories :
   de même pour les variables locales associées.
 \end{itemize}
 
-\subsection{Prolongation des propositions atomiques}
+\subsection{Portée des propositions atomiques}
 
 Dans une formule LTL, une proposition atomique est intrinsèquement globale :
 pour tout état \(s\) du programme, il peut être nécessaire de déterminer si
@@ -264,7 +264,7 @@ Pour obtenir une définition correcte d'une proposition atomique dépendant de
 variables locales, il est donc nécessaire de prolonger sa définition à
 l'ensemble des états.
 
-\subsection{Exprimer une position dans le programme}
+\subsection{Désignation des positions d'un programme}
 
 Tout comme pour les variables, il est nécessaire de désigner de manière unique
 une position du code pour l'utiliser dans une spécification.
@@ -290,8 +290,6 @@ La première méthode souffre d'un inconvénient majeur : la spécification doit
 être corrigée dès qu'une ligne est ajoutée ou enlevée dans le code. Nous avons
 donc retenu la seconde option. Elle impose cependant de rajouter une
 instrumentation dans le code, ce que nous désirons minimiser.
-
-\subsection{Utilisation des positions dans la formule}
 
 Une fois la manière de désigner une position établie, il faut déterminer comment
 l'utiliser dans la spécification. Nous dirons par la suite qu'un programme a
@@ -330,7 +328,7 @@ Nous avons décidé de ne pas explorer l'option 3. En effet, elle demande de
 modifier le comportement standard des opérateurs LTL et nous avons préféré
 limiter nos modifications aux propositions atomiques seulement.
 
-\section{Syntaxe et sémantique de la spécification}
+\section{Syntaxe et sémantique de la spécification proposée}
 
 \subsection{Syntaxe}
 
@@ -634,7 +632,7 @@ cas d'une propriété de sûreté \(G p\), il est plus naturel de fixer la
 valeur par défaut de \(p\) à \emph{vrai} plutôt que considérer une
 double négation.
 
-\section{Exprimer les propriétés LTL classiquement supportées}
+\section{Expressivité de la spécification proposée}
 
 Notre spécification est une restriction de \ac{LTL} plus faible que celle utilisée
 par la plupart des model-checkers logiciels. Exprimer une formule \ac{LTL} ne
@@ -645,9 +643,7 @@ propositions atomiques. Le reste de la spécification est inchangé.
 On vérifie ainsi que notre formalisme de spécification englobe bien les formules
 \ac{LTL} classiquement utilisées par les model-checkers.
 
-\section{Exprimer des assertions}
-
-Notre spécification permet de spécifier l'équivalent d'une assertion. En
+Notre spécification permet aussi de spécifier l'équivalent d'une assertion. En
 effet, une assertion signifie : ``si un pointeur d'instruction du
 programme pointe sur l'assertion et que l'état ne vérifie pas la
 condition exprimée, alors il y a une erreur''.
@@ -670,7 +666,8 @@ atomique telle que :
 \end{itemize}
 
 Notre formalisme de spécification englobe donc bien les spécifications à l'aide
-d'assertions.
+d'assertions et les formules \ac{LTL} classiquement supportée, tout en tirant
+parti des forces de ces deux formalismes.
 
 \section{Travaux similaires}\label{sec:related_work}
 
