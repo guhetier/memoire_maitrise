@@ -113,8 +113,11 @@ allons ici représenter l'automate de Büchi en C avant de le composer avec le
 programme.
 
 Des algorithmes efficaces et éprouvés permettent de construire l'automate de
-Büchi représentant une formule \ac{LTL}\cite{ltl2ba}. Nous allons donc nous
-concentrer sur l'implémentation d'un automate en C.
+Büchi représentant une formule \ac{LTL}. En particulier, l'outil
+LTL2BA\cite{ltl2ba} est largement reconnu et utilisé, en raison d'une
+amélioration de performance notable par rapport aux algorithmes précédemment utilisés.
+Nous allons donc utiliser LTL2BA afin de générer la structure des automates et
+nous concentrer sur l'implémentation de l'automate en C.
 
 Cependant, vouloir vérifier des propriétés \ac{LTL} à l'aide d'une
 instrumentation à une conséquence : il n'est possible de vérifier que des traces
