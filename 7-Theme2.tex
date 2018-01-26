@@ -114,8 +114,10 @@ programme.
 
 Des algorithmes efficaces et éprouvés permettent de construire l'automate de
 Büchi représentant une formule \ac{LTL}. En particulier, l'outil
-LTL2BA\cite{ltl2ba} est largement reconnu et utilisé, en raison d'une
-amélioration de performance notable par rapport aux algorithmes précédemment utilisés.
+LTL2BA\cite{ltl2ba} est largement reconnu et utilisé : cet outil propose un
+algorithme de construction de l'automate notablement plus performant que les
+algorithmes utilisé auparavant, et il est éprouvé de part son utilisation dans
+de nombreux projets de recherche.
 Nous allons donc utiliser LTL2BA afin de générer la structure des automates et
 nous concentrer sur l'implémentation de l'automate en C.
 
@@ -923,17 +925,17 @@ programme commence et se termine dans la fonction \texttt{main}.
 
 \subsection{Scénarios de test}
 
-Nous avons utilisé les scénarios de tests suivant lors de nos expérimentations.
+Nous avons utilisé les scénarios de tests suivants lors de nos expérimentations.
 Nous nous sommes concentré sur des situations impliquant des problèmes de
-concurrences, et en particulier sur des erreurs liées à une absence ou une
+concurrence, et en particulier sur des erreurs liées à une absence ou une
 mauvaise utilisation des primitives de synchronisation.
 
 \paragraph{battery\_simple}
 (50 lignes, 2 threads)
 Deux batteries, chacune représentée par un thread, sont supposées alimenter un
 système critique. Une variable locale représente le niveau d'énergie contenu
-dans chaque batterie, elle est decrémentée puis remise à sa valeur maximale
-après avoir atteint la valeur zéro. Dans ce test, on désire éviter que les deux
+dans chaque batterie, elle est décrémentée dans une boucle puis remise à sa valeur maximale
+lorsqu'elle atteint zéro. Dans ce test, on désire éviter que les deux
 batteries soient en recharge en même temps : il s'agit donc d'une propriété
 d'exclusion mutuelle.
 
@@ -954,7 +956,7 @@ d'exclusion mutuelle.
 (88 lignes, 2 threads)
 Le système modélise deux feux de circulation à un croisement. Chaque feu est
 représenté par un thread. Les feux doivent prendre les couleurs rouge, orange et
-verte. Ils sont synchronisé à l'aide de mutex. Dans ce premier cas, on veut
+verte. Ils sont synchronisés à l'aide de mutex. Dans ce premier cas, on veut
 vérifier que les deux feux ne sont jamais verts de manière simultanée.
 
 \paragraph{crossing\_exclusive\_mutex}
@@ -973,14 +975,14 @@ Dans la même situation, on vérifie que chaque feu respecte l'ordre des couleur
 : vert $\rightarrow$ orange $\rightarrow$ rouge.
 
 Cette série de test sur le modèle du feu de circulation permet de tester un
-ensemble de proposition LTL classiques et fréquemment utilisée.
+ensemble de propositions LTL classiques et fréquemment utilisées.
 
 \paragraph{answer\_simple}
 (48 lignes, 2 threads)
 Deux threads modélisent un client et un serveur, qui échangent un message à
 travers deux variables partagées. Dans ce premier cas, des mutex sont utilisés
 de manière incorrecte pour protéger ces variables. On vérifie si l'envoie d'une
-requête par le client est bien systématiquement suivi d'une réponse du serveur.
+requête par le client est bien systématiquement suivie d'une réponse du serveur.
 
 \paragraph{answer\_simple\_valid}
 (50 lignes, 2 threads)
@@ -988,11 +990,11 @@ La même situation que précédemment est utilisée, mais les variables partagé
 correctement protégées par les mutex.
 
 \paragraph{prod\_cons\_simple}
-Une situation de producteur / consommateur, avec un seul producteur et un seul
-consommateur, qui incrémentent et décrémentent une variable partagée.
-Dans ce cas de figure, on tente de synchroniser le système sans primitives de
-synchronisation. On vérifie que on ne consomme jamais plus d'éléments qu'il n'y
-a eu de production.
+Ce scénario reprends une situation de producteur / consommateur, avec un seul
+producteur et un seul consommateur, qui
+incrémentent et décrémentent une variable partagée. Dans ce cas de figure, on
+tente de synchroniser le système sans primitives de synchronisation. On vérifie
+que on ne consomme jamais plus d'éléments qu'il n'y a eu de production.
 
 \paragraph{prod\_cons\_mutex}
 On se place dans la même situation que précédemment, en protégeant la variable
@@ -1005,9 +1007,12 @@ résultats de notre outil.
 
 \paragraph{race}
 Deux threads sont en compétition afin de modifier, dans un ordre opposé, deux
-variables partagées. On tente de prouver l'état final atteint si un certaine
-situation intermédiaire est atteinte, ce qui donne l'opportunité de manipuler
-une formule LTL plus complexe que dans les tests précédent.
+variables partagées. L'objectif est de déterminer la valeur contenue à l'état
+final dans la seconde variable, selon l'ordre dans lequel les thread modifient
+la première variable.
+
+Cette situation donne l'opportunité de manipuler
+une formule LTL plus complexe que dans les scénarios précédents.
 
 Les tableaux~\ref{tbl:resultats} et~\ref{tbl:performances} présentent les
 résultats que nous avons obtenus.
