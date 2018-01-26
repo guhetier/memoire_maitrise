@@ -827,6 +827,15 @@ bytecode LLVM dans une machine virtuelle et utilise SPIN comme un
 moniteur d'exécution afin de générer les différents entrelacements à
 explorer.
 
+CHESS\cite{Chess} est un outil de runtime model-checking. Étant donné un
+scénario de test, il permet d'explorer l'ensemble des entrelacements à l'aide
+d'un ordonnanceur. Celui-ci a la particularité de ne pas autoriser un changement
+de contexte en tout point du programme : un changement de contexte est possible
+lorsque une primitive de synchronisation ou un point défini par l'utilisateur
+sont atteints ou lorsqu'un thread est dans une situation de livelock (son
+exécution boucle en attendant une action d'un autre thread). Il permet ainsi de
+limiter l'exploration combinatoire due à la concurrence.
+
 \texttt{inspect}\cite{inspect} vérifie du code C et C++
 multi thread en se basant sur un algorithme de runtime model-checking
 avec une exploration \emph{stateless}. \texttt{inspect} instrumente
