@@ -73,27 +73,25 @@ sur une série d'exemples avec différents model-checkers utilisés pour les tâ
 de vérification.
 
 \paragraph{Hypothèses}
-Nous réalisons un ensemble d'hypothèses sur les système
+Nous réalisons un ensemble d'hypothèses sur les systèmes
 que nous manipulons afin de simplifier la transformation de source à source. Il
-s'agit de restriction classiques, souvent utilisées par les model-checkers
-logiciels. Lorsque le model-checker utilisé pour réaliser les tâches de
-vérification fait ces même hypothèses, elles ne représentent donc pas une
-contrainte supplémentaire.
+s'agit de restrictions classiques, souvent utilisées par les model-checkers
+logiciels.
 
 Nous supposons que le système vérifie les propriétés suivantes :
 
 \begin{itemize}
   \item \textbf{Instructions atomiques} : nous supposons que les changements de
     contexte n'ont lieux que entre deux instructions. Ils ne peuvent pas avoir
-    lieux pendant l'évaluation d'une instruction, même si elle est composée de
+    lieu pendant l'évaluation d'une instruction, même si elle est composée de
     plusieurs expressions.
   \item \textbf{Consistance séquentielle} : les écritures et les lectures sont
-    supposée avoir lieu dans l'ordre où les instructions correspondantes sont
+    supposées avoir lieu dans l'ordre où les instructions correspondantes sont
     rencontrées dans une trace d'exécution. Les optimisation du compilateur et
     du processeur, qui peuvent changer cela, ne sont pas considérées.
   \item \textbf{Sémantique d'entrelacement} : on suppose qu'une trace est un
     entrelacement des instructions atomiques de chaque thread, mais que deux
-    instructions ne sont jamais exécutée simultanément. Cela correspond à
+    instructions ne sont jamais exécutées simultanément. Cela correspond à
     l'exécution d'un programme concurrent sur un seul c\oe{}ur du processeur. Dans
     le cas d'un système multi-c\oe{}ur, cette hypothèse n'est généralement pas
     respectée.
