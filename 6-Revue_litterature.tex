@@ -1122,7 +1122,7 @@ obtient le programme booléen présenté dans le listing \ref{lst:bool_prog_bool
 
 \noindent\begin{minipage}{.45\textwidth}
 \begin{lstlisting}[language=C, caption=Code initial, frame=single, numbers=left,
-    label=lst:bool_prog_init]
+    label=lst:bool_prog_init, xleftmargin=1.6em]
 x = 3;
 y = 2;
 if (y == 1)
@@ -1206,7 +1206,7 @@ Reprenons le programme du listing \ref{lst:bool_prog_init} comme exemple.
 
 \noindent\begin{minipage}{.45\textwidth}
   \begin{lstlisting}[language=C, label=lst:CEGAR_1, numbers=left, frame=single,
-    caption=Abstraction initiale]
+    caption=Abstraction initiale, xleftmargin=1.6em]
 ;
 ;
 if (*)
@@ -1217,7 +1217,7 @@ if (*)
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
   \begin{lstlisting}[language=C, label=lst:CEGAR_2, numbers=left, frame=single,
-    caption=Premier raffinement]
+    caption=Premier raffinement, xleftmargin=1.6em]
 {x = 0} = {false};
 ;
 if (*)
@@ -1229,7 +1229,7 @@ if ({x = 0})
 
 \begin{minipage}{.45\textwidth}
 \begin{lstlisting}[language=C, label=lst:CEGAR_3, numbers=left, frame=single,
-  caption=Second raffinement]
+  caption=Second raffinement, xleftmargin=1.6em]
 {x = 0} = false;
 {y = 1} = false;
 if ({y = 1})
@@ -1446,14 +1446,15 @@ instructions, en particulier les utilisations dynamiques de la mémoire.
 
 Dans notre exemple, la relation de transition se déplierait en :
 
-\[
+\begin{multline}
   \underbrace{a_0 = 0 \land b_0 = 1}_\text{État initial} \land
   \underbrace{a_1 = a_0 + b_0}_\text{Instruction 1} \land
-  \underbrace{c_0 = 2 \land c_1 = 3}_\text{Branches du tests} \land
+  \underbrace{c_0 = 2 \land c_1 = 3}_\text{Branches du tests} \\
+  \land
   \underbrace{(a_1 > 0 \implies c_2 = c_0)
     \land (\lnot a_1 > 0 \implies c_2 = c1)
   }_\text{Fusion des branches}
-\]
+\end{multline}
 
 
 Afin de vérifier une propriété \(\Phi\) du programme, on construit la

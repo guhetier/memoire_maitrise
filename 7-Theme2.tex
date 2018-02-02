@@ -440,9 +440,9 @@ validités. Ici, la proposition atomique \texttt{p} débute au label
 \texttt{lbegin} et se termine au label \texttt{lend}.
 
 \noindent\begin{minipage}{.47\textwidth}
-  \begin{lstlisting}[language=C, frame=single, numbers=left,
+  \begin{lstlisting}[language=C, frame=single, numbers=left, xleftmargin=1.6em,
     caption=Entrée d'une zone de validité (1),
-    label=lst:instr_in1]
+    label=lst:instr_in1, xleftmargin=1.6em]
 __atomic_begin();
 ltl2ba_atomic_p = fp(..);
 _ltl2ba_transition();
@@ -502,7 +502,7 @@ transition dans l'automate de Büchi.
 \pagebreak
 
 \begin{lstlisting}[language=C, frame=single, numbers=left,
-  caption=Instrumentation pour une variable locale]
+  caption=Instrumentation pour une variable locale, xleftmargin=1.6em]
 __atomic_begin();
 v = ....;
 ltl2ba_atomic_p = fp(v, ...);
@@ -543,7 +543,7 @@ illustrent ce problème.
 \begin{figure}
 \noindent\begin{minipage}{.45\textwidth}
   \begin{lstlisting}[language=C, frame=single, numbers=left,
-    caption=Thread 1, label=lst:instr_glob_issue1]
+    caption=Thread 1, label=lst:instr_glob_issue1, xleftmargin=1.6em]
 int a = 1;
 /* Atomic proposition */
 int pred(int a) {
@@ -615,7 +615,7 @@ zones devient donc :
 
 \noindent\begin{minipage}{.47\textwidth}
   \begin{lstlisting}[language=C, frame=single, numbers=left,
-    caption=Entrée d'une zone de validité (2), label=lst:instr_in2]
+    caption=Entrée d'une zone de validité (2), label=lst:instr_in2, xleftmargin=1.6em]
 __atomic_begin();
 _ltl2ba_active_p = 1;
 ltl2ba_atomic_p = fp(..);
@@ -650,7 +650,7 @@ modification d'une variable globale, qui prend alors la forme suivante :
   proposition :
 \end{enumerate}
 
-\begin{lstlisting}[language=C, frame=single, numbers=left,
+\begin{lstlisting}[language=C, frame=single, numbers=left, xleftmargin=1.6em,
   caption=Instrumentation pour une variable globale dans la zone de validité]
 __atomic_begin();
 g = ....;
@@ -668,6 +668,7 @@ __atomic_end();
 \end{enumerate}
 
 \begin{lstlisting}[language=C, frame=single, numbers=left, label=lst:instr_global_out,
+  xleftmargin=1.6em,
   caption=Instrumentation pour une variable globale hors de la zone de validité]
   __atomic_begin();
   g = ....;
@@ -703,7 +704,8 @@ Dans le code suivant, on veut vérifier que les variables \texttt{a} et
 proposition.
 
 \noindent\begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 1]
+  \begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 1,
+    xleftmargin=1.6em]
 int a = 1;
 int pred(int a, int b) {
   return a == b;
@@ -714,7 +716,8 @@ void* thread1(void* d) {
 \end{lstlisting}
 \end{minipage}\hfill
 \begin{minipage}{.45\textwidth}
-\begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 2]
+  \begin{lstlisting}[language=C, frame=single, numbers=left, caption=Thread 2,
+    xleftmargin=1.6em]
 void* thread2(void* d) {
   int b = *(int *)d;
   int r;
@@ -728,7 +731,7 @@ void* thread2(void* d) {
 Le second thread serait instrumenté de la manière suivante :
 
 \begin{lstlisting}[language=C, frame=single, numbers=left,
-  caption=Thread 2 instrumenté]
+  caption=Thread 2 instrumenté, xleftmargin=1.6em]
 void* thread2(void* d) {
   __atomic_begin();
   a = 0;
@@ -763,7 +766,7 @@ pointeur global.
 On obtient enfin la version finale de l'instrumentation pour l'exemple
 précédent.
 
-\begin{lstlisting}[language=C, frame=single, numbers=left,
+\begin{lstlisting}[language=C, frame=single, numbers=left, xleftmargin=1.6em,
   caption=Instrumentation finale pour des variables locales et globales]
 int a = 1;
 // Are we in p validity area ?
